@@ -26,4 +26,18 @@
     <string id="FieldMaxRearGear">Max. Gang hinten</string>
     <string id="FieldMaxRatio">Max. Übersetzung</string>
     <string id="FieldMinBattery">Di2 Akku min</string>
+
+    <!-- Session-сводка FIT -->
+    <string id="FieldAvgRatio">Ø Übersetzung</string>
+    <string id="FieldFrontShifts">Schaltungen vorne</string>
+    <string id="FieldRearShifts">Schaltungen hinten</string>
+    <string id="FieldMostCombo">Häufigste Kombi</string>
+    <string id="FieldMostComboTime">Zeit häufigste Kombi</string>
+    <string id="FieldLeastCombo">Seltenste Kombi</string>
+    <string id="FieldLeastComboTime">Zeit seltenste Kombi</string>
+    <string id="FieldRearTop1">Häufigstes Ritzel #1</string>
+    <string id="FieldRearTop2">Häufigstes Ritzel #2</string>
+    <string id="FieldRearTop3">Häufigstes Ritzel #3</string>
+    <string id="FieldShiftUnit">shifts</string>
+    <string id="FieldSprocketUnit">sprocket</string>
 </strings>

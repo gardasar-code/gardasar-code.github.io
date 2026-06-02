@@ -26,4 +26,18 @@
     <string id="FieldMaxRearGear">Макс. задняя</string>
     <string id="FieldMaxRatio">Макс. передат.</string>
     <string id="FieldMinBattery">Мин. заряд Di2</string>
+
+    <!-- Session-сводка FIT -->
+    <string id="FieldAvgRatio">Сред. передат.</string>
+    <string id="FieldFrontShifts">Перекл. передней</string>
+    <string id="FieldRearShifts">Перекл. задней</string>
+    <string id="FieldMostCombo">Частая комбинация</string>
+    <string id="FieldMostComboTime">Время частой комб.</string>
+    <string id="FieldLeastCombo">Редкая комбинация</string>
+    <string id="FieldLeastComboTime">Время редкой комб.</string>
+    <string id="FieldRearTop1">Частая задняя #1</string>
+    <string id="FieldRearTop2">Частая задняя #2</string>
+    <string id="FieldRearTop3">Частая задняя #3</string>
+    <string id="FieldShiftUnit">shifts</string>
+    <string id="FieldSprocketUnit">sprocket</string>
 </strings>

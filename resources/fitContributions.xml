@@ -28,5 +28,27 @@
                   dataLabel="@Strings.FieldMaxRatio" unitLabel="@Strings.FieldRatioUnit" />
         <fitField id="8" sortOrder="8" displayInActivitySummary="true" precision="0"
                   dataLabel="@Strings.FieldMinBattery" unitLabel="@Strings.FieldBatteryUnit" />
+
+        <!-- session-сводка: ratio, переключения, комбинации, топ-звёзды -->
+        <fitField id="9" sortOrder="9" displayInActivitySummary="true" precision="2"
+                  dataLabel="@Strings.FieldAvgRatio" unitLabel="@Strings.FieldRatioUnit" />
+        <fitField id="10" sortOrder="10" displayInActivitySummary="true" precision="0"
+                  dataLabel="@Strings.FieldFrontShifts" unitLabel="@Strings.FieldShiftUnit" />
+        <fitField id="11" sortOrder="11" displayInActivitySummary="true" precision="0"
+                  dataLabel="@Strings.FieldRearShifts" unitLabel="@Strings.FieldShiftUnit" />
+        <fitField id="12" sortOrder="12" displayInActivitySummary="true"
+                  dataLabel="@Strings.FieldMostCombo" unitLabel="@Strings.FieldTeethUnit" />
+        <fitField id="13" sortOrder="13" displayInActivitySummary="true" precision="2"
+                  dataLabel="@Strings.FieldMostComboTime" unitLabel="@Strings.FieldBatteryUnit" />
+        <fitField id="14" sortOrder="14" displayInActivitySummary="true"
+                  dataLabel="@Strings.FieldLeastCombo" unitLabel="@Strings.FieldTeethUnit" />
+        <fitField id="15" sortOrder="15" displayInActivitySummary="true" precision="2"
+                  dataLabel="@Strings.FieldLeastComboTime" unitLabel="@Strings.FieldBatteryUnit" />
+        <fitField id="16" sortOrder="16" displayInActivitySummary="true" precision="0"
+                  dataLabel="@Strings.FieldRearTop1" unitLabel="@Strings.FieldSprocketUnit" />
+        <fitField id="17" sortOrder="17" displayInActivitySummary="true" precision="0"
+                  dataLabel="@Strings.FieldRearTop2" unitLabel="@Strings.FieldSprocketUnit" />
+        <fitField id="18" sortOrder="18" displayInActivitySummary="true" precision="0"
+                  dataLabel="@Strings.FieldRearTop3" unitLabel="@Strings.FieldSprocketUnit" />
     </fitContributions>
 </resources>

@@ -26,4 +26,18 @@
     <string id="FieldMaxRearGear">Piñón tras. máx</string>
     <string id="FieldMaxRatio">Relación máx</string>
     <string id="FieldMinBattery">Batería Di2 mín</string>
+
+    <!-- Session-сводка FIT -->
+    <string id="FieldAvgRatio">Relación media</string>
+    <string id="FieldFrontShifts">Cambios delant.</string>
+    <string id="FieldRearShifts">Cambios traseros</string>
+    <string id="FieldMostCombo">Combo más usado</string>
+    <string id="FieldMostComboTime">Tiempo combo más</string>
+    <string id="FieldLeastCombo">Combo menos usado</string>
+    <string id="FieldLeastComboTime">Tiempo combo menos</string>
+    <string id="FieldRearTop1">Piñón más usado #1</string>
+    <string id="FieldRearTop2">Piñón más usado #2</string>
+    <string id="FieldRearTop3">Piñón más usado #3</string>
+    <string id="FieldShiftUnit">shifts</string>
+    <string id="FieldSprocketUnit">sprocket</string>
 </strings>

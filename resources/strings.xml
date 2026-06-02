@@ -28,4 +28,18 @@
     <string id="FieldMaxRearGear">Max Rear Gear</string>
     <string id="FieldMaxRatio">Max Ratio</string>
     <string id="FieldMinBattery">Min Di2 Battery</string>
+
+    <!-- Session-сводка FIT -->
+    <string id="FieldAvgRatio">Avg Ratio</string>
+    <string id="FieldFrontShifts">Front Shifts</string>
+    <string id="FieldRearShifts">Rear Shifts</string>
+    <string id="FieldMostCombo">Most Used Combo</string>
+    <string id="FieldMostComboTime">Most Combo Time</string>
+    <string id="FieldLeastCombo">Least Used Combo</string>
+    <string id="FieldLeastComboTime">Least Combo Time</string>
+    <string id="FieldRearTop1">Rear Most Used #1</string>
+    <string id="FieldRearTop2">Rear Most Used #2</string>
+    <string id="FieldRearTop3">Rear Most Used #3</string>
+    <string id="FieldShiftUnit">shifts</string>
+    <string id="FieldSprocketUnit">sprocket</string>
 </strings>
