@@ -1,0 +1,15 @@
+[submodule "doc/emtb"]
+	path = doc/emtb
+	url = https://github.com/markdotai/emtb.git
+[submodule "doc/ki2"]
+	path = doc/ki2
+	url = https://github.com/valterc/ki2.git
+[submodule "doc/DiHack"]
+	path = doc/DiHack
+	url = https://github.com/cmoski/DiHack.git
+[submodule "doc/ebikeDataField"]
+	path = doc/ebikeDataField
+	url = https://github.com/MarkusDatgloi/ebikeDataField.git
+[submodule "doc/connectiq-apps"]
+	path = doc/connectiq-apps
+	url = https://github.com/garmin/connectiq-apps.git

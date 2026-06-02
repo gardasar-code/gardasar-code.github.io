@@ -1,0 +1,5 @@
+# Сборочный конфиг Monkey C. Источники и ресурсы по умолчанию.
+project.manifest = manifest.xml
+
+base.sourcePath = source
+base.resourcePath = resources

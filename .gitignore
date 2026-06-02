@@ -1,0 +1,17 @@
+# Connect IQ build artifacts
+bin/
+*.prg
+*.prg.debug.xml
+*.iq
+
+# SDK / editor
+.DS_Store
+.vscode/
+gen/
+
+# Developer signing key
+developer_key.*
+
+# Логи устройства (снимаем для калибровки, в репозитории не нужны)
+doc/CIQ_LOG*
+doc/Di2Field.txt
