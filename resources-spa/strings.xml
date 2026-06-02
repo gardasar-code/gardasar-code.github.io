@@ -11,7 +11,7 @@
     <string id="SetRearCogs">Piñones traseros</string>
     <string id="SetRearTitle">Dientes traseros</string>
     <string id="TeethPrompt">Separados por comas, un valor por marcha.</string>
-    <string id="AboutText">Campo Di2 por Sergey Lapshin. Muestra tu marcha Shimano Di2, la relación y la batería D-Fly por Bluetooth, y los registra en la actividad. Configura tu transmisión por dientes abajo. Probado con Shimano XT Di2 RD-M8250-SGS (12 velocidades) en Garmin Edge Explore 2. App no oficial, sin afiliación con Shimano.</string>
+    <string id="AboutText">Campo Di2 por Sergey Lapshin. Muestra tu marcha Shimano Di2, la relación y la batería D-Fly por Bluetooth, y registra un resumen completo de la ruta (relaciones, cambios, combinaciones) en la actividad. Ajusta tus platos, cassette y dientes abajo. Probado con Shimano XT Di2 RD-M8250-SGS (12 velocidades) en Garmin Edge Explore 2. App no oficial, sin afiliación con Shimano.</string>
 
     <string id="FieldRearGear">Piñón trasero</string>
     <string id="FieldFrontGear">Plato delantero</string>

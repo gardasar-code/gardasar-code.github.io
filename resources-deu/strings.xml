@@ -11,7 +11,7 @@
     <string id="SetRearCogs">Ritzel hinten</string>
     <string id="SetRearTitle">Zähne hinten</string>
     <string id="TeethPrompt">Durch Komma getrennt, ein Wert pro Gang.</string>
-    <string id="AboutText">Di2 Feld von Sergey Lapshin. Zeigt deinen Shimano Di2 Gang, die Übersetzung und den D-Fly Akku über Bluetooth und zeichnet sie in der Aktivität auf. Konfiguriere deinen Antrieb unten über die Zähnezahl. Getestet mit Shimano XT Di2 RD-M8250-SGS (12-fach) auf Garmin Edge Explore 2. Inoffizielle App, nicht mit Shimano verbunden.</string>
+    <string id="AboutText">Di2 Feld von Sergey Lapshin. Zeigt deinen Shimano Di2 Gang, die Übersetzung und den D-Fly Akku über Bluetooth und zeichnet eine vollständige Fahrt-Zusammenfassung (Übersetzungen, Schaltvorgänge, Kombinationen) in der Aktivität auf. Lege Kettenblätter, Kassette und Zähne unten fest. Getestet mit Shimano XT Di2 RD-M8250-SGS (12-fach) auf Garmin Edge Explore 2. Inoffizielle App, nicht mit Shimano verbunden.</string>
 
     <string id="FieldRearGear">Gang hinten</string>
     <string id="FieldFrontGear">Gang vorne</string>

@@ -11,7 +11,7 @@
     <string id="SetRearCogs">النجوم الخلفية</string>
     <string id="SetRearTitle">أسنان خلفية</string>
     <string id="TeethPrompt">مفصولة بفواصل، قيمة واحدة لكل سرعة.</string>
-    <string id="AboutText">حقل Di2 بواسطة Sergey Lapshin. يعرض سرعة Shimano Di2 ونسبة التروس وبطارية D-Fly عبر البلوتوث، ويسجلها في النشاط. اضبط مجموعة النقل بعدد الأسنان أدناه. تم اختباره مع Shimano XT Di2 RD-M8250-SGS (12 سرعة) على Garmin Edge Explore 2. تطبيق غير رسمي وغير تابع لشركة شيمانو.</string>
+    <string id="AboutText">حقل Di2 بواسطة Sergey Lapshin. يعرض سرعة Shimano Di2 ونسبة التروس وبطارية D-Fly عبر البلوتوث، ويسجّل ملخصاً كاملاً للرحلة (النسب، التبديلات، التركيبات) في النشاط. اضبط النجوم والكاسيت والأسنان أدناه. تم اختباره مع Shimano XT Di2 RD-M8250-SGS (12 سرعة) على Garmin Edge Explore 2. تطبيق غير رسمي وغير تابع لشركة شيمانو.</string>
 
     <string id="FieldRearGear">السرعة الخلفية</string>
     <string id="FieldFrontGear">السرعة الأمامية</string>
