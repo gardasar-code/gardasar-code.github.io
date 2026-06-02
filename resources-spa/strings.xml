@@ -14,6 +14,9 @@
     <string id="FieldFrontGear">Plato delantero</string>
     <string id="FieldBattery">Batería Di2</string>
     <string id="FieldBatteryUnit">%</string>
+    <string id="FieldGearUnit">gear</string>
+    <string id="FieldTeethUnit">T</string>
+    <string id="FieldRatioUnit">:1</string>
     <string id="FieldRearTeeth">Dientes traseros</string>
     <string id="FieldFrontTeeth">Dientes delant.</string>
     <string id="FieldRatio">Relación</string>

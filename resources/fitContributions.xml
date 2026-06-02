@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Описание developer-полей FIT для Garmin Connect (графики + сводка).
+  Без этого XML и без загрузки в стор Garmin Connect НЕ показывает поля,
+  даже если данные пишутся в FIT (сайдлоад их не отображает — нужен стор/beta).
+  id здесь = fieldId в Di2FitContributor. Все *Label — ссылки на строки.
+-->
+<resources>
+    <fitContributions>
+        <!-- record-уровень: графики -->
+        <fitField id="0" sortOrder="0" displayInChart="true" precision="0" fillColor="#1f77b4"
+                  chartTitle="@Strings.FieldRearGear" dataLabel="@Strings.FieldRearGear" unitLabel="@Strings.FieldGearUnit" />
+        <fitField id="1" sortOrder="1" displayInChart="true" precision="0" fillColor="#d62728"
+                  chartTitle="@Strings.FieldFrontGear" dataLabel="@Strings.FieldFrontGear" unitLabel="@Strings.FieldGearUnit" />
+        <fitField id="2" sortOrder="2" displayInChart="true" precision="0" fillColor="#17becf"
+                  chartTitle="@Strings.FieldRearTeeth" dataLabel="@Strings.FieldRearTeeth" unitLabel="@Strings.FieldTeethUnit" />
+        <fitField id="3" sortOrder="3" displayInChart="true" precision="0" fillColor="#ff7f0e"
+                  chartTitle="@Strings.FieldFrontTeeth" dataLabel="@Strings.FieldFrontTeeth" unitLabel="@Strings.FieldTeethUnit" />
+        <fitField id="4" sortOrder="4" displayInChart="true" precision="2" fillColor="#e6a800"
+                  chartTitle="@Strings.FieldRatio" dataLabel="@Strings.FieldRatio" unitLabel="@Strings.FieldRatioUnit" />
+        <fitField id="5" sortOrder="5" displayInChart="true" precision="0" fillColor="#2ca02c"
+                  chartTitle="@Strings.FieldBattery" dataLabel="@Strings.FieldBattery" unitLabel="@Strings.FieldBatteryUnit" />
+
+        <!-- session-уровень: сводка за заезд -->
+        <fitField id="6" sortOrder="6" displayInActivitySummary="true" precision="0"
+                  dataLabel="@Strings.FieldMaxRearGear" unitLabel="@Strings.FieldGearUnit" />
+        <fitField id="7" sortOrder="7" displayInActivitySummary="true" precision="2"
+                  dataLabel="@Strings.FieldMaxRatio" unitLabel="@Strings.FieldRatioUnit" />
+        <fitField id="8" sortOrder="8" displayInActivitySummary="true" precision="0"
+                  dataLabel="@Strings.FieldMinBattery" unitLabel="@Strings.FieldBatteryUnit" />
+    </fitContributions>
+</resources>

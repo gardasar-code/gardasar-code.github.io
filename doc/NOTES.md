@@ -179,6 +179,23 @@ Ble.getPairedDevices().next(); Ble.unpairDevice(device);
 3. emtb рассчитан на eBike; для road Di2 командной инициализации (write) может НЕ требоваться —
    достаточно подписки на notify. Проверяется на устройстве.
 
+## Показ developer-полей FIT в Garmin Connect (важно)
+
+Чтобы кастомные FIT-поля **рисовались в Garmin Connect** (графики + сводка), мало
+писать их кодом через `FitContributor` — нужно ещё:
+1. Ресурс **`resources/fitContributions.xml`** с `<fitField>` на каждое поле:
+   `id` (= fieldId в коде), `dataLabel`, `unitLabel`, `sortOrder` (обязательные),
+   плюс `displayInChart`/`displayInActivitySummary`, `precision`, `fillColor`, `chartTitle`.
+   Все `*Label` — ссылки на строки (`@Strings.X`), литералы запрещены; пустые строки
+   дают warning (для ratio задали `:1`).
+2. **Загрузка в Connect IQ Store** (beta достаточно). **Сайдлоад (OpenMTP/прямой `.prg`)
+   данные пишет в FIT, но Garmin Connect их НЕ показывает** — конфиг отображения
+   берётся из стора/`.iq`.
+3. Локальная проверка без стора — инструмент **MonkeyGraph** из SDK.
+
+Источник: forums.garmin.com (Connect IQ App Development), схема `fitFieldType` в
+`bin/resources.xsd` SDK.
+
 ## Подтверждённые ограничения устройства (из CIQ_LOG.BAK)
 
 - **`Toybox.Timer` НЕДОСТУПЕН в Data Field** — `new Timer.Timer()` бросает Unhandled
