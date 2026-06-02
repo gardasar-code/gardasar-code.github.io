@@ -12,6 +12,11 @@ class Di2State {
     public var frontTotal as Lang.Number = -1;      // число передних передач
     public var battery as Lang.Number = -1;         // заряд D-Fly, % (0..100)
 
+    // Зубья из настроек: передние звёзды и кассета (от меньшей к большей).
+    // Длина списков задаёт frontTotal/rearTotal.
+    public var frontTeeth as Lang.Array<Lang.Number> = [32];
+    public var rearTeeth as Lang.Array<Lang.Number> = [10, 12, 14, 16, 18, 21, 24, 28, 33, 39, 45, 51];
+
     // Отладка калибровки: hex последнего gear-пакета + его длина.
     // Показывается на экране при DEBUG_OVERLAY, чтобы вручную найти байт передней.
     public var dbgGear as Lang.String = "";
@@ -19,9 +24,34 @@ class Di2State {
     function initialize() {
     }
 
+    // Зубья текущей передней звезды (0, если позиция неизвестна).
+    function currentFrontTeeth() as Lang.Number {
+        if (front >= 1 && front <= frontTeeth.size()) {
+            return frontTeeth[front - 1];
+        }
+        return 0;
+    }
+
+    // Зубья текущей задней звезды (0, если нет данных).
+    function currentRearTeeth() as Lang.Number {
+        if (rear >= 1 && rear <= rearTeeth.size()) {
+            return rearTeeth[rear - 1];
+        }
+        return 0;
+    }
+
+    // Передаточное отношение (front/rear), 0.0 если данных нет.
+    function gearRatio() as Lang.Float {
+        var ft = currentFrontTeeth();
+        var rt = currentRearTeeth();
+        if (ft > 0 && rt > 0) {
+            return ft.toFloat() / rt.toFloat();
+        }
+        return 0.0;
+    }
+
     // Сбросить «живые» данные (при потере соединения): задняя передача и батарея.
-    // Не трогаем front/frontTotal/rearTotal — это конфигурация (из настроек), а не
-    // данные BLE; они переживают реконнект.
+    // Не трогаем front/frontTotal/rearTotal/зубья — это конфигурация, переживает реконнект.
     function resetLiveData() as Void {
         rear = -1;
         battery = -1;

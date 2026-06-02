@@ -6,14 +6,15 @@
     <string id="LabelNoData">---</string>
     <string id="LabelFront">V:</string>
 
-    <string id="SetFrontTitle">Kettenblätter vorne</string>
-    <string id="SetRearTitle">Ritzel hinten</string>
+    <string id="SetFrontTitle">Zähne vorne</string>
+    <string id="SetRearTitle">Zähne hinten</string>
     <string id="AboutText">Di2 Feld von Sergey Lapshin. Zeigt deinen Shimano Di2 Gang und den D-Fly Akku über Bluetooth. Getestet mit Shimano XT Di2 RD-M8250-SGS (12-fach); entwickelt für Garmin Edge Explore 2. Inoffizielle App, nicht mit Shimano verbunden.</string>
 
     <string id="FieldRearGear">Gang hinten</string>
     <string id="FieldFrontGear">Gang vorne</string>
     <string id="FieldBattery">Di2 Akku</string>
     <string id="FieldBatteryUnit">%</string>
-    <string id="FieldMaxRearGear">Max. Gang hinten</string>
+    <string id="FieldRatio">Übersetzung</string>
+    <string id="FieldMaxRatio">Max. Übersetzung</string>
     <string id="FieldMinBattery">Di2 Akku min</string>
 </strings>

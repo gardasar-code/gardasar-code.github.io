@@ -7,8 +7,8 @@
     <string id="LabelFront">F:</string>
 
     <!-- Настройки -->
-    <string id="SetFrontTitle">Front chainrings</string>
-    <string id="SetRearTitle">Rear cogs</string>
+    <string id="SetFrontTitle">Front teeth</string>
+    <string id="SetRearTitle">Rear teeth</string>
     <string id="AboutText">Di2 Field by Sergey Lapshin. Shows your Shimano Di2 gear and D-Fly battery over Bluetooth. Tested with Shimano XT Di2 RD-M8250-SGS (12-speed); built for Garmin Edge Explore 2. Unofficial app, not affiliated with Shimano.</string>
 
     <!-- Метки FIT-полей (запись в активность) -->
@@ -16,6 +16,7 @@
     <string id="FieldFrontGear">Front Gear</string>
     <string id="FieldBattery">Di2 Battery</string>
     <string id="FieldBatteryUnit">%</string>
-    <string id="FieldMaxRearGear">Max Rear Gear</string>
+    <string id="FieldRatio">Gears Ratio</string>
+    <string id="FieldMaxRatio">Max Ratio</string>
     <string id="FieldMinBattery">Min Di2 Battery</string>
 </strings>

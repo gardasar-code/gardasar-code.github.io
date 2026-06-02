@@ -6,14 +6,15 @@
     <string id="LabelNoData">---</string>
     <string id="LabelFront">Av:</string>
 
-    <string id="SetFrontTitle">Plateaux avant</string>
-    <string id="SetRearTitle">Pignons arrière</string>
+    <string id="SetFrontTitle">Dents avant</string>
+    <string id="SetRearTitle">Dents arrière</string>
     <string id="AboutText">Champ Di2 par Sergey Lapshin. Affiche votre vitesse Shimano Di2 et la batterie D-Fly via Bluetooth. Testé avec Shimano XT Di2 RD-M8250-SGS (12 vitesses) ; conçu pour Garmin Edge Explore 2. Application non officielle, sans lien avec Shimano.</string>
 
     <string id="FieldRearGear">Pignon arrière</string>
     <string id="FieldFrontGear">Plateau avant</string>
     <string id="FieldBattery">Batterie Di2</string>
     <string id="FieldBatteryUnit">%</string>
-    <string id="FieldMaxRearGear">Pignon arr. max</string>
+    <string id="FieldRatio">Rapport</string>
+    <string id="FieldMaxRatio">Rapport max</string>
     <string id="FieldMinBattery">Batterie Di2 min</string>
 </strings>

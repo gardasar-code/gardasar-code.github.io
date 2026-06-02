@@ -6,14 +6,15 @@
     <string id="LabelNoData">---</string>
     <string id="LabelFront">Пер:</string>
 
-    <string id="SetFrontTitle">Передние звёзды</string>
-    <string id="SetRearTitle">Задние звёзды</string>
+    <string id="SetFrontTitle">Зубья перед.</string>
+    <string id="SetRearTitle">Зубья кассеты</string>
     <string id="AboutText">Поле Di2 — автор Sergey Lapshin. Показывает передачу Shimano Di2 и заряд D-Fly по Bluetooth. Протестировано на Shimano XT Di2 RD-M8250-SGS (12 скоростей); создано для Garmin Edge Explore 2. Неофициальное приложение, не связано с Shimano.</string>
 
     <string id="FieldRearGear">Задняя передача</string>
     <string id="FieldFrontGear">Передняя передача</string>
     <string id="FieldBattery">Батарея Di2</string>
     <string id="FieldBatteryUnit">%</string>
-    <string id="FieldMaxRearGear">Макс. задняя</string>
+    <string id="FieldRatio">Передаточное</string>
+    <string id="FieldMaxRatio">Макс. передат.</string>
     <string id="FieldMinBattery">Мин. заряд Di2</string>
 </strings>

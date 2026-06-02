@@ -6,14 +6,15 @@
     <string id="LabelNoData">---</string>
     <string id="LabelFront">أمام:</string>
 
-    <string id="SetFrontTitle">السرعات الأمامية</string>
-    <string id="SetRearTitle">السرعات الخلفية</string>
+    <string id="SetFrontTitle">أسنان أمامية</string>
+    <string id="SetRearTitle">أسنان خلفية</string>
     <string id="AboutText">حقل Di2 بواسطة Sergey Lapshin. يعرض سرعة Shimano Di2 وبطارية D-Fly عبر البلوتوث. تم اختباره مع Shimano XT Di2 RD-M8250-SGS (12 سرعة)؛ صُمم لجهاز Garmin Edge Explore 2. تطبيق غير رسمي وغير تابع لشركة شيمانو.</string>
 
     <string id="FieldRearGear">السرعة الخلفية</string>
     <string id="FieldFrontGear">السرعة الأمامية</string>
     <string id="FieldBattery">بطارية Di2</string>
     <string id="FieldBatteryUnit">%</string>
-    <string id="FieldMaxRearGear">أقصى سرعة خلفية</string>
+    <string id="FieldRatio">نسبة التروس</string>
+    <string id="FieldMaxRatio">أقصى نسبة</string>
     <string id="FieldMinBattery">أدنى بطارية Di2</string>
 </strings>

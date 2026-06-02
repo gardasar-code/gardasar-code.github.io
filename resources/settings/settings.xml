@@ -1,28 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- UI настроек (Garmin Connect Mobile / Express). Заголовки локализованы. -->
+<!-- UI настроек (Garmin Connect Mobile / Express). Заголовки локализованы.
+     Зубья вводятся списком через запятую (парсер принимает любой разделитель). -->
 <settings>
 
-    <!-- Передние звёзды (1x/2x/3x). prompt используется как блок «о приложении/авторе»
-         — в Connect IQ нет отдельного label-элемента, поэтому About показываем здесь. -->
-    <setting propertyKey="@Properties.frontGears"
+    <!-- Зубья передних звёзд (1x → одно число, напр. 32). prompt = блок About. -->
+    <setting propertyKey="@Properties.frontTeeth"
              title="@Strings.SetFrontTitle"
              prompt="@Strings.AboutText">
-        <settingConfig type="list">
-            <listEntry value="1">1</listEntry>
-            <listEntry value="2">2</listEntry>
-            <listEntry value="3">3</listEntry>
-        </settingConfig>
+        <settingConfig type="alphaNumeric" maxLength="40"/>
     </setting>
 
-    <!-- Задние звёзды (размер кассеты). -->
-    <setting propertyKey="@Properties.rearGears"
+    <!-- Зубья кассеты сзади (от меньшей звезды к большей). -->
+    <setting propertyKey="@Properties.rearTeeth"
              title="@Strings.SetRearTitle">
-        <settingConfig type="list">
-            <listEntry value="9">9</listEntry>
-            <listEntry value="10">10</listEntry>
-            <listEntry value="11">11</listEntry>
-            <listEntry value="12">12</listEntry>
-        </settingConfig>
+        <settingConfig type="alphaNumeric" maxLength="80"/>
     </setting>
 
 </settings>

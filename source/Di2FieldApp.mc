@@ -48,22 +48,45 @@ class Di2FieldApp extends Application.AppBase {
         WatchUi.requestUpdate();
     }
 
-    // Загрузка пользовательских настроек (число передних/задних звёзд) в состояние.
+    // Загрузка пользовательских настроек (зубья звёзд) в состояние.
+    // Число передач выводится из длины списков зубьев.
     private function loadSettings() as Void {
         if (_state == null) {
             return;
         }
-        _state.frontTotal = readNumberProperty("frontGears", 1);
-        _state.rearTotal = readNumberProperty("rearGears", 12);
-        // Текущую переднюю передачу из пакета не вычислить (нет байта); для 1x она
-        // всегда 1, для 2x/3x — неизвестна (покажем "-/N").
+        _state.frontTeeth = readTeeth("frontTeeth", [32]);
+        _state.rearTeeth = readTeeth("rearTeeth", [10, 12, 14, 16, 18, 21, 24, 28, 33, 39, 45, 51]);
+        _state.frontTotal = _state.frontTeeth.size();
+        _state.rearTotal = _state.rearTeeth.size();
+        // Текущую переднюю позицию из пакета не вычислить; для 1x она всегда 1,
+        // для 2x/3x — неизвестна (покажем "-/N").
         _state.front = (_state.frontTotal == 1) ? 1 : -1;
     }
 
-    // Безопасное чтение числового свойства с дефолтом.
-    private function readNumberProperty(key as Lang.String, dflt as Lang.Number) as Lang.Number {
+    // Прочитать строковое свойство и распарсить в список чисел (зубья).
+    // Любой нецифровой символ — разделитель. Пустой/битый ввод → дефолт.
+    private function readTeeth(key as Lang.String, dflt as Lang.Array<Lang.Number>) as Lang.Array<Lang.Number> {
         var v = Application.Properties.getValue(key);
-        return (v == null) ? dflt : (v as Lang.Number);
+        if (!(v instanceof Lang.String)) {
+            return dflt;
+        }
+        var out = [] as Lang.Array<Lang.Number>;
+        var cur = "";
+        var digits = "0123456789";
+        var chars = (v as Lang.String).toCharArray();
+        for (var i = 0; i < chars.size(); i++) {
+            var ch = chars[i].toString();
+            if (digits.find(ch) != null) {
+                cur += ch;
+            } else if (cur.length() > 0) {
+                out.add(cur.toNumber());
+                cur = "";
+            }
+        }
+        if (cur.length() > 0) {
+            out.add(cur.toNumber());
+        }
+        return (out.size() > 0) ? out : dflt;
     }
 
     // Data Field возвращает единственный View (без InputDelegate).

@@ -41,9 +41,10 @@ class Di2FieldView extends WatchUi.DataField {
             _delegate.onTick();
         }
         applyDebugData();
-        // Запись текущих значений в FIT (после обновления состояния за этот тик).
+        // Запись в FIT (после обновления состояния): зубья, передаточное, заряд.
         if (_fit != null && _state != null) {
-            _fit.update(_state.rear, _state.front, _state.battery);
+            _fit.update(_state.currentFrontTeeth(), _state.currentRearTeeth(),
+                        _state.gearRatio(), _state.battery);
         }
     }
 
