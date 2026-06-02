@@ -14,4 +14,6 @@
     <string id="FieldFrontGear">Plato delantero</string>
     <string id="FieldBattery">Batería Di2</string>
     <string id="FieldBatteryUnit">%</string>
+    <string id="FieldMaxRearGear">Piñón tras. máx</string>
+    <string id="FieldMinBattery">Batería Di2 mín</string>
 </strings>

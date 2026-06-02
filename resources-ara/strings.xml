@@ -14,4 +14,6 @@
     <string id="FieldFrontGear">السرعة الأمامية</string>
     <string id="FieldBattery">بطارية Di2</string>
     <string id="FieldBatteryUnit">%</string>
+    <string id="FieldMaxRearGear">أقصى سرعة خلفية</string>
+    <string id="FieldMinBattery">أدنى بطارية Di2</string>
 </strings>
