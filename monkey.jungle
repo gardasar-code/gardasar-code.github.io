@@ -3,3 +3,7 @@ project.manifest = manifest.xml
 
 base.sourcePath = source
 base.resourcePath = resources
+
+# Переключение BLE по типу сборки реализовано встроенными аннотациями
+# :debug / :release (см. Di2FieldApp.bleEnabled). Флаг -r (release) исключает
+# :debug-код, debug-сборка (F5) исключает :release-код — без доп. конфигурации.

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- UI настроек (Garmin Connect Mobile / Express). Заголовки локализованы. -->
+<settings>
+
+    <!-- Передние звёзды (1x/2x/3x). prompt используется как блок «о приложении/авторе»
+         — в Connect IQ нет отдельного label-элемента, поэтому About показываем здесь. -->
+    <setting propertyKey="@Properties.frontGears"
+             title="@Strings.SetFrontTitle"
+             prompt="@Strings.AboutText">
+        <settingConfig type="list">
+            <listEntry value="1">1</listEntry>
+            <listEntry value="2">2</listEntry>
+            <listEntry value="3">3</listEntry>
+        </settingConfig>
+    </setting>
+
+    <!-- Задние звёзды (размер кассеты). -->
+    <setting propertyKey="@Properties.rearGears"
+             title="@Strings.SetRearTitle">
+        <settingConfig type="list">
+            <listEntry value="9">9</listEntry>
+            <listEntry value="10">10</listEntry>
+            <listEntry value="11">11</listEntry>
+            <listEntry value="12">12</listEntry>
+        </settingConfig>
+    </setting>
+
+</settings>

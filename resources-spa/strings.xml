@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Испанская локализация. -->
+<strings>
+    <string id="AppName">Campo Di2</string>
+    <string id="LabelDi2">Di2</string>
+    <string id="LabelNoData">---</string>
+    <string id="LabelFront">Del:</string>
+
+    <string id="SetFrontTitle">Platos delanteros</string>
+    <string id="SetRearTitle">Piñones traseros</string>
+    <string id="AboutText">Campo Di2 por Sergey Lapshin. Muestra tu marcha Shimano Di2 y la batería D-Fly por Bluetooth. Probado con Shimano XT Di2 RD-M8250-SGS (12 velocidades); creado para Garmin Edge Explore 2. App no oficial, sin afiliación con Shimano.</string>
+</strings>

@@ -25,15 +25,12 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // ── Смещения байтов в notify-пакете 0x2ac1 (подтверждены на реальном Di2) ──
     // Пакет 17 байт; пример: 00 00 03 FF FF 0A 0C 80 80 80 FF EE 12 FF FF 15 00
-    //   байт 5 = текущая задняя (0x0A=10), байт 6 = число задних звёзд (0x0C=12).
-    private const PKT_GEAR_LEN      = 17;
-    private const PKT_REAR_IDX      = 5;   // текущая задняя передача
-    private const PKT_REARTOTAL_IDX = 6;   // число задних передач (кассета)
-
-    // Число передних звёзд. 1x → передней передачи нет, показываем 1/1.
-    // Для 2x: определи байт передней (переключи звезду, найди меняющийся байт) и
-    // парси его в parseGearPacket вместо фиксированного значения.
-    private const FRONT_CHAINRINGS = 1;
+    //   байт 5 = текущая задняя передача (0x0A=10). Байт 6 ранее принимали за число
+    //   задних звёзд, но теперь оно задаётся пользователем в настройках (надёжнее).
+    private const PKT_GEAR_LEN = 17;
+    private const PKT_REAR_IDX = 5;   // текущая задняя передача
+    // Байт передней передачи не выявлен; число звёзд (front/rear) приходит из
+    // настроек (frontGears/rearGears) и хранится в Di2State.
 
     // ── Тайминги/лимиты ───────────────────────────────────────────────────────
     // Периодику гоним от onTick() (вызывается из View.compute() ~раз в секунду).
@@ -208,12 +205,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             if (PKT_REAR_IDX < value.size()) {
                 _state.rear = value[PKT_REAR_IDX].toNumber();
             }
-            if (PKT_REARTOTAL_IDX < value.size()) {
-                _state.rearTotal = value[PKT_REARTOTAL_IDX].toNumber();
-            }
-            // 1x: передняя зафиксирована (в пакете отдельного байта передней нет).
-            _state.front = 1;
-            _state.frontTotal = FRONT_CHAINRINGS;
+            // front/frontTotal/rearTotal задаются настройками (см. Di2FieldApp).
             // Калибровочный дамп gear-пакета на экран (для будущей настройки 2x).
             _state.dbgGear = toHex(value);
         }

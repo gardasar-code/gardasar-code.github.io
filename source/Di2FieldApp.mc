@@ -9,18 +9,6 @@ using Toybox.Lang;
 //  - корректно отключает BLE в onStop.
 class Di2FieldApp extends Application.AppBase {
 
-    // ╔══════════════════════════════════════════════════════════════════════╗
-    // ║  ПЕРЕКЛЮЧАТЕЛЬ BLE — единственное, что нужно менять для sim/device     ║
-    // ║                                                                        ║
-    // ║   true   → реальный Edge Explore 2 (рабочий режим, прошивка)           ║
-    // ║   false  → симулятор Connect IQ (проверка UI)                          ║
-    // ║                                                                        ║
-    // ║  Почему: BLE в симуляторе не эмулируется и роняет его (нативный краш   ║
-    // ║  в потоке ant_main на macOS 26+). На устройстве этого потока нет —     ║
-    // ║  там настоящий стек BLE, краш симулятора туда не переносится.          ║
-    // ╚══════════════════════════════════════════════════════════════════════╝
-    private const ENABLE_BLE = true;
-
     private var _state as Di2State?;
     private var _delegate as Di2BleDelegate?;
 
@@ -28,10 +16,19 @@ class Di2FieldApp extends Application.AppBase {
         AppBase.initialize();
     }
 
+    // Включён ли BLE — определяется ТИПОМ сборки через встроенные аннотации:
+    //   :release (publish / device, -r) → true  : настоящий стек BLE на устройстве
+    //   :debug   (F5 / симулятор)       → false : эмулятор BLE симулятора нестабилен
+    //                                             (нативный краш в ant_main на macOS 26+)
+    // Компилятор оставляет ровно одно определение в зависимости от флага -r.
+    (:release) function bleEnabled() as Lang.Boolean { return true; }
+    (:debug)   function bleEnabled() as Lang.Boolean { return false; }
+
     // Вызывается при запуске Data Field. Здесь поднимаем BLE.
     function onStart(state as Lang.Dictionary?) as Void {
         _state = new Di2State();
-        if (ENABLE_BLE) {
+        loadSettings();
+        if (bleEnabled()) {
             _delegate = new Di2BleDelegate(_state);
             _delegate.start();
         }
@@ -43,6 +40,30 @@ class Di2FieldApp extends Application.AppBase {
             _delegate.stop();
             _delegate = null;
         }
+    }
+
+    // Пользователь поменял настройки в Garmin Connect Mobile — перечитываем.
+    function onSettingsChanged() as Void {
+        loadSettings();
+        WatchUi.requestUpdate();
+    }
+
+    // Загрузка пользовательских настроек (число передних/задних звёзд) в состояние.
+    private function loadSettings() as Void {
+        if (_state == null) {
+            return;
+        }
+        _state.frontTotal = readNumberProperty("frontGears", 1);
+        _state.rearTotal = readNumberProperty("rearGears", 12);
+        // Текущую переднюю передачу из пакета не вычислить (нет байта); для 1x она
+        // всегда 1, для 2x/3x — неизвестна (покажем "-/N").
+        _state.front = (_state.frontTotal == 1) ? 1 : -1;
+    }
+
+    // Безопасное чтение числового свойства с дефолтом.
+    private function readNumberProperty(key as Lang.String, dflt as Lang.Number) as Lang.Number {
+        var v = Application.Properties.getValue(key);
+        return (v == null) ? dflt : (v as Lang.Number);
     }
 
     // Data Field возвращает единственный View (без InputDelegate).

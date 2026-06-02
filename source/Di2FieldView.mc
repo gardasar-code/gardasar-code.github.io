@@ -1,6 +1,7 @@
 using Toybox.WatchUi;
 using Toybox.Graphics;
 using Toybox.Lang;
+using Toybox.Application;
 
 // Рендеринг Data Field (светлая тема). Макет:
 //   [Di2] •      F:{front}/{frontTotal}      {bat}%      ← FONT_XTINY
@@ -15,9 +16,10 @@ class Di2FieldView extends WatchUi.DataField {
     private var _state as Di2State?;
     private var _delegate as Di2BleDelegate?;   // null, если BLE отключён
 
-    // Кэш строк из ресурсов (грузим один раз).
+    // Кэш строк из ресурсов (грузим один раз, с учётом языка устройства).
     private var _lblDi2 as Lang.String = "Di2";
     private var _noData as Lang.String = "---";
+    private var _lblFront as Lang.String = "F:";
 
     function initialize(state as Di2State?, delegate as Di2BleDelegate?) {
         DataField.initialize();
@@ -25,6 +27,7 @@ class Di2FieldView extends WatchUi.DataField {
         _delegate = delegate;
         _lblDi2 = WatchUi.loadResource(Rez.Strings.LabelDi2) as Lang.String;
         _noData = WatchUi.loadResource(Rez.Strings.LabelNoData) as Lang.String;
+        _lblFront = WatchUi.loadResource(Rez.Strings.LabelFront) as Lang.String;
     }
 
     // Data Field вызывает compute каждую секунду — это heartbeat дата-филда.
@@ -35,46 +38,78 @@ class Di2FieldView extends WatchUi.DataField {
         if (_delegate != null) {
             _delegate.onTick();
         }
+        applyDebugData();
+    }
+
+    // DEBUG (симулятор): подменяем «живые» данные, т.к. BLE в симуляторе нет.
+    //   connected = true (показываем цифры, а не "---");
+    //   задняя передача = Storage["debugRear"] (по умолчанию 5);
+    //   батарея        = Storage["debugBattery"] (по умолчанию 75).
+    // Меняй значения в симуляторе: меню «File → Edit Persistent Storage» — добавь
+    // ключ debugRear (число 1..12) и/или debugBattery (0..100). В release вырезается.
+    (:debug)
+    function applyDebugData() as Void {
+        if (_state == null) {
+            return;
+        }
+        _state.connected = true;
+        var r = Application.Storage.getValue("debugRear");
+        _state.rear = (r == null) ? 5 : (r as Lang.Number);
+        var b = Application.Storage.getValue("debugBattery");
+        _state.battery = (b == null) ? 75 : (b as Lang.Number);
+    }
+
+    (:release)
+    function applyDebugData() as Void {
     }
 
     function onUpdate(dc as Graphics.Dc) as Void {
         var w = dc.getWidth();
         var h = dc.getHeight();
 
-        // Фон — белый, очистка.
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_WHITE);
+        // Цвета по теме устройства: дневной фон белый / ночной чёрный.
+        // getBackgroundColor() возвращает фон, заданный системой; текст инвертируем.
+        var bg = getBackgroundColor();
+        var dark = (bg == Graphics.COLOR_BLACK);
+        var fg = dark ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK;
+        // Приглушённый цвет для лидирующего нуля (тусклее основного на текущем фоне).
+        var fade = dark ? Graphics.COLOR_DK_GRAY : Graphics.COLOR_LT_GRAY;
+        dc.setColor(bg, bg);
         dc.clear();
 
         var connected = (_state != null) && _state.connected;
 
         // ── Верхняя строка ────────────────────────────────────────────────────
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
         var topY = (h * 0.08).toNumber();
+        var topFontH = dc.getFontHeight(Graphics.FONT_XTINY);
 
-        // Слева: метка [Di2] + индикатор подключения.
+        // Слева: метка Di2 + индикатор подключения (кружок по центру высоты текста).
         dc.drawText(2, topY, Graphics.FONT_XTINY, _lblDi2, Graphics.TEXT_JUSTIFY_LEFT);
         var dotColor = connected ? Graphics.COLOR_GREEN : Graphics.COLOR_LT_GRAY;
         var di2Width = dc.getTextWidthInPixels(_lblDi2, Graphics.FONT_XTINY);
         dc.setColor(dotColor, Graphics.COLOR_TRANSPARENT);
-        dc.fillCircle(di2Width + 10, topY + 6, 4);
+        dc.fillCircle(2 + di2Width + 8, topY + topFontH / 2, 4);
 
-        // По центру: передняя передача F:{front}/{frontTotal}.
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
-        var frontStr = "F:" + pair(frontVal(), frontTotalVal());
+        // По центру: передняя передача F:{front}/{frontTotal}. Пока нет связи — "---".
+        dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+        var frontStr = _lblFront + (connected ? pair(frontVal(), frontTotalVal()) : _noData);
         dc.drawText(w / 2, topY, Graphics.FONT_XTINY, frontStr, Graphics.TEXT_JUSTIFY_CENTER);
 
         // Справа: батарея {bat}%.
         var battStr = batteryStr();
         dc.drawText(w - 2, topY, Graphics.FONT_XTINY, battStr, Graphics.TEXT_JUSTIFY_RIGHT);
 
-        // ── Центр: задняя передача (крупно) ───────────────────────────────────
-        var rearStr = pair(rearVal(), rearTotalVal());
-        dc.drawText(w / 2, h / 2, biggestFont(), rearStr,
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        // ── Задняя передача (крупно): центр свободной зоны ПОД шапкой ──────────
+        var maxWidth = (w * 0.84).toNumber();        // ~8% поля с каждой стороны
+        var headerBottom = topY + topFontH;          // низ верхней строки
+        var rearY = (headerBottom + h) / 2;          // центр оставшейся высоты
+        var maxHeight = ((h - headerBottom) * 0.9).toNumber();  // запас по высоте
+        drawRear(dc, w / 2, rearY, maxWidth, maxHeight, connected, fg, fade);
 
         // ── Отладочный дамп gear-пакета (калибровка байта передней) ────────────
         if (DEBUG_OVERLAY && _state != null && _state.dbgGear.length() > 0) {
-            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
             var bytes = toTokens(_state.dbgGear);
             var half = (bytes.size() + 1) / 2;
             var line1 = joinRange(bytes, 0, half);          // байты 0..half-1
@@ -114,11 +149,17 @@ class Di2FieldView extends WatchUi.DataField {
     // ── Форматирование ────────────────────────────────────────────────────────
 
     // Форматирование пары «передача/всего» с деградацией:
-    //   оба известны -> "a/b"; известна только текущая -> "a" (полезно при калибровке);
-    //   ничего нет -> "---".
+    //   оба известны        -> "a/b"
+    //   известна только текущая -> "a"
+    //   известно только всего   -> "-/b"  (напр. 2x: число звёзд из настроек есть,
+    //                                       текущую переднюю прочитать нельзя)
+    //   ничего нет           -> "---"
     private function pair(a as Lang.Number, b as Lang.Number) as Lang.String {
-        if (a < 0) {
+        if (a < 0 && b < 0) {
             return _noData;
+        }
+        if (a < 0) {
+            return "-/" + b.toString();
         }
         if (b < 0) {
             return a.toString();
@@ -139,8 +180,104 @@ class Di2FieldView extends WatchUi.DataField {
     private function rearVal() as Lang.Number       { return (_state != null) ? _state.rear : -1; }
     private function rearTotalVal() as Lang.Number  { return (_state != null) ? _state.rearTotal : -1; }
 
-    // Крупнейший разумно доступный шрифт для центральной цифры.
-    private function biggestFont() as Graphics.FontDefinition {
-        return Graphics.FONT_NUMBER_THAI_HOT;
+    // Доля от высоты шрифта: радиус кружка-разделителя и зазор до цифр.
+    private const REAR_DOT_FRAC = 0.085;   // радиус точки
+    private const REAR_GAP_FRAC = 0.07;    // зазор между точкой и цифрой
+    // Смещение кружка вниз (доля высоты шрифта): у числовых шрифтов визуальный центр
+    // цифр ниже центра строки, поэтому опускаем точку, чтобы она смотрелась посередине.
+    private const REAR_DOT_Y_FRAC = 0.06;
+
+    // Отрисовка задней передачи тремя зонами с кружком-разделителем по центру (cx):
+    //   • кружок      — по центру cx;
+    //   • текущая     — правым краем к кружку (с зазором), растёт влево;
+    //   • всего       — левым краем к кружку (с зазором), растёт вправо.
+    // Одиночные цифры дополняются лидирующим "0" приглушённым цветом (стабильная ширина).
+    // Кружок не двигается при смене числа цифр/шрифта. Нет связи — крупное "---".
+    private function drawRear(dc as Graphics.Dc, cx as Lang.Number, cy as Lang.Number,
+                             maxWidth as Lang.Number, maxHeight as Lang.Number,
+                             connected as Lang.Boolean, fg as Graphics.ColorType,
+                             fade as Graphics.ColorType) as Void {
+        var vc = Graphics.TEXT_JUSTIFY_VCENTER;
+        if (!connected) {
+            var f0 = fitRearFont(dc, _noData, _noData, maxWidth, maxHeight);
+            dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, cy, f0, _noData, Graphics.TEXT_JUSTIFY_CENTER | vc);
+            return;
+        }
+        var left = (rearVal() < 0) ? "-" : rearVal().toString();
+        var right = (rearTotalVal() < 0) ? "-" : rearTotalVal().toString();
+        var font = fitRearFont(dc, left, right, maxWidth, maxHeight);
+        var fh = dc.getFontHeight(font);
+        var rDot = (fh * REAR_DOT_FRAC).toNumber();
+        var gap = (fh * REAR_GAP_FRAC).toNumber();
+        var inner = rDot + gap;   // отступ от центра до края цифры
+
+        var dotY = cy + (fh * REAR_DOT_Y_FRAC).toNumber();   // опускаем к центру цифр
+        dc.setColor(fade, Graphics.COLOR_TRANSPARENT);
+        dc.fillCircle(cx, dotY, rDot);
+        drawPadded(dc, cx - inner, cy, font, left, true, fg, fade);    // текущая: правым краем
+        drawPadded(dc, cx + inner, cy, font, right, false, fg, fade);  // всего: левым краем
+    }
+
+    // Число с лидирующим "0" приглушённого цвета, если оно однозначное (не "-").
+    // rightJustify=true → правый край в x; false → левый край в x.
+    private function drawPadded(dc as Graphics.Dc, x as Lang.Number, cy as Lang.Number,
+                               font as Graphics.FontDefinition, num as Lang.String,
+                               rightJustify as Lang.Boolean, fg as Graphics.ColorType,
+                               fade as Graphics.ColorType) as Void {
+        var vc = Graphics.TEXT_JUSTIFY_VCENTER;
+        var single = (num.length() == 1) && !num.equals("-");
+        if (!single) {
+            dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(x, cy, font, num, (rightJustify ? Graphics.TEXT_JUSTIFY_RIGHT : Graphics.TEXT_JUSTIFY_LEFT) | vc);
+            return;
+        }
+        var dw = dc.getTextWidthInPixels("0", font);
+        if (rightJustify) {
+            // "0" + цифра, правый край цифры в x; "0" слева от неё
+            dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(x, cy, font, num, Graphics.TEXT_JUSTIFY_RIGHT | vc);
+            dc.setColor(fade, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(x - dw, cy, font, "0", Graphics.TEXT_JUSTIFY_RIGHT | vc);
+        } else {
+            // "0" + цифра, левый край "0" в x; цифра справа
+            dc.setColor(fade, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(x, cy, font, "0", Graphics.TEXT_JUSTIFY_LEFT | vc);
+            dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(x + dw, cy, font, num, Graphics.TEXT_JUSTIFY_LEFT | vc);
+        }
+    }
+
+    // Ширина числа с учётом лидирующего нуля (однозначное считаем как двузначное).
+    private function paddedWidth(dc as Graphics.Dc, s as Lang.String, font as Graphics.FontDefinition) as Lang.Number {
+        if (s.length() == 1 && !s.equals("-")) {
+            return dc.getTextWidthInPixels("00", font);
+        }
+        return dc.getTextWidthInPixels(s, font);
+    }
+
+    // Самый крупный числовой шрифт, при котором запись с кружком-разделителем
+    // влезает по ширине (учитывая бóльшую из сторон + кружок + зазор) и по высоте.
+    private function fitRearFont(dc as Graphics.Dc, left as Lang.String, right as Lang.String,
+                                maxWidth as Lang.Number, maxHeight as Lang.Number) as Graphics.FontDefinition {
+        var fonts = [
+            Graphics.FONT_NUMBER_THAI_HOT,
+            Graphics.FONT_NUMBER_HOT,
+            Graphics.FONT_NUMBER_MEDIUM,
+            Graphics.FONT_NUMBER_MILD
+        ];
+        for (var i = 0; i < fonts.size(); i++) {
+            var f = fonts[i];
+            var fh = dc.getFontHeight(f);
+            var inner = fh * REAR_DOT_FRAC + fh * REAR_GAP_FRAC;
+            var lw = paddedWidth(dc, left, f);
+            var rw = paddedWidth(dc, right, f);
+            var maxSide = (lw > rw) ? lw : rw;
+            // Каждая сторона = inner + maxSide должна влезать в maxWidth/2; плюс высота.
+            if (2 * (inner + maxSide) <= maxWidth && fh <= maxHeight) {
+                return f;
+            }
+        }
+        return Graphics.FONT_NUMBER_MILD;
     }
 }

@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Базовые строки (английский) — fallback для всех языков. -->
 <strings>
     <string id="AppName">Di2 Field</string>
     <string id="LabelDi2">Di2</string>
     <string id="LabelNoData">---</string>
+    <string id="LabelFront">F:</string>
+
+    <!-- Настройки -->
+    <string id="SetFrontTitle">Front chainrings</string>
+    <string id="SetRearTitle">Rear cogs</string>
+    <string id="AboutText">Di2 Field by Sergey Lapshin. Shows your Shimano Di2 gear and D-Fly battery over Bluetooth. Tested with Shimano XT Di2 RD-M8250-SGS (12-speed); built for Garmin Edge Explore 2. Unofficial app, not affiliated with Shimano.</string>
 </strings>

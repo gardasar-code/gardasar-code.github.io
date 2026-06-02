@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Персистентные свойства приложения (значения по умолчанию). -->
+<properties>
+    <!-- Число передних звёзд (1x/2x/3x). По умолчанию 1x (как протестировано). -->
+    <property id="frontGears" type="number">1</property>
+    <!-- Число задних звёзд (размер кассеты). -->
+    <property id="rearGears" type="number">12</property>
+</properties>

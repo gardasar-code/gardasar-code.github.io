@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Французская локализация. -->
+<strings>
+    <string id="AppName">Champ Di2</string>
+    <string id="LabelDi2">Di2</string>
+    <string id="LabelNoData">---</string>
+    <string id="LabelFront">Av:</string>
+
+    <string id="SetFrontTitle">Plateaux avant</string>
+    <string id="SetRearTitle">Pignons arrière</string>
+    <string id="AboutText">Champ Di2 par Sergey Lapshin. Affiche votre vitesse Shimano Di2 et la batterie D-Fly via Bluetooth. Testé avec Shimano XT Di2 RD-M8250-SGS (12 vitesses) ; conçu pour Garmin Edge Explore 2. Application non officielle, sans lien avec Shimano.</string>
+</strings>
