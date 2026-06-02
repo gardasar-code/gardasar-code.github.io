@@ -9,4 +9,9 @@
     <string id="SetFrontTitle">Platos delanteros</string>
     <string id="SetRearTitle">Piñones traseros</string>
     <string id="AboutText">Campo Di2 por Sergey Lapshin. Muestra tu marcha Shimano Di2 y la batería D-Fly por Bluetooth. Probado con Shimano XT Di2 RD-M8250-SGS (12 velocidades); creado para Garmin Edge Explore 2. App no oficial, sin afiliación con Shimano.</string>
+
+    <string id="FieldRearGear">Piñón trasero</string>
+    <string id="FieldFrontGear">Plato delantero</string>
+    <string id="FieldBattery">Batería Di2</string>
+    <string id="FieldBatteryUnit">%</string>
 </strings>

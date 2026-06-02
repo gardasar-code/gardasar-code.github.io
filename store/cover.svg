@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+  <rect width="500" height="500" fill="#ffffff"/>
+  <!-- header: Di2 + green dot слева, батарея справа -->
+  <text x="34" y="78" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="40" fill="#777">Di2</text>
+  <circle cx="120" cy="64" r="9" fill="#34c759"/>
+  <text x="466" y="78" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="34" fill="#777">72%</text>
+  <text x="250" y="78" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="34" fill="#777">F:1/1</text>
+  <!-- центр: 07 • 12 -->
+  <text x="226" y="320" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="165">
+    <tspan fill="#cfcfcf">0</tspan><tspan fill="#111">7</tspan>
+  </text>
+  <circle cx="250" cy="268" r="13" fill="#bdbdbd"/>
+  <text x="274" y="320" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="165" fill="#111">12</text>
+  <!-- подпись -->
+  <text x="250" y="430" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="30" fill="#666">Shimano Di2 gear &amp; battery</text>
+  <text x="250" y="468" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="24" fill="#999">over Bluetooth (D-Fly)</text>
+</svg>

@@ -15,6 +15,7 @@ class Di2FieldView extends WatchUi.DataField {
 
     private var _state as Di2State?;
     private var _delegate as Di2BleDelegate?;   // null, если BLE отключён
+    private var _fit as Di2FitContributor?;     // запись в FIT-файл активности
 
     // Кэш строк из ресурсов (грузим один раз, с учётом языка устройства).
     private var _lblDi2 as Lang.String = "Di2";
@@ -28,6 +29,7 @@ class Di2FieldView extends WatchUi.DataField {
         _lblDi2 = WatchUi.loadResource(Rez.Strings.LabelDi2) as Lang.String;
         _noData = WatchUi.loadResource(Rez.Strings.LabelNoData) as Lang.String;
         _lblFront = WatchUi.loadResource(Rez.Strings.LabelFront) as Lang.String;
+        _fit = new Di2FitContributor(self);
     }
 
     // Data Field вызывает compute каждую секунду — это heartbeat дата-филда.
@@ -39,6 +41,10 @@ class Di2FieldView extends WatchUi.DataField {
             _delegate.onTick();
         }
         applyDebugData();
+        // Запись текущих значений в FIT (после обновления состояния за этот тик).
+        if (_fit != null && _state != null) {
+            _fit.update(_state.rear, _state.front, _state.battery);
+        }
     }
 
     // DEBUG (симулятор): подменяем «живые» данные, т.к. BLE в симуляторе нет.
