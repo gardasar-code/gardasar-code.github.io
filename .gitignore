@@ -15,3 +15,4 @@ developer_key.*
 # Логи устройства (снимаем для калибровки, в репозитории не нужны)
 doc/CIQ_LOG*
 doc/Di2Field.txt
+*.fit
