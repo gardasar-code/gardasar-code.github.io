@@ -8,7 +8,7 @@
 
     <string id="SetFrontTitle">Зубья перед.</string>
     <string id="SetRearTitle">Зубья кассеты</string>
-    <string id="AboutText">Поле Di2 — автор Sergey Lapshin. Показывает передачу Shimano Di2 и заряд D-Fly по Bluetooth. Протестировано на Shimano XT Di2 RD-M8250-SGS (12 скоростей); создано для Garmin Edge Explore 2. Неофициальное приложение, не связано с Shimano.</string>
+    <string id="AboutText">Поле Di2 — автор Sergey Lapshin. Показывает передачу Shimano Di2, передаточное отношение и заряд D-Fly по Bluetooth и записывает их в активность. Трансмиссия настраивается по зубьям ниже. Протестировано на Shimano XT Di2 RD-M8250-SGS (12 скоростей) на Garmin Edge Explore 2. Неофициальное приложение, не связано с Shimano.</string>
 
     <string id="FieldRearGear">Задняя передача</string>
     <string id="FieldFrontGear">Передняя передача</string>

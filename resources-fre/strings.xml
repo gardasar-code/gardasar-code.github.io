@@ -8,7 +8,7 @@
 
     <string id="SetFrontTitle">Dents avant</string>
     <string id="SetRearTitle">Dents arrière</string>
-    <string id="AboutText">Champ Di2 par Sergey Lapshin. Affiche votre vitesse Shimano Di2 et la batterie D-Fly via Bluetooth. Testé avec Shimano XT Di2 RD-M8250-SGS (12 vitesses) ; conçu pour Garmin Edge Explore 2. Application non officielle, sans lien avec Shimano.</string>
+    <string id="AboutText">Champ Di2 par Sergey Lapshin. Affiche votre vitesse Shimano Di2, le rapport et la batterie D-Fly via Bluetooth, et les enregistre dans l'activité. Configurez votre transmission par nombre de dents ci-dessous. Testé avec Shimano XT Di2 RD-M8250-SGS (12 vitesses) sur Garmin Edge Explore 2. Application non officielle, sans lien avec Shimano.</string>
 
     <string id="FieldRearGear">Pignon arrière</string>
     <string id="FieldFrontGear">Plateau avant</string>

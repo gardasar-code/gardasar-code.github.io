@@ -9,7 +9,7 @@
     <!-- Настройки -->
     <string id="SetFrontTitle">Front teeth</string>
     <string id="SetRearTitle">Rear teeth</string>
-    <string id="AboutText">Di2 Field by Sergey Lapshin. Shows your Shimano Di2 gear and D-Fly battery over Bluetooth. Tested with Shimano XT Di2 RD-M8250-SGS (12-speed); built for Garmin Edge Explore 2. Unofficial app, not affiliated with Shimano.</string>
+    <string id="AboutText">Di2 Field by Sergey Lapshin. Shows your Shimano Di2 gear, gear ratio and D-Fly battery over Bluetooth, and records them to the activity. Configure your drivetrain by teeth below. Tested with Shimano XT Di2 RD-M8250-SGS (12-speed) on Garmin Edge Explore 2. Unofficial app, not affiliated with Shimano.</string>
 
     <!-- Метки FIT-полей (запись в активность) -->
     <string id="FieldRearGear">Rear Gear</string>
