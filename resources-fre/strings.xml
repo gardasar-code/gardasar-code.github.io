@@ -14,7 +14,10 @@
     <string id="FieldFrontGear">Plateau avant</string>
     <string id="FieldBattery">Batterie Di2</string>
     <string id="FieldBatteryUnit">%</string>
+    <string id="FieldRearTeeth">Dents arrière</string>
+    <string id="FieldFrontTeeth">Dents avant</string>
     <string id="FieldRatio">Rapport</string>
+    <string id="FieldMaxRearGear">Pignon arr. max</string>
     <string id="FieldMaxRatio">Rapport max</string>
     <string id="FieldMinBattery">Batterie Di2 min</string>
 </strings>

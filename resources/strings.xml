@@ -16,7 +16,10 @@
     <string id="FieldFrontGear">Front Gear</string>
     <string id="FieldBattery">Di2 Battery</string>
     <string id="FieldBatteryUnit">%</string>
+    <string id="FieldRearTeeth">Rear Teeth</string>
+    <string id="FieldFrontTeeth">Front Teeth</string>
     <string id="FieldRatio">Gears Ratio</string>
+    <string id="FieldMaxRearGear">Max Rear Gear</string>
     <string id="FieldMaxRatio">Max Ratio</string>
     <string id="FieldMinBattery">Min Di2 Battery</string>
 </strings>

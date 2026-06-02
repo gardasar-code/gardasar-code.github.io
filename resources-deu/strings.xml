@@ -14,7 +14,10 @@
     <string id="FieldFrontGear">Gang vorne</string>
     <string id="FieldBattery">Di2 Akku</string>
     <string id="FieldBatteryUnit">%</string>
+    <string id="FieldRearTeeth">Zähne hinten</string>
+    <string id="FieldFrontTeeth">Zähne vorne</string>
     <string id="FieldRatio">Übersetzung</string>
+    <string id="FieldMaxRearGear">Max. Gang hinten</string>
     <string id="FieldMaxRatio">Max. Übersetzung</string>
     <string id="FieldMinBattery">Di2 Akku min</string>
 </strings>

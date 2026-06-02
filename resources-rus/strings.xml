@@ -14,7 +14,10 @@
     <string id="FieldFrontGear">Передняя передача</string>
     <string id="FieldBattery">Батарея Di2</string>
     <string id="FieldBatteryUnit">%</string>
+    <string id="FieldRearTeeth">Зубья задней</string>
+    <string id="FieldFrontTeeth">Зубья перед.</string>
     <string id="FieldRatio">Передаточное</string>
+    <string id="FieldMaxRearGear">Макс. задняя</string>
     <string id="FieldMaxRatio">Макс. передат.</string>
     <string id="FieldMinBattery">Мин. заряд Di2</string>
 </strings>

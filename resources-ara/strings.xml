@@ -14,7 +14,10 @@
     <string id="FieldFrontGear">السرعة الأمامية</string>
     <string id="FieldBattery">بطارية Di2</string>
     <string id="FieldBatteryUnit">%</string>
+    <string id="FieldRearTeeth">أسنان خلفية</string>
+    <string id="FieldFrontTeeth">أسنان أمامية</string>
     <string id="FieldRatio">نسبة التروس</string>
+    <string id="FieldMaxRearGear">أقصى سرعة خلفية</string>
     <string id="FieldMaxRatio">أقصى نسبة</string>
     <string id="FieldMinBattery">أدنى بطارية Di2</string>
 </strings>
