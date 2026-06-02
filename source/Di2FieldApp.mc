@@ -48,19 +48,27 @@ class Di2FieldApp extends Application.AppBase {
         WatchUi.requestUpdate();
     }
 
-    // Загрузка пользовательских настроек (зубья звёзд) в состояние.
-    // Число передач выводится из длины списков зубьев.
+    // Загрузка пользовательских настроек в состояние.
+    // Число звёзд — из селекторов (авторитет для отображения), зубья — из текстовых
+    // полей (для передаточного отношения и FIT). Несоответствие длины не критично:
+    // отсутствующие зубья → 0 (ratio там не считается).
     private function loadSettings() as Void {
         if (_state == null) {
             return;
         }
+        _state.frontTotal = readNumberProperty("frontChainrings", 1);
+        _state.rearTotal = readNumberProperty("rearCogs", 12);
         _state.frontTeeth = readTeeth("frontTeeth", [32]);
         _state.rearTeeth = readTeeth("rearTeeth", [10, 12, 14, 16, 18, 21, 24, 28, 33, 39, 45, 51]);
-        _state.frontTotal = _state.frontTeeth.size();
-        _state.rearTotal = _state.rearTeeth.size();
         // Текущую переднюю позицию из пакета не вычислить; для 1x она всегда 1,
         // для 2x/3x — неизвестна (покажем "-/N").
         _state.front = (_state.frontTotal == 1) ? 1 : -1;
+    }
+
+    // Безопасное чтение числового свойства с дефолтом.
+    private function readNumberProperty(key as Lang.String, dflt as Lang.Number) as Lang.Number {
+        var v = Application.Properties.getValue(key);
+        return (v instanceof Lang.Number) ? v : dflt;
     }
 
     // Прочитать строковое свойство и распарсить в список чисел (зубья).

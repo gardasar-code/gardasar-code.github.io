@@ -1,18 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- UI настроек (Garmin Connect Mobile / Express). Заголовки локализованы.
-     Зубья вводятся списком через запятую (парсер принимает любой разделитель). -->
+<!-- UI настроек (Garmin Connect Mobile / Express). Заголовки/подсказки локализованы.
+     Сначала выбирается число звёзд, затем вводятся зубья (по значению на передачу).
+     Connect IQ не валидирует количество значений между полями — проверка в коде. -->
 <settings>
 
-    <!-- Зубья передних звёзд (1x → одно число, напр. 32). prompt = блок About. -->
+    <!-- Число передних звёзд. prompt = блок About (нет отдельного label-элемента). -->
+    <setting propertyKey="@Properties.frontChainrings"
+             title="@Strings.SetFrontChainrings"
+             prompt="@Strings.AboutText">
+        <settingConfig type="list">
+            <listEntry value="1">1</listEntry>
+            <listEntry value="2">2</listEntry>
+            <listEntry value="3">3</listEntry>
+        </settingConfig>
+    </setting>
+
+    <!-- Зубья передних звёзд (для 1x — одно число; для 2x/3x — через запятую). -->
     <setting propertyKey="@Properties.frontTeeth"
              title="@Strings.SetFrontTitle"
-             prompt="@Strings.AboutText">
+             prompt="@Strings.TeethPrompt">
         <settingConfig type="alphaNumeric" maxLength="40"/>
     </setting>
 
-    <!-- Зубья кассеты сзади (от меньшей звезды к большей). -->
+    <!-- Число задних звёзд (кассета). -->
+    <setting propertyKey="@Properties.rearCogs"
+             title="@Strings.SetRearCogs">
+        <settingConfig type="list">
+            <listEntry value="9">9</listEntry>
+            <listEntry value="10">10</listEntry>
+            <listEntry value="11">11</listEntry>
+            <listEntry value="12">12</listEntry>
+        </settingConfig>
+    </setting>
+
+    <!-- Зубья кассеты (через запятую, по значению на звезду). -->
     <setting propertyKey="@Properties.rearTeeth"
-             title="@Strings.SetRearTitle">
+             title="@Strings.SetRearTitle"
+             prompt="@Strings.TeethPrompt">
         <settingConfig type="alphaNumeric" maxLength="80"/>
     </setting>
 
