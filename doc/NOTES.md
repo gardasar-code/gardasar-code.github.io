@@ -179,6 +179,22 @@ Ble.getPairedDevices().next(); Ble.unpairDevice(device);
 3. emtb рассчитан на eBike; для road Di2 командной инициализации (write) может НЕ требоваться —
    достаточно подписки на notify. Проверяется на устройстве.
 
+## Лимит памяти FIT-полей: 32 байта на сообщение (важно!)
+
+Краш **«New Field out of memory for FIT data»** (CIQ_LOG.BAK) = превышение лимита.
+Для **data field** сумма размеров всех полей **одного типа сообщения** не должна
+превышать **32 байта** (record и session считаются ОТДЕЛЬНО; у app-типа лимит 256).
+
+Размеры типов: UINT8=1, UINT16=2, UINT32/FLOAT=4, STRING=`count` байт (вкл. null).
+
+Наш бюджет (держать ≤32):
+- **record** = 9 байт: rear/front gear(1+1) + rear/front teeth(1+1) + ratio(4) + battery(1).
+- **session** = 27 байт: maxRear(1)+maxRatio(4)+minBat(1)+avgRatio(4)+frontShifts(2)
+  +rearShifts(2)+mostCombo(STRING 6)+mostComboTime(4)+rearTop1/2/3(1+1+1).
+
+Из-за лимита убрали Least Combo (+время) — два STRING-поля по 8 байт давали 41 байт.
+STRING combo урезан до `count=6` ("53/51"+null). Источник: forums.garmin.com.
+
 ## Показ developer-полей FIT в Garmin Connect (важно)
 
 Чтобы кастомные FIT-поля **рисовались в Garmin Connect** (графики + сводка), мало

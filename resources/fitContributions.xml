@@ -40,10 +40,6 @@
                   dataLabel="@Strings.FieldMostCombo" unitLabel="@Strings.FieldTeethUnit" />
         <fitField id="13" sortOrder="13" displayInActivitySummary="true" precision="2"
                   dataLabel="@Strings.FieldMostComboTime" unitLabel="@Strings.FieldBatteryUnit" />
-        <fitField id="14" sortOrder="14" displayInActivitySummary="true"
-                  dataLabel="@Strings.FieldLeastCombo" unitLabel="@Strings.FieldTeethUnit" />
-        <fitField id="15" sortOrder="15" displayInActivitySummary="true" precision="2"
-                  dataLabel="@Strings.FieldLeastComboTime" unitLabel="@Strings.FieldBatteryUnit" />
         <fitField id="16" sortOrder="16" displayInActivitySummary="true" precision="0"
                   dataLabel="@Strings.FieldRearTop1" unitLabel="@Strings.FieldSprocketUnit" />
         <fitField id="17" sortOrder="17" displayInActivitySummary="true" precision="0"
