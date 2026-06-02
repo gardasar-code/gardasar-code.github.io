@@ -36,7 +36,10 @@ class Di2RideStats {
             var key = frontTeeth.toString() + "/" + rearTeeth.toString();
             _comboSec[key] = (_comboSec.hasKey(key) ? _comboSec[key] : 0) + 1;
         }
-        _rearSec[rear] = (_rearSec.hasKey(rear) ? _rearSec[rear] : 0) + 1;
+        // топ задних звёзд считаем по ЗУБЬЯМ (rearTop вернёт зубья, не индекс)
+        if (rearTeeth > 0) {
+            _rearSec[rearTeeth] = (_rearSec.hasKey(rearTeeth) ? _rearSec[rearTeeth] : 0) + 1;
+        }
 
         if (_prevRear > 0 && rear != _prevRear) { _rearShifts += 1; }
         if (_prevFront > 0 && front > 0 && front != _prevFront) { _frontShifts += 1; }
@@ -54,7 +57,7 @@ class Di2RideStats {
     function mostComboPct() as Lang.Float { return pct(comboSec(true)); }
     function leastComboPct() as Lang.Float { return pct(comboSec(false)); }
 
-    // n-я по используемости задняя звезда (1 = самая частая); 0 если нет данных.
+    // Зубья n-й по используемости задней звезды (1 = самая частая); 0 если нет данных.
     function rearTop(n as Lang.Number) as Lang.Number {
         var keys = _rearSec.keys();
         var used = [] as Lang.Array<Lang.Number>;

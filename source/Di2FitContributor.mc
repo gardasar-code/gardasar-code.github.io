@@ -67,7 +67,6 @@ class Di2FitContributor {
         var pct   = WatchUi.loadResource(Rez.Strings.FieldBatteryUnit);
         var ratio = WatchUi.loadResource(Rez.Strings.FieldRatioUnit);
         var shift = WatchUi.loadResource(Rez.Strings.FieldShiftUnit);
-        var sprk  = WatchUi.loadResource(Rez.Strings.FieldSprocketUnit);
 
         var REC = Fit.MESG_TYPE_RECORD;
         var SES = Fit.MESG_TYPE_SESSION;
@@ -89,9 +88,9 @@ class Di2FitContributor {
         _rearShiftsField    = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearShifts),    F_REAR_SHIFTS,     Fit.DATA_TYPE_UINT16, {:mesgType => SES, :units => shift});
         _mostComboField     = view.createField(WatchUi.loadResource(Rez.Strings.FieldMostCombo),     F_MOST_COMBO,      Fit.DATA_TYPE_STRING, {:mesgType => SES, :count => COMBO_LEN});
         _mostComboTimeField = view.createField(WatchUi.loadResource(Rez.Strings.FieldMostComboTime), F_MOST_COMBO_TIME, Fit.DATA_TYPE_FLOAT,  {:mesgType => SES, :units => pct});
-        _rearTop1Field      = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearTop1),      F_REAR_TOP1,       Fit.DATA_TYPE_UINT8,  {:mesgType => SES, :units => sprk});
-        _rearTop2Field      = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearTop2),      F_REAR_TOP2,       Fit.DATA_TYPE_UINT8,  {:mesgType => SES, :units => sprk});
-        _rearTop3Field      = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearTop3),      F_REAR_TOP3,       Fit.DATA_TYPE_UINT8,  {:mesgType => SES, :units => sprk});
+        _rearTop1Field      = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearTop1),      F_REAR_TOP1,       Fit.DATA_TYPE_UINT8,  {:mesgType => SES, :units => UNIT_TEETH});
+        _rearTop2Field      = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearTop2),      F_REAR_TOP2,       Fit.DATA_TYPE_UINT8,  {:mesgType => SES, :units => UNIT_TEETH});
+        _rearTop3Field      = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearTop3),      F_REAR_TOP3,       Fit.DATA_TYPE_UINT8,  {:mesgType => SES, :units => UNIT_TEETH});
 
         _rearGearField.setData(0); _frontGearField.setData(0); _rearTeethField.setData(0);
         _frontTeethField.setData(0); _ratioField.setData(0.0); _batteryField.setData(0);

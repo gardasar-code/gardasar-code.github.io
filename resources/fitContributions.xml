@@ -41,10 +41,10 @@
         <fitField id="13" sortOrder="13" displayInActivitySummary="true" precision="2"
                   dataLabel="@Strings.FieldMostComboTime" unitLabel="@Strings.FieldBatteryUnit" />
         <fitField id="16" sortOrder="16" displayInActivitySummary="true" precision="0"
-                  dataLabel="@Strings.FieldRearTop1" unitLabel="@Strings.FieldSprocketUnit" />
+                  dataLabel="@Strings.FieldRearTop1" unitLabel="@Strings.FieldTeethUnit" />
         <fitField id="17" sortOrder="17" displayInActivitySummary="true" precision="0"
-                  dataLabel="@Strings.FieldRearTop2" unitLabel="@Strings.FieldSprocketUnit" />
+                  dataLabel="@Strings.FieldRearTop2" unitLabel="@Strings.FieldTeethUnit" />
         <fitField id="18" sortOrder="18" displayInActivitySummary="true" precision="0"
-                  dataLabel="@Strings.FieldRearTop3" unitLabel="@Strings.FieldSprocketUnit" />
+                  dataLabel="@Strings.FieldRearTop3" unitLabel="@Strings.FieldTeethUnit" />
     </fitContributions>
 </resources>
