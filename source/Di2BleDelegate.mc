@@ -402,8 +402,12 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 _state.rear = value[PKT_REAR_IDX].toNumber();
             }
             // front/frontTotal/rearTotal задаются настройками (см. Di2FieldApp).
-            // Калибровочный дамп gear-пакета на экран (для будущей настройки 2x).
-            _state.dbgGear = toHex(value);
+            // Калибровочный дамп gear-пакета на экран (для будущей настройки 2x) —
+            // только в диагностической сборке, чтобы в release не собирать hex
+            // каждый пакет (десятки в секунду) и не таскать DEBUG_OVERLAY-данные.
+            if (DEBUG) {
+                _state.dbgGear = toHex(value);
+            }
         }
     }
 
