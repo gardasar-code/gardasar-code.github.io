@@ -4,6 +4,19 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.17 (beta)
+
+### Changed
+- The field no longer drops the BLE pairing when it stops. Keeping the bond
+  gives the BLE stack a chance to reconnect on its own once the Di2 shows up
+  on air again — so you should not have to put the Di2 back into pairing mode
+  every ride. (Under evaluation; depends on Di2 advertising behavior.)
+
+### Debug
+- Diagnostic build: raw notify bytes and scan results are written to
+  `/GARMIN/APPS/LOGS/Di2Field.txt` to confirm whether the Di2 re-advertises
+  after a wake without manual pairing.
+
 ## 0.0.16
 
 ### Added

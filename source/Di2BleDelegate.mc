@@ -12,7 +12,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // ── Режим отладки ────────────────────────────────────────────────────────
     // true: System.println сырых байтов каждого notify (для отладки на симуляторе).
-    private const DEBUG = false;
+    private const DEBUG = true;
 
     // ── UUIDs (подтверждены по emtb/source/emtbDelegate.mc) ───────────────────
     // Advertised-маркер Shimano — используем как фильтр скана.
@@ -87,17 +87,17 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
     }
 
-    // Останавливаем скан, отключаем устройство.
+    // Останавливаем скан. Пару НЕ рвём намеренно: unpairDevice уничтожает бонд,
+    // из-за чего при следующем запуске поля Di2 уже не виден (он спит и больше не
+    // рекламируется), и пользователь вынужден заново вводить переключатель в паринг.
+    // Сохраняя пару, даём BLE-стеку шанс переподключиться самому, когда Di2 мелькнёт
+    // в эфире (см. doc/NOTES.md — проверяется в DEBUG-дампе).
     function stop() as Void {
         _reconnectCountdown = -1;
         try {
             if (_scanning) {
                 Ble.setScanState(Ble.SCAN_STATE_OFF);
                 _scanning = false;
-            }
-            var d = Ble.getPairedDevices().next() as Ble.Device?;
-            if (d != null) {
-                Ble.unpairDevice(d);
             }
         } catch (e) {
             // На остановке ошибки BLE не критичны — глотаем.
@@ -240,6 +240,14 @@ class Di2BleDelegate extends Ble.BleDelegate {
                     }
                 }
             }
+        }
+
+        if (DEBUG) {
+            // Ключевой дамп для диагностики авто-реконнекта: видим ли мы рекламу Di2
+            // в этом скане. Если строки появляются после пробуждения переключения
+            // БЕЗ ручного паринга — устройство рекламируется само, и мы можем цепляться.
+            log("scan: shimano=" + shimanoCount + " best=" + (best != null ? best.getDeviceName() : "none")
+                + " rssi=" + bestRssi + " lock=" + (_lockedName != null ? _lockedName : "none"));
         }
 
         var target = null;
