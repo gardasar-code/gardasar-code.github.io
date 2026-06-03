@@ -69,17 +69,21 @@ class Di2FieldView extends WatchUi.DataField {
     // DEMO_SCENE_TICKS секунд (compute ≈ 1 Гц), затем переключается на следующую.
     // anim крутим каждый тик, чтобы были видны пульсация точки и «бегущее» многоточие.
     //
-    // Полный цикл сцен (0..5):
+    // Полный цикл сцен (0..8) — прогоняет фазы связи И варианты показа батареи/передачи:
     //   0 Searching   — синяя пульсирующая точка, статус-экран поиска
     //   1 Connecting  — жёлтая точка, статус-экран подключения
-    //   2 Live        — зелёная точка, передача 5/12, заряд 80 % (1-значная задняя)
-    //   3 Live+lock   — тёмно-синяя точка, передача 11/12, заряд 15 % (2-значная, низкий заряд)
-    //   4 Retry       — оранжевая точка, статус-экран поиска (привязка ещё активна)
-    //   5 Live+lock   — тёмно-синяя точка, передача 12/12, заряд 50 % (макс. задняя)
+    //   2 Live        — цифры + батарея %, передача 5/12, 80 %
+    //   3 Live        — цифры + батарея ИКОНКОЙ, 8/12, 45 %
+    //   4 Live+lock   — цифры + батарея иконка+% (низкий заряд), 11/12, 12 %
+    //   5 Live        — ГРАФИК кассеты + батарея %, 3/12, 60 %
+    //   6 Live+lock   — ГРАФИК кассеты + батарея иконкой, 9/12, 30 %
+    //   7 Live+lock   — ОБА (график+цифры) + батарея иконка+%, 12/12, 90 %
+    //   8 Retry       — оранжевая точка, статус-экран (привязка ещё активна)
     //
     // Зафиксировать ОДИН вид (для скриншота): «File → Edit Persistent Storage» в
     // симуляторе → ключ debugScene (число 0..5). Удали ключ — снова пойдёт цикл.
     (:debug) const DEMO_SCENE_TICKS = 5;
+    (:debug) const DEMO_SCENE_COUNT = 9;   // число сцен в демо-цикле (0..8)
 
     (:debug)
     function applyDebugData() as Void {
@@ -91,35 +95,49 @@ class Di2FieldView extends WatchUi.DataField {
 
         var forced = Application.Storage.getValue("debugScene");
         var scene = (forced != null)
-            ? ((forced as Lang.Number) % 6)
-            : ((_demoTick / DEMO_SCENE_TICKS) % 6);
+            ? ((forced as Lang.Number) % DEMO_SCENE_COUNT)
+            : ((_demoTick / DEMO_SCENE_TICKS) % DEMO_SCENE_COUNT);
 
+        // Параметры setDemo: connected, phase, locked, rear, rearTotal, battery,
+        //                    batMode(0 проц/1 иконка/2 оба), dispMode(0 цифры/1 график/2 оба).
         switch (scene) {
             case 0:   // поиск
-                setDemo(false, CONN_SCANNING,  false, -1, -1, -1);
+                setDemo(false, CONN_SCANNING,  false, -1, -1, -1, 0, 0);
                 break;
             case 1:   // подключение
-                setDemo(false, CONN_CONNECTING, false, -1, -1, -1);
+                setDemo(false, CONN_CONNECTING, false, -1, -1, -1, 0, 0);
                 break;
-            case 2:   // на связи, не привязан, 1-значная задняя
-                setDemo(true,  CONN_LIVE, false, 5, 12, 80);
+            case 2:   // цифры + батарея %
+                setDemo(true,  CONN_LIVE, false, 5, 12, 80, 0, 0);
                 break;
-            case 3:   // на связи, привязан, 2-значная задняя, низкий заряд
-                setDemo(true,  CONN_LIVE, true, 11, 12, 15);
+            case 3:   // цифры + батарея иконкой
+                setDemo(true,  CONN_LIVE, false, 8, 12, 45, 1, 0);
                 break;
-            case 4:   // потеря связи / реконнект (привязка сохраняется)
-                setDemo(false, CONN_RETRY, true, -1, -1, -1);
+            case 4:   // цифры + батарея иконка+% (низкий заряд)
+                setDemo(true,  CONN_LIVE, true, 11, 12, 12, 2, 0);
                 break;
-            default:  // на связи, привязан, максимальная задняя
-                setDemo(true,  CONN_LIVE, true, 12, 12, 50);
+            case 5:   // ГРАФИК кассеты + батарея %
+                setDemo(true,  CONN_LIVE, false, 3, 12, 60, 0, 1);
+                break;
+            case 6:   // ГРАФИК кассеты + батарея иконкой
+                setDemo(true,  CONN_LIVE, true, 9, 12, 30, 1, 1);
+                break;
+            case 7:   // ОБА (график+цифры) + батарея иконка+%
+                setDemo(true,  CONN_LIVE, true, 12, 12, 90, 2, 2);
+                break;
+            default:  // потеря связи / реконнект
+                setDemo(false, CONN_RETRY, true, -1, -1, -1, 0, 0);
                 break;
         }
     }
 
     // Применить одну демо-сцену к состоянию (только debug). battery<0 не трогаем.
+    // batMode/dispMode прокидываем в state, чтобы в превью прогонять новые варианты
+    // показа батареи (процент/иконка/оба) и передачи (цифры/график/оба).
     (:debug)
     function setDemo(connected as Lang.Boolean, phase as Lang.Number, locked as Lang.Boolean,
-                     rear as Lang.Number, rearTotal as Lang.Number, battery as Lang.Number) as Void {
+                     rear as Lang.Number, rearTotal as Lang.Number, battery as Lang.Number,
+                     batMode as Lang.Number, dispMode as Lang.Number) as Void {
         _state.connected = connected;
         _state.phase = phase;
         _state.locked = locked;
@@ -128,6 +146,8 @@ class Di2FieldView extends WatchUi.DataField {
         _state.front = 1;        // дефолтный привод: одна передняя звезда
         _state.frontTotal = 1;
         _state.battery = battery;
+        _state.batteryMode = batMode;
+        _state.displayMode = dispMode;
     }
 
     (:release)
