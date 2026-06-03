@@ -21,6 +21,7 @@
     <string id="TeethPrompt">Comma-separated, one value per gear.</string>
     <string id="SetForgetDevice">Forget paired Di2</string>
     <string id="SetBattery">Battery display</string>
+    <string id="SetDisplay">Gear display</string>
     <string id="ForgetPrompt">Turn on and save to release the current Di2 and connect to the nearest one on the next scan. The switch turns itself back off.</string>
     <string id="AboutText">Di2 Field by Sergey Lapshin. Shows your Shimano Di2 gear, gear ratio and D-Fly battery over Bluetooth, and records a full ride summary (ratios, shifts, gear combos) to the activity. Set your chainrings, cassette and teeth below. Tested with Shimano XT Di2 RD-M8250-SGS (12-speed) on Garmin Edge Explore 2. Unofficial app, not affiliated with Shimano.</string>
 

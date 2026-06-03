@@ -4,6 +4,14 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.26
+
+### Added
+- Gear display options in the field settings: show the rear gear as numbers
+  (default), as a graphic, or both. The graphic draws the cassette as a row of
+  bars — one per sprocket, height following the cog sizes — with the current
+  sprocket highlighted, so you can read your position at a glance.
+
 ## 0.0.25
 
 ### Added

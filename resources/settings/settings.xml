@@ -59,4 +59,14 @@
         </settingConfig>
     </setting>
 
+    <!-- Показ задней передачи: цифры / график (визуальная кассета) / оба. -->
+    <setting propertyKey="@Properties.displayMode"
+             title="@Strings.SetDisplay">
+        <settingConfig type="list">
+            <listEntry value="0">Numbers</listEntry>
+            <listEntry value="1">Graphic</listEntry>
+            <listEntry value="2">Both</listEntry>
+        </settingConfig>
+    </setting>
+
 </settings>

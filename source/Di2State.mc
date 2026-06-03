@@ -26,6 +26,7 @@ class Di2State {
     public var frontTotal as Lang.Number = -1;      // число передних передач
     public var battery as Lang.Number = -1;         // заряд D-Fly, % (0..100)
     public var batteryMode as Lang.Number = 0;      // показ батареи: 0=процент, 1=иконка, 2=иконка+процент
+    public var displayMode as Lang.Number = 0;      // показ передачи: 0=цифры, 1=график (кассета), 2=оба
 
     // Зубья из настроек: передние звёзды и кассета (от меньшей к большей).
     // Длина списков задаёт frontTotal/rearTotal.

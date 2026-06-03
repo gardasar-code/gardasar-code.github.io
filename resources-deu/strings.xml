@@ -11,6 +11,7 @@
     <string id="StatusHint">Di2 aufwecken</string>
     <string id="StatusHintPair">Di2-Taste halten</string>
     <string id="SetBattery">Batterieanzeige</string>
+    <string id="SetDisplay">Ganganzeige</string>
 
     <string id="SetFrontChainrings">Kettenblätter vorne</string>
     <string id="SetFrontTitle">Zähne vorne</string>

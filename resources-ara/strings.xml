@@ -11,6 +11,7 @@
     <string id="StatusHint">أيقظ جهاز Di2</string>
     <string id="StatusHintPair">اضغط مطولاً زر Di2</string>
     <string id="SetBattery">عرض البطارية</string>
+    <string id="SetDisplay">عرض السرعة</string>
 
     <string id="SetFrontChainrings">النجوم الأمامية</string>
     <string id="SetFrontTitle">أسنان أمامية</string>

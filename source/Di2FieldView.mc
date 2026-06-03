@@ -187,7 +187,7 @@ class Di2FieldView extends WatchUi.DataField {
         var headerBottom = topY + topFontH;          // низ верхней строки
         var rearY = (headerBottom + h) / 2;          // центр оставшейся высоты
         var maxHeight = ((h - headerBottom) * 0.9).toNumber();  // запас по высоте
-        drawRear(dc, w / 2, rearY, maxWidth, maxHeight, connected, fg, fade);
+        drawRearZone(dc, w / 2, rearY, maxWidth, maxHeight, connected, fg, fade);
 
         // ── Отладочный дамп gear-пакета (калибровка байта передней) ────────────
         if (DEBUG_OVERLAY && _state != null && _state.dbgGear.length() > 0) {
@@ -399,6 +399,83 @@ class Di2FieldView extends WatchUi.DataField {
             }
         }
         return Graphics.FONT_XTINY;
+    }
+
+    // Диспетчер центральной зоны по режиму показа (_state.displayMode):
+    //   0 — цифры (drawRear); 1 — график (кассета); 2 — оба (кассета сверху, цифры снизу).
+    // Нет связи — во всех режимах статус-экран.
+    private function drawRearZone(dc as Graphics.Dc, cx as Lang.Number, cy as Lang.Number,
+                                 maxWidth as Lang.Number, maxHeight as Lang.Number,
+                                 connected as Lang.Boolean, fg as Graphics.ColorType,
+                                 fade as Graphics.ColorType) as Void {
+        if (!connected) {
+            drawStatus(dc, cx, cy, maxWidth, fg, fade);
+            return;
+        }
+        var mode = (_state != null) ? _state.displayMode : 0;
+        if (mode == 1) {
+            drawCassette(dc, cx, cy, maxWidth, maxHeight, fg, fade);
+        } else if (mode == 2) {
+            // Кассета в верхней части зоны, цифры — в нижней.
+            drawCassette(dc, cx, cy - (maxHeight * 0.26).toNumber(), maxWidth,
+                         (maxHeight * 0.46).toNumber(), fg, fade);
+            drawRear(dc, cx, cy + (maxHeight * 0.28).toNumber(), maxWidth,
+                     (maxHeight * 0.42).toNumber(), true, fg, fade);
+        } else {
+            drawRear(dc, cx, cy, maxWidth, maxHeight, true, fg, fade);
+        }
+    }
+
+    // Визуальная задняя кассета: N столбиков (по числу звёзд) слева-направо от
+    // меньшей звезды к большей; высота столбика растёт с числом зубьев (или линейно,
+    // если зубья не заданы). Текущая передача — ярким цветом (fg), остальные —
+    // приглушённым (fade). Столбики выровнены по нижней линии зоны.
+    private function drawCassette(dc as Graphics.Dc, cx as Lang.Number, cy as Lang.Number,
+                                 maxWidth as Lang.Number, maxHeight as Lang.Number,
+                                 fg as Graphics.ColorType, fade as Graphics.ColorType) as Void {
+        var n = rearTotalVal();
+        var cur = rearVal();
+        if (n <= 0) {
+            drawRear(dc, cx, cy, maxWidth, maxHeight, true, fg, fade);  // нет конфигурации — цифры
+            return;
+        }
+
+        var slot = maxWidth.toFloat() / n;
+        var barW = (slot * 0.6).toNumber();
+        if (barW < 1) { barW = 1; }
+        var baseline = cy + maxHeight / 2;
+        var x0 = cx - maxWidth / 2;
+
+        // Профиль высот по зубьям, если список задан и совпадает по длине.
+        var teeth = (_state != null) ? _state.rearTeeth : null;
+        var useTeeth = (teeth != null) && (teeth.size() == n) && (n > 1);
+        var minT = 0;
+        var maxT = 0;
+        if (useTeeth) {
+            minT = teeth[0];
+            maxT = teeth[0];
+            for (var i = 0; i < n; i++) {
+                if (teeth[i] < minT) { minT = teeth[i]; }
+                if (teeth[i] > maxT) { maxT = teeth[i]; }
+            }
+            if (maxT == minT) { useTeeth = false; }
+        }
+
+        for (var i = 1; i <= n; i++) {
+            var frac;
+            if (n == 1) {
+                frac = 1.0;
+            } else if (useTeeth) {
+                frac = (teeth[i - 1] - minT).toFloat() / (maxT - minT);
+            } else {
+                frac = (i - 1).toFloat() / (n - 1);
+            }
+            var bh = (maxHeight * (0.3 + 0.7 * frac)).toNumber();
+            if (bh < 2) { bh = 2; }
+            var bx = (x0 + slot * (i - 0.5)).toNumber() - barW / 2;
+            dc.setColor((i == cur) ? fg : fade, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(bx, baseline - bh, barW, bh);
+        }
     }
 
     // Отрисовка задней передачи тремя зонами с кружком-разделителем по центру (cx):
