@@ -473,6 +473,14 @@ class Di2BleDelegate extends Ble.BleDelegate {
             _state.connSeconds = 0;
         }
 
+        // Счётчик непрерывного скана: после долгого безуспешного поиска D-Fly,
+        // вероятно, в глубоком сне и не вещает — подсказываем пользователю паринг.
+        if (_state.phase == CONN_SCANNING) {
+            _state.scanSeconds += 1;
+        } else {
+            _state.scanSeconds = 0;
+        }
+
         // Отложенный реконнект (когда не подключены).
         if (_reconnectCountdown > 0) {
             _reconnectCountdown -= 1;

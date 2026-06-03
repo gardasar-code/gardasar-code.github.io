@@ -4,6 +4,16 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.24
+
+### Added
+- After about a minute of unsuccessful searching, the status hint changes from
+  "Wake the Di2" to "Hold Di2 button" — a reminder that a Di2 which has been
+  asleep for a long time stops broadcasting entirely and has to be put back into
+  pairing mode (confirmed by device logs: tapping shifters and pedalling does
+  not restart the D-Fly's Bluetooth advertising after deep sleep; only the
+  pairing button does).
+
 ## 0.0.23
 
 ### Fixed

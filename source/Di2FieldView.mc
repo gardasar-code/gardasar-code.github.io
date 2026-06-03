@@ -27,6 +27,11 @@ class Di2FieldView extends WatchUi.DataField {
     private var _statSearching as Lang.String = "Searching";
     private var _statConnecting as Lang.String = "Connecting";
     private var _statHint as Lang.String = "Wake the Di2";
+    private var _statHintPair as Lang.String = "Hold Di2 button";
+
+    // Через столько секунд непрерывного скана меняем подсказку на «нажми паринг»
+    // (D-Fly после глубокого сна не вещает — щелчки его не будят, см. doc/NOTES.md).
+    private const SCAN_HINT_PAIR_SECS = 60;
 
     function initialize(state as Di2State?, delegate as Di2BleDelegate?) {
         DataField.initialize();
@@ -38,6 +43,7 @@ class Di2FieldView extends WatchUi.DataField {
         _statSearching = WatchUi.loadResource(Rez.Strings.StatusSearching) as Lang.String;
         _statConnecting = WatchUi.loadResource(Rez.Strings.StatusConnecting) as Lang.String;
         _statHint = WatchUi.loadResource(Rez.Strings.StatusHint) as Lang.String;
+        _statHintPair = WatchUi.loadResource(Rez.Strings.StatusHintPair) as Lang.String;
         _fit = new Di2FitContributor(self);
     }
 
@@ -319,9 +325,14 @@ class Di2FieldView extends WatchUi.DataField {
         // (коннект при слабом сигнале длится до ~17 c — видно, что идёт, а не зависло);
         // в фазе поиска — подсказку «разбудите Di2».
         dc.setColor(fade, Graphics.COLOR_TRANSPARENT);
-        var hint = (phase == CONN_CONNECTING && _state != null)
-            ? _state.connSeconds.format("%d") + "s"
-            : _statHint;
+        var hint;
+        if (phase == CONN_CONNECTING && _state != null) {
+            hint = _state.connSeconds.format("%d") + "s";   // прогресс подключения
+        } else if (_state != null && _state.scanSeconds >= SCAN_HINT_PAIR_SECS) {
+            hint = _statHintPair;                            // долгий поиск → подскажем паринг
+        } else {
+            hint = _statHint;                                // обычная подсказка «разбуди Di2»
+        }
         dc.drawText(cx, cy + fh / 2, Graphics.FONT_XTINY, hint, Graphics.TEXT_JUSTIFY_CENTER | vc);
     }
 
