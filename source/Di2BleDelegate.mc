@@ -69,6 +69,9 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private const SCAN_LOG_HB_MS = 30000;
     private var _lastScanShimano as Lang.Number = -1;
     private var _lastScanLogMs as Lang.Number = 0;
+    // Троттлинг лога notify: логируем пакет только при смене передачи + хартбит.
+    private var _lastLoggedGear as Lang.Number = -2;   // -2 = ещё не логировали
+    private var _lastNotifyLogMs as Lang.Number = 0;
 
     function initialize(state as Di2State) {
         BleDelegate.initialize();
@@ -348,7 +351,16 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // Парсинг notify-пакетов передач. value — ByteArray (по контракту API не null).
     function onCharacteristicChanged(characteristic, value) {
         if (DEBUG) {
-            logBytes(characteristic, value);
+            // Троттлинг: notify сыпется ~десятки раз в секунду и забивает 5 КБ-лог
+            // одинаковыми пакетами, вытесняя события связи. Логируем пакет только при
+            // СМЕНЕ передачи (байт[5]) либо хартбитом раз в SCAN_LOG_HB_MS.
+            var gear = (value.size() > PKT_REAR_IDX) ? value[PKT_REAR_IDX] : -1;
+            var nowMs = System.getTimer();
+            if (gear != _lastLoggedGear || (nowMs - _lastNotifyLogMs) >= SCAN_LOG_HB_MS) {
+                logBytes(characteristic, value);
+                _lastLoggedGear = gear;
+                _lastNotifyLogMs = nowMs;
+            }
         }
         parseGearPacket(value);
     }

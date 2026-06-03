@@ -4,6 +4,14 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.22 (beta, diagnostic)
+
+### Debug
+- Notify logging is now throttled like scan logging: a packet is written only
+  when the rear gear byte changes or once every ~30 s. Previously every notify
+  (tens per second) flooded the 5 KB device log with identical packets and
+  pushed the connect/reconnect/stranger events out of the window.
+
 ## 0.0.21
 
 ### Fixed
