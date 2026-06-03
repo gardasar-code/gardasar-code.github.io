@@ -11,7 +11,8 @@ using Toybox.Application;
 class Di2BleDelegate extends Ble.BleDelegate {
 
     // ── Режим отладки ────────────────────────────────────────────────────────
-    // true: System.println сырых байтов каждого notify (для отладки на симуляторе).
+    // true: пишем диагностику через Di2Log в GARMIN/APPS/LOGS/*.TXT (см. doc/LOGGING.md).
+    // В коммите всегда false (release); диагностическая сборка build-diag.sh патчит в true.
     private const DEBUG = false;
 
     // ── UUIDs (подтверждены по emtb/source/emtbDelegate.mc) ───────────────────
@@ -62,6 +63,20 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private var _batteryTickCounter as Lang.Number = 0;
     private var _lockedName as Lang.String? = null;       // имя «своего» Di2 или null
 
+    // Троттлинг лога скана: onScanResults зовётся десятки раз в секунду и заспамил
+    // бы 5 КБ-файл за минуту (момент пробуждения Di2 не попадёт в окно). Логируем
+    // скан только при ИЗМЕНЕНИИ числа кандидатов + редкий хартбит раз в SCAN_LOG_HB_MS.
+    private const SCAN_LOG_HB_MS = 30000;
+    private var _lastScanShimano as Lang.Number = -1;
+    private var _lastScanLogMs as Lang.Number = 0;
+    // Троттлинг лога notify: логируем пакет только при смене передачи + хартбит.
+    private var _lastLoggedGear as Lang.Number = -2;   // -2 = ещё не логировали
+    private var _lastNotifyLogMs as Lang.Number = 0;
+    // Дошла ли текущая попытка до живого соединения (LIVE). Нужен, чтобы отличить
+    // потерю установленной связи (обычный бэкофф) от сорвавшегося рукопожатия при
+    // слабом сигнале (нужен мгновенный рескан, чтобы поймать следующий блик Di2).
+    private var _attemptReachedLive as Lang.Boolean = false;
+
     function initialize(state as Di2State) {
         BleDelegate.initialize();
         _state = state;
@@ -87,17 +102,17 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
     }
 
-    // Останавливаем скан, отключаем устройство.
+    // Останавливаем скан. Пару НЕ рвём намеренно: unpairDevice уничтожает бонд,
+    // из-за чего при следующем запуске поля Di2 уже не виден (он спит и больше не
+    // рекламируется), и пользователь вынужден заново вводить переключатель в паринг.
+    // Сохраняя пару, даём BLE-стеку шанс переподключиться самому, когда Di2 мелькнёт
+    // в эфире (см. doc/NOTES.md — проверяется в DEBUG-дампе).
     function stop() as Void {
         _reconnectCountdown = -1;
         try {
             if (_scanning) {
                 Ble.setScanState(Ble.SCAN_STATE_OFF);
                 _scanning = false;
-            }
-            var d = Ble.getPairedDevices().next() as Ble.Device?;
-            if (d != null) {
-                Ble.unpairDevice(d);
             }
         } catch (e) {
             // На остановке ошибки BLE не критичны — глотаем.
@@ -135,16 +150,23 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // ── Sticky-lock: хранение привязки ────────────────────────────────────────
 
     // Запомнить имя подключённого устройства как «своё» (в Storage и в поле).
+    // Привязка ставится ОДИН раз — при первом успешном коннекте. Дальше она «липкая»
+    // и меняется только тоглом Forget. На чужой переключатель мы не попадём: онн
+    // отбрасывается по имени в onConnected ещё до saveLock.
     private function saveLock(device as Ble.Device) as Void {
+        if (_lockedName != null) {
+            _state.locked = true;          // уже привязаны — не переписываем
+            return;
+        }
         try {
             var nm = device.getName();
-            if (nm != null && nm.length() > 0 && (_lockedName == null || !nm.equals(_lockedName))) {
+            if (nm != null && nm.length() > 0) {
                 _lockedName = nm;
                 Application.Storage.setValue(STORAGE_LOCK, nm);
             }
             _state.locked = (_lockedName != null);
         } catch (e) {
-            // имя недоступно — остаёмся на запасном пути «единственный кандидат»
+            // имя недоступно — остаёмся без привязки (подключаемся к ближайшему)
         }
     }
 
@@ -242,17 +264,26 @@ class Di2BleDelegate extends Ble.BleDelegate {
             }
         }
 
-        var target = null;
-        if (_lockedName != null) {
-            if (matched != null) {
-                target = matched;                 // блокировка: только «свой» по имени
-            } else if (shimanoCount == 1) {
-                target = best;                     // единственный кандидат — берём его
+        if (DEBUG) {
+            // Логируем скан только при изменении числа кандидатов или раз в ~30 c.
+            // Так в файл гарантированно попадёт переход shimano 0→N в момент, когда
+            // Di2 проснётся и начнёт рекламироваться (если вообще начнёт).
+            var nowMs = System.getTimer();
+            if (shimanoCount != _lastScanShimano || (nowMs - _lastScanLogMs) >= SCAN_LOG_HB_MS) {
+                Di2Log.line("scan: shimano=" + shimanoCount + " best=" + (best != null ? best.getDeviceName() : "none")
+                    + " rssi=" + bestRssi + " lock=" + (_lockedName != null ? _lockedName : "none"));
+                _lastScanShimano = shimanoCount;
+                _lastScanLogMs = nowMs;
             }
-            // иначе несколько чужих без совпадения → продолжаем скан, не подключаемся
-        } else {
-            target = best;                         // нет привязки → сильнейший
         }
+
+        // Выбор цели. ВАЖНО (подтверждено логом DI2DIAG): на этом устройстве scan-
+        // результаты приходят БЕЗ имени (getDeviceName()==null), поэтому matched-по-имени
+        // в эфире недостижим. Имя доступно только ПОСЛЕ подключения (GATT), там и проверяем
+        // личность (см. onConnected). Здесь: при наличии привязки берём имя-совпадение, если
+        // оно вдруг есть (другая прошивка/устройство), иначе — ближайшего по RSSI. Чужого
+        // отбросим уже на коннекте, не вечно ждём недостижимого имени в скане.
+        var target = (_lockedName != null && matched != null) ? matched : best;
 
         if (target != null) {
             connectTo(target);
@@ -265,6 +296,8 @@ class Di2BleDelegate extends Ble.BleDelegate {
             Ble.setScanState(Ble.SCAN_STATE_OFF);
             _scanning = false;
             _state.phase = CONN_CONNECTING;
+            _attemptReachedLive = false;   // новая попытка: ещё не дошли до LIVE
+            log("pairDevice name=" + (sr.getDeviceName() != null ? sr.getDeviceName() : "?") + " rssi=" + sr.getRssi());
             var d = Ble.pairDevice(sr);
             // emtb: иногда onConnectedStateChanged не приходит — проверяем сразу.
             if (d != null && d.isConnected()) {
@@ -286,28 +319,67 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // Подписываемся на notify и читаем батарею.
     private function onConnected(device as Ble.Device) as Void {
+        // Проверка личности: имя в эфире недоступно, но после подключения доступно по GATT.
+        // Если мы привязаны и подключились к ДРУГОМУ переключателю (имя не совпало) —
+        // отбрасываем его и продолжаем искать «своего». Так sticky-lock работает даже без
+        // имени в скане. Если имя по GATT недоступно (null) — проверить нечем, принимаем.
+        if (_lockedName != null) {
+            var nm = device.getName();
+            if (nm != null && nm.length() > 0 && !nm.equals(_lockedName)) {
+                log("stranger '" + nm + "' != lock '" + _lockedName + "', dropping");
+                try {
+                    Ble.unpairDevice(device);   // разрыв → onDisconnected запланирует рескан
+                } catch (e) {
+                    scheduleReconnect();
+                }
+                return;
+            }
+        }
         _reconnectAttempts = 0;
         _reconnectCountdown = -1;
+        _attemptReachedLive = true;    // соединение установлено: разрыв отсюда — «обычный»
         _state.connected = true;
         _state.phase = CONN_LIVE;
-        saveLock(device);              // «прилипаем» к этому устройству по имени
+        saveLock(device);              // «прилипаем» к этому устройству по имени (только первый раз)
         enableNotifications(device);
         readBattery();                 // одно чтение сразу; далее — по тикам в onTick()
         _batteryTickCounter = 0;
-        log("connected");
+        log("connected" + (device.getName() != null ? " " + device.getName() : ""));
     }
 
     private function onDisconnected() as Void {
         _state.connected = false;
         _state.resetLiveData();
-        log("disconnected");
-        scheduleReconnect();
+        if (_attemptReachedLive) {
+            // Потеряли установленную связь — обычный бэкофф (растущий интервал).
+            log("disconnected");
+            scheduleReconnect();
+        } else {
+            // Рукопожатие сорвалось, не дойдя до LIVE (короткий блик слабого Di2).
+            // Не ждём бэкофф — сразу возобновляем скан, чтобы поймать следующий блик.
+            log("connect failed before live, fast rescan");
+            _reconnectAttempts = 0;
+            _reconnectCountdown = -1;
+            _state.phase = CONN_SCANNING;
+            if (!_scanning) {
+                startScan();
+            }
+        }
     }
 
     // Парсинг notify-пакетов передач. value — ByteArray (по контракту API не null).
     function onCharacteristicChanged(characteristic, value) {
         if (DEBUG) {
-            logBytes(characteristic, value);
+            // Троттлинг: notify сыпется ~десятки раз в секунду и забивает 5 КБ-лог
+            // одинаковыми пакетами, вытесняя события связи. Логируем пакет только при
+            // СМЕНЕ передачи (байт[5]) либо хартбитом раз в SCAN_LOG_HB_MS.
+            var gear = (value.size() > PKT_REAR_IDX) ? value[PKT_REAR_IDX] : -1;
+            var nowMs = System.getTimer();
+            if (gear != _lastLoggedGear || (nowMs - _lastNotifyLogMs) >= SCAN_LOG_HB_MS) {
+                logBytes(characteristic, value);
+                _lastLoggedGear = gear;
+                _lastNotifyLogMs = nowMs;
+            }
         }
         parseGearPacket(value);
     }
@@ -330,8 +402,12 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 _state.rear = value[PKT_REAR_IDX].toNumber();
             }
             // front/frontTotal/rearTotal задаются настройками (см. Di2FieldApp).
-            // Калибровочный дамп gear-пакета на экран (для будущей настройки 2x).
-            _state.dbgGear = toHex(value);
+            // Калибровочный дамп gear-пакета на экран (для будущей настройки 2x) —
+            // только в диагностической сборке, чтобы в release не собирать hex
+            // каждый пакет (десятки в секунду) и не таскать DEBUG_OVERLAY-данные.
+            if (DEBUG) {
+                _state.dbgGear = toHex(value);
+            }
         }
     }
 
@@ -393,6 +469,22 @@ class Di2BleDelegate extends Ble.BleDelegate {
         // Кадровый счётчик для пульсации индикатора в View (одна анимация на 1 c тик).
         _state.anim += 1;
 
+        // Счётчик секунд в фазе подключения: при слабом сигнале коннект длится до ~17 c,
+        // и без индикации жёлтый кружок выглядит «зависшим». Показываем прогресс в View.
+        if (_state.phase == CONN_CONNECTING) {
+            _state.connSeconds += 1;
+        } else {
+            _state.connSeconds = 0;
+        }
+
+        // Счётчик непрерывного скана: после долгого безуспешного поиска D-Fly,
+        // вероятно, в глубоком сне и не вещает — подсказываем пользователю паринг.
+        if (_state.phase == CONN_SCANNING) {
+            _state.scanSeconds += 1;
+        } else {
+            _state.scanSeconds = 0;
+        }
+
         // Отложенный реконнект (когда не подключены).
         if (_reconnectCountdown > 0) {
             _reconnectCountdown -= 1;
@@ -421,6 +513,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _reconnectAttempts += 1;
         var delay = _reconnectAttempts * RECONNECT_MIN_TICKS;
         _reconnectCountdown = (delay < RECONNECT_MAX_TICKS) ? delay : RECONNECT_MAX_TICKS;
+        log("reconnect scheduled in " + _reconnectCountdown + " ticks (attempt " + _reconnectAttempts + ")");
     }
 
     // ── Утилиты ───────────────────────────────────────────────────────────────
@@ -435,16 +528,19 @@ class Di2BleDelegate extends Ble.BleDelegate {
     }
 
     private function logBytes(characteristic as Ble.Characteristic, value as Lang.ByteArray) as Void {
+        if (!DEBUG) {
+            return;
+        }
         var hex = "";
         for (var i = 0; i < value.size(); i++) {
             hex += value[i].format("%02X") + " ";
         }
-        System.println("[Di2] char=" + characteristic.getUuid().toString() + " len=" + value.size() + " bytes=[" + hex + "]");
+        Di2Log.line("notify char=" + characteristic.getUuid().toString() + " len=" + value.size() + " bytes=[" + hex + "]");
     }
 
     private function log(msg as Lang.String) as Void {
         if (DEBUG) {
-            System.println("[Di2] " + msg);
+            Di2Log.line(msg);
         }
     }
 }

@@ -10,6 +10,8 @@
     <string id="StatusSearching">Searching</string>
     <string id="StatusConnecting">Connecting</string>
     <string id="StatusHint">Wake the Di2</string>
+    <!-- Долгий безуспешный поиск: D-Fly после глубокого сна не вещает; нужен паринг. -->
+    <string id="StatusHintPair">Hold Di2 button</string>
 
     <!-- Настройки -->
     <string id="SetFrontChainrings">Front chainrings</string>

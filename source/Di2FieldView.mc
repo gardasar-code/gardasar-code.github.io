@@ -17,6 +17,9 @@ class Di2FieldView extends WatchUi.DataField {
     private var _delegate as Di2BleDelegate?;   // null, если BLE отключён
     private var _fit as Di2FitContributor?;     // запись в FIT-файл активности
 
+    // DEBUG (симулятор): монотонный счётчик тиков для демо-цикла состояний.
+    (:debug) private var _demoTick as Lang.Number = 0;
+
     // Кэш строк из ресурсов (грузим один раз, с учётом языка устройства).
     private var _lblDi2 as Lang.String = "Di2";
     private var _noData as Lang.String = "---";
@@ -24,6 +27,11 @@ class Di2FieldView extends WatchUi.DataField {
     private var _statSearching as Lang.String = "Searching";
     private var _statConnecting as Lang.String = "Connecting";
     private var _statHint as Lang.String = "Wake the Di2";
+    private var _statHintPair as Lang.String = "Hold Di2 button";
+
+    // Через столько секунд непрерывного скана меняем подсказку на «нажми паринг»
+    // (D-Fly после глубокого сна не вещает — щелчки его не будят, см. doc/NOTES.md).
+    private const SCAN_HINT_PAIR_SECS = 60;
 
     function initialize(state as Di2State?, delegate as Di2BleDelegate?) {
         DataField.initialize();
@@ -35,6 +43,7 @@ class Di2FieldView extends WatchUi.DataField {
         _statSearching = WatchUi.loadResource(Rez.Strings.StatusSearching) as Lang.String;
         _statConnecting = WatchUi.loadResource(Rez.Strings.StatusConnecting) as Lang.String;
         _statHint = WatchUi.loadResource(Rez.Strings.StatusHint) as Lang.String;
+        _statHintPair = WatchUi.loadResource(Rez.Strings.StatusHintPair) as Lang.String;
         _fit = new Di2FitContributor(self);
     }
 
@@ -55,22 +64,70 @@ class Di2FieldView extends WatchUi.DataField {
         }
     }
 
-    // DEBUG (симулятор): подменяем «живые» данные, т.к. BLE в симуляторе нет.
-    //   connected = true (показываем цифры, а не "---");
-    //   задняя передача = Storage["debugRear"] (по умолчанию 5);
-    //   батарея        = Storage["debugBattery"] (по умолчанию 75).
-    // Меняй значения в симуляторе: меню «File → Edit Persistent Storage» — добавь
-    // ключ debugRear (число 1..12) и/или debugBattery (0..100). В release вырезается.
+    // DEBUG (симулятор): BLE в симуляторе нет и настройки/кнопки не подать, поэтому
+    // прогоняем UI по всем состояниям автоматически — демо-цикл. Каждая сцена держится
+    // DEMO_SCENE_TICKS секунд (compute ≈ 1 Гц), затем переключается на следующую.
+    // anim крутим каждый тик, чтобы были видны пульсация точки и «бегущее» многоточие.
+    //
+    // Полный цикл сцен (0..5):
+    //   0 Searching   — синяя пульсирующая точка, статус-экран поиска
+    //   1 Connecting  — жёлтая точка, статус-экран подключения
+    //   2 Live        — зелёная точка, передача 5/12, заряд 80 % (1-значная задняя)
+    //   3 Live+lock   — тёмно-синяя точка, передача 11/12, заряд 15 % (2-значная, низкий заряд)
+    //   4 Retry       — оранжевая точка, статус-экран поиска (привязка ещё активна)
+    //   5 Live+lock   — тёмно-синяя точка, передача 12/12, заряд 50 % (макс. задняя)
+    //
+    // Зафиксировать ОДИН вид (для скриншота): «File → Edit Persistent Storage» в
+    // симуляторе → ключ debugScene (число 0..5). Удали ключ — снова пойдёт цикл.
+    (:debug) const DEMO_SCENE_TICKS = 5;
+
     (:debug)
     function applyDebugData() as Void {
         if (_state == null) {
             return;
         }
-        _state.connected = true;
-        var r = Application.Storage.getValue("debugRear");
-        _state.rear = (r == null) ? 5 : (r as Lang.Number);
-        var b = Application.Storage.getValue("debugBattery");
-        _state.battery = (b == null) ? 75 : (b as Lang.Number);
+        _demoTick += 1;
+        _state.anim = _demoTick;   // анимация точки и многоточия
+
+        var forced = Application.Storage.getValue("debugScene");
+        var scene = (forced != null)
+            ? ((forced as Lang.Number) % 6)
+            : ((_demoTick / DEMO_SCENE_TICKS) % 6);
+
+        switch (scene) {
+            case 0:   // поиск
+                setDemo(false, CONN_SCANNING,  false, -1, -1, -1);
+                break;
+            case 1:   // подключение
+                setDemo(false, CONN_CONNECTING, false, -1, -1, -1);
+                break;
+            case 2:   // на связи, не привязан, 1-значная задняя
+                setDemo(true,  CONN_LIVE, false, 5, 12, 80);
+                break;
+            case 3:   // на связи, привязан, 2-значная задняя, низкий заряд
+                setDemo(true,  CONN_LIVE, true, 11, 12, 15);
+                break;
+            case 4:   // потеря связи / реконнект (привязка сохраняется)
+                setDemo(false, CONN_RETRY, true, -1, -1, -1);
+                break;
+            default:  // на связи, привязан, максимальная задняя
+                setDemo(true,  CONN_LIVE, true, 12, 12, 50);
+                break;
+        }
+    }
+
+    // Применить одну демо-сцену к состоянию (только debug). battery<0 не трогаем.
+    (:debug)
+    function setDemo(connected as Lang.Boolean, phase as Lang.Number, locked as Lang.Boolean,
+                     rear as Lang.Number, rearTotal as Lang.Number, battery as Lang.Number) as Void {
+        _state.connected = connected;
+        _state.phase = phase;
+        _state.locked = locked;
+        _state.rear = rear;
+        _state.rearTotal = rearTotal;
+        _state.front = 1;        // дефолтный привод: одна передняя звезда
+        _state.frontTotal = 1;
+        _state.battery = battery;
     }
 
     (:release)
@@ -264,9 +321,19 @@ class Di2FieldView extends WatchUi.DataField {
         var wWidth = dc.getTextWidthInPixels(word, font);
         dc.drawText(cx + wWidth / 2, cy - fh / 2, font, dots, Graphics.TEXT_JUSTIFY_LEFT | vc);
 
-        // Подсказка пользователю приглушённым цветом под статусом.
+        // Подсказка под статусом. В фазе подключения показываем счётчик секунд
+        // (коннект при слабом сигнале длится до ~17 c — видно, что идёт, а не зависло);
+        // в фазе поиска — подсказку «разбудите Di2».
         dc.setColor(fade, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, cy + fh / 2, Graphics.FONT_XTINY, _statHint, Graphics.TEXT_JUSTIFY_CENTER | vc);
+        var hint;
+        if (phase == CONN_CONNECTING && _state != null) {
+            hint = _state.connSeconds.format("%d") + "s";   // прогресс подключения
+        } else if (_state != null && _state.scanSeconds >= SCAN_HINT_PAIR_SECS) {
+            hint = _statHintPair;                            // долгий поиск → подскажем паринг
+        } else {
+            hint = _statHint;                                // обычная подсказка «разбуди Di2»
+        }
+        dc.drawText(cx, cy + fh / 2, Graphics.FONT_XTINY, hint, Graphics.TEXT_JUSTIFY_CENTER | vc);
     }
 
     // Крупнейший из обычных шрифтов, при котором статус-строка влезает по ширине.

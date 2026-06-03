@@ -4,6 +4,10 @@ bin/
 *.prg.debug.xml
 *.iq
 
+# Временные артефакты build-diag.sh (создаются и удаляются скриптом)
+.diag-src/
+monkey-diag.jungle
+
 # SDK / editor
 .DS_Store
 .vscode/
@@ -15,4 +19,5 @@ developer_key.*
 # Логи устройства (снимаем для калибровки, в репозитории не нужны)
 doc/CIQ_LOG*
 doc/Di2Field.txt
+doc/DI2DIAG.*
 *.fit
