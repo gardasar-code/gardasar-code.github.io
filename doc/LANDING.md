@@ -1,51 +1,63 @@
 # Лендинг Di2 Field (GitHub Pages)
 
-Изолированный статический лендинг. Публикуется на GitHub Pages так, что в сайт
-попадает **только** папка `site/` — исходники Monkey C, `doc/`, логи и прочее
-в публикацию НЕ уходят.
+Лендинг живёт в подкаталоге `site/` этого проекта (исходник правды), а на GitHub
+публикуется так, что в репозиторий попадает **ТОЛЬКО содержимое `site/`** —
+исходники Monkey C, `doc/`, история проекта туда НЕ уходят.
 
-## Структура
+## Как это устроено
 
-| Путь | Назначение |
+GitHub-репозиторий лендинга: `https://github.com/gardasar-code/Di2Field`
+(remote называется **`landing`**, не `origin` — чтобы случайный `git push` не
+залил туда весь проект).
+
+Публикуем подкаталог `site/` как корень репо через `git subtree`. В корне
+GitHub-репо окажется ровно: `index.html`, `icon.svg`, `.nojekyll`.
+
+## Структура `site/`
+
+| Файл | Назначение |
 |---|---|
-| `site/index.html` | весь лендинг (self-contained: инлайн CSS/JS, шрифты с Google Fonts) |
+| `site/index.html` | весь лендинг (self-contained: инлайн CSS/JS, Google Fonts) |
 | `site/icon.svg` | favicon |
-| `site/.nojekyll` | отключает обработку Jekyll |
-| `.github/workflows/pages.yml` | деплой: `upload-pages-artifact` с `path: site` → публикуется только `site/` |
+| `site/.nojekyll` | отключает обработку Jekyll (важно для branch-deploy) |
 
-## Как опубликовать (однократно)
+## Публикация (каждый раз после правок лендинга)
 
-1. Создать репозиторий на GitHub и запушить (remote пока не настроен):
+1. Закоммить изменения `site/` в этом проекте как обычно.
+2. Запушить ТОЛЬКО подкаталог на GitHub:
    ```bash
-   git remote add origin git@github.com:<USER>/<REPO>.git
-   git push -u origin main
+   git subtree push --prefix=site landing main
    ```
-2. На GitHub: **Settings → Pages → Build and deployment → Source = "GitHub Actions"**.
-3. Любой push в `main`, меняющий `site/**`, задеплоит лендинг. URL появится в
-   логе workflow и в Settings → Pages (вида `https://<USER>.github.io/<REPO>/`).
+   В корне репо `Di2Field` будет только содержимое `site/`.
+
+> Первый push пустого репо этой же командой создаст ветку `main`.
+> Если когда-нибудь история subtree «разойдётся», форсировать так:
+> ```bash
+> git push landing "$(git subtree split --prefix=site)":main --force
+> ```
+
+## Включить Pages (однократно)
+
+GitHub → репозиторий **Di2Field** → **Settings → Pages → Build and deployment →
+Source = "Deploy from a branch" → Branch: `main` / `(root)`**.
+
+Через минуту сайт будет на `https://gardasar-code.github.io/Di2Field/`.
+(Actions/workflow не нужны — branch-deploy раздаёт корень сам; `.nojekyll`
+отключает Jekyll.)
 
 ## Заполнить плейсхолдеры
 
-В `site/index.html` помечены атрибутом `data-todo`. Найти и заменить:
+В `site/index.html` помечены `data-todo`:
 
 | Плейсхолдер | На что заменить |
 |---|---|
-| `STORE_URL` | ссылка на публичную страницу приложения в Connect IQ Store |
-| `REPO_URL` | URL репозитория на GitHub |
+| `STORE_URL` | ссылка на приложение в Connect IQ Store |
+| `REPO_URL` | `https://github.com/gardasar-code/Di2Field` |
 
-Быстрый поиск: `grep -n "data-todo\|STORE_URL\|REPO_URL" site/index.html`.
-
-## Дизайн
-
-Тёмная «приборная» эстетика велокомпьютера: почти чёрный фон с сеткой,
-сигнальный лайм-акцент, моноширинные подписи (JetBrains Mono) + Archivo для
-заголовков. Герой — живая CSS-реплика дата-поля (бегущая передача по кассете,
-пульсирующая точка связи, разряд батареи). Цвета точек связи совпадают с
-приложением (blue/yellow/green/navy/orange).
+Поиск: `grep -n "data-todo\|STORE_URL\|REPO_URL" site/index.html`.
 
 ## Локальный просмотр
 
 ```bash
-open site/index.html          # или любой статический сервер
 python3 -m http.server -d site 8080   # http://localhost:8080
 ```
