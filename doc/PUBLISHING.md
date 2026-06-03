@@ -40,7 +40,7 @@ git checkout main
 
 ## Загрузка: шаг 1 — App File
 - **File:** `bin/Di2App.iq`
-- **App Version:** значение из `manifest.xml` (текущее — `0.0.16`)
+- **App Version:** значение из `manifest.xml` (текущее — `0.0.24`)
 - **Beta App:** ❌ снять галочку для публичного релиза (поставить — для beta-теста).
 
 ## Шаг 2 — Title and Description
@@ -66,7 +66,10 @@ There is no button to press — it's a data field. Connection is automatic:
    same one automatically on every future ride.
 
 If the link drops, the field keeps retrying on its own and reconnects as soon
-as the Di2 wakes up again — nothing to do.
+as the Di2 is awake again — for a short break there's nothing to do. If the Di2
+has been asleep for a long time it stops broadcasting entirely (a Shimano
+power-saving behaviour); when that happens the hint changes to "Hold Di2 button"
+— put the unit back into pairing mode once and the field reconnects.
 
 The status dot next to "Di2" is color-coded:
 - Blue — searching for a Di2 (pulsing while it scans)
@@ -110,14 +113,15 @@ Tested with Shimano XT Di2 RD-M8250-SGS (12-speed) on Garmin Edge Explore 2.
 Independent, unofficial app — not affiliated with or endorsed by Shimano.
 ```
 
-**What's New (0.0.16):** полный список — `CHANGELOG.md`. Для поля стора:
+**What's New (0.0.24):** полный список — `CHANGELOG.md`. Для поля стора:
 ```
-Smarter connection: the field now shows what it's doing while linking up
-(Searching / Connecting) and reminds you to wake the Di2. It pairs with your
-own Di2 and reconnects to it automatically; a new "Forget paired Di2" switch
-lets you move to another bike. Connection status is now a color-coded dot
-(blue searching, yellow connecting, green connected, dark blue your paired
-Di2, orange reconnecting), and its alignment is fixed across all layouts.
+More reliable connection. The field now keeps its Bluetooth bond between rides
+and reconnects to your Di2 on its own as soon as it's awake — no re-pairing
+after a short break. Sticky-lock is more dependable: it confirms it's really
+your unit before locking on, instead of jumping to another nearby Di2. While
+linking, a seconds counter shows progress, and after a long search the hint
+reminds you to hold the Di2 button (a Di2 left asleep for a long time stops
+broadcasting and must be re-paired — a Shimano limitation).
 ```
 
 ## Шаг 3 — Изображения

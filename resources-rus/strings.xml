@@ -9,6 +9,7 @@
     <string id="StatusSearching">Поиск</string>
     <string id="StatusConnecting">Подключение</string>
     <string id="StatusHint">Разбудите Di2</string>
+    <string id="StatusHintPair">Зажмите кнопку Di2</string>
 
     <string id="SetFrontChainrings">Передние звёзды</string>
     <string id="SetFrontTitle">Зубья перед.</string>

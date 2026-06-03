@@ -9,6 +9,7 @@
     <string id="StatusSearching">Buscando</string>
     <string id="StatusConnecting">Conectando</string>
     <string id="StatusHint">Activa el Di2</string>
+    <string id="StatusHintPair">Mantén el botón Di2</string>
 
     <string id="SetFrontChainrings">Platos delanteros</string>
     <string id="SetFrontTitle">Dientes delant.</string>

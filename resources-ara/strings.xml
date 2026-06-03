@@ -9,6 +9,7 @@
     <string id="StatusSearching">جارٍ البحث</string>
     <string id="StatusConnecting">جارٍ الاتصال</string>
     <string id="StatusHint">أيقظ جهاز Di2</string>
+    <string id="StatusHintPair">اضغط مطولاً زر Di2</string>
 
     <string id="SetFrontChainrings">النجوم الأمامية</string>
     <string id="SetFrontTitle">أسنان أمامية</string>
