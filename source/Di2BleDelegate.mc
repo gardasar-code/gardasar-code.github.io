@@ -273,6 +273,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             Ble.setScanState(Ble.SCAN_STATE_OFF);
             _scanning = false;
             _state.phase = CONN_CONNECTING;
+            log("pairDevice name=" + (sr.getDeviceName() != null ? sr.getDeviceName() : "?") + " rssi=" + sr.getRssi());
             var d = Ble.pairDevice(sr);
             // emtb: иногда onConnectedStateChanged не приходит — проверяем сразу.
             if (d != null && d.isConnected()) {
@@ -429,6 +430,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _reconnectAttempts += 1;
         var delay = _reconnectAttempts * RECONNECT_MIN_TICKS;
         _reconnectCountdown = (delay < RECONNECT_MAX_TICKS) ? delay : RECONNECT_MAX_TICKS;
+        log("reconnect scheduled in " + _reconnectCountdown + " ticks (attempt " + _reconnectAttempts + ")");
     }
 
     // ── Утилиты ───────────────────────────────────────────────────────────────
@@ -443,16 +445,19 @@ class Di2BleDelegate extends Ble.BleDelegate {
     }
 
     private function logBytes(characteristic as Ble.Characteristic, value as Lang.ByteArray) as Void {
+        if (!DEBUG) {
+            return;
+        }
         var hex = "";
         for (var i = 0; i < value.size(); i++) {
             hex += value[i].format("%02X") + " ";
         }
-        System.println("[Di2] char=" + characteristic.getUuid().toString() + " len=" + value.size() + " bytes=[" + hex + "]");
+        Di2Log.line("notify char=" + characteristic.getUuid().toString() + " len=" + value.size() + " bytes=[" + hex + "]");
     }
 
     private function log(msg as Lang.String) as Void {
         if (DEBUG) {
-            System.println("[Di2] " + msg);
+            Di2Log.line(msg);
         }
     }
 }
