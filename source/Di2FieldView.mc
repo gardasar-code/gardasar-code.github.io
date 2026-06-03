@@ -21,6 +21,9 @@ class Di2FieldView extends WatchUi.DataField {
     private var _lblDi2 as Lang.String = "Di2";
     private var _noData as Lang.String = "---";
     private var _lblFront as Lang.String = "F:";
+    private var _statSearching as Lang.String = "Searching";
+    private var _statConnecting as Lang.String = "Connecting";
+    private var _statHint as Lang.String = "Wake the Di2";
 
     function initialize(state as Di2State?, delegate as Di2BleDelegate?) {
         DataField.initialize();
@@ -29,6 +32,9 @@ class Di2FieldView extends WatchUi.DataField {
         _lblDi2 = WatchUi.loadResource(Rez.Strings.LabelDi2) as Lang.String;
         _noData = WatchUi.loadResource(Rez.Strings.LabelNoData) as Lang.String;
         _lblFront = WatchUi.loadResource(Rez.Strings.LabelFront) as Lang.String;
+        _statSearching = WatchUi.loadResource(Rez.Strings.StatusSearching) as Lang.String;
+        _statConnecting = WatchUi.loadResource(Rez.Strings.StatusConnecting) as Lang.String;
+        _statHint = WatchUi.loadResource(Rez.Strings.StatusHint) as Lang.String;
         _fit = new Di2FitContributor(self);
     }
 
@@ -91,22 +97,30 @@ class Di2FieldView extends WatchUi.DataField {
         dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
         var topY = (h * 0.08).toNumber();
         var topFontH = dc.getFontHeight(Graphics.FONT_XTINY);
+        // Единая центр-линия верхней строки: и текст, и кружок выравниваются по
+        // ней через VCENTER, поэтому совпадают по вертикали на любой раскладке
+        // (раньше текст был top-aligned, а кружок — по центру шрифта → расхождение).
+        var topVC = Graphics.TEXT_JUSTIFY_VCENTER;
+        var centerY = topY + topFontH / 2;
 
         // Слева: метка Di2 + индикатор подключения (кружок по центру высоты текста).
-        dc.drawText(2, topY, Graphics.FONT_XTINY, _lblDi2, Graphics.TEXT_JUSTIFY_LEFT);
-        var dotColor = connected ? Graphics.COLOR_GREEN : Graphics.COLOR_LT_GRAY;
+        // Цвет кодирует фазу связи; пока не подключены — кружок пульсирует (1 Гц),
+        // чтобы было видно: поле живо и активно ищет, а не зависло.
+        dc.drawText(2, centerY, Graphics.FONT_XTINY, _lblDi2, Graphics.TEXT_JUSTIFY_LEFT | topVC);
         var di2Width = dc.getTextWidthInPixels(_lblDi2, Graphics.FONT_XTINY);
-        dc.setColor(dotColor, Graphics.COLOR_TRANSPARENT);
-        dc.fillCircle(2 + di2Width + 8, topY + topFontH / 2, 4);
+        var dotX = 2 + di2Width + 8;
+        var dotY = centerY;
+        dc.setColor(phaseColor(connected), Graphics.COLOR_TRANSPARENT);
+        dc.fillCircle(dotX, dotY, dotRadius(connected));
 
         // По центру: передняя передача F:{front}/{frontTotal}. Пока нет связи — "---".
         dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
         var frontStr = _lblFront + (connected ? pair(frontVal(), frontTotalVal()) : _noData);
-        dc.drawText(w / 2, topY, Graphics.FONT_XTINY, frontStr, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, centerY, Graphics.FONT_XTINY, frontStr, Graphics.TEXT_JUSTIFY_CENTER | topVC);
 
         // Справа: батарея {bat}%.
         var battStr = batteryStr();
-        dc.drawText(w - 2, topY, Graphics.FONT_XTINY, battStr, Graphics.TEXT_JUSTIFY_RIGHT);
+        dc.drawText(w - 2, centerY, Graphics.FONT_XTINY, battStr, Graphics.TEXT_JUSTIFY_RIGHT | topVC);
 
         // ── Задняя передача (крупно): центр свободной зоны ПОД шапкой ──────────
         var maxWidth = (w * 0.84).toNumber();        // ~8% поля с каждой стороны
@@ -195,21 +209,85 @@ class Di2FieldView extends WatchUi.DataField {
     // цифр ниже центра строки, поэтому опускаем точку, чтобы она смотрелась посередине.
     private const REAR_DOT_Y_FRAC = 0.06;
 
+    // ── Индикация фазы связи ────────────────────────────────────────────────────
+
+    // Цвет кружка-индикатора по фазе: зелёный = данные идут, жёлтый = подключаемся,
+    // оранжевый = переподключение, синий = идёт поиск.
+    // Подключены к «своему» (sticky-lock) — тёмно-синий вместо зелёного: связь есть
+    // и это привязанный Di2. Цвет заменяет прежнее кольцо вокруг точки.
+    private function phaseColor(connected as Lang.Boolean) as Graphics.ColorType {
+        if (connected) {
+            var locked = (_state != null) && _state.locked;
+            return locked ? Graphics.COLOR_DK_BLUE : Graphics.COLOR_GREEN;
+        }
+        var phase = (_state != null) ? _state.phase : CONN_SCANNING;
+        if (phase == CONN_CONNECTING) { return Graphics.COLOR_YELLOW; }
+        if (phase == CONN_RETRY)      { return Graphics.COLOR_ORANGE; }
+        return Graphics.COLOR_BLUE;   // CONN_SCANNING
+    }
+
+    // Радиус индикатора: подключены — стабильный; ищем — пульсирует 3→5 px по тикам.
+    private function dotRadius(connected as Lang.Boolean) as Lang.Number {
+        if (connected) {
+            return 4;
+        }
+        var anim = (_state != null) ? _state.anim : 0;
+        var step = [0, 1, 2, 1][anim % 4];   // плавный треугольник 0..2..0
+        return 3 + step;
+    }
+
+    // Центральная зона, пока нет данных: статус-слово + анимированное многоточие
+    // и подсказка снизу. Слово фиксировано по центру, точки «бегут» справа — слово
+    // не дёргается. Это заменяет прежнее немое "---".
+    private function drawStatus(dc as Graphics.Dc, cx as Lang.Number, cy as Lang.Number,
+                               maxWidth as Lang.Number, fg as Graphics.ColorType,
+                               fade as Graphics.ColorType) as Void {
+        var vc = Graphics.TEXT_JUSTIFY_VCENTER;
+        var phase = (_state != null) ? _state.phase : CONN_SCANNING;
+        var anim = (_state != null) ? _state.anim : 0;
+        var word = (phase == CONN_CONNECTING) ? _statConnecting : _statSearching;
+
+        var dots = "";
+        var n = anim % 4;   // 0..3 точек — «дыхание» поиска
+        for (var i = 0; i < n; i++) { dots += "."; }
+
+        var font = statusFont(dc, word + "...", maxWidth);
+        var fh = dc.getFontHeight(font);
+
+        // Слово по центру; точки добавляем от его правого края (центр не смещается).
+        dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, cy - fh / 2, font, word, Graphics.TEXT_JUSTIFY_CENTER | vc);
+        var wWidth = dc.getTextWidthInPixels(word, font);
+        dc.drawText(cx + wWidth / 2, cy - fh / 2, font, dots, Graphics.TEXT_JUSTIFY_LEFT | vc);
+
+        // Подсказка пользователю приглушённым цветом под статусом.
+        dc.setColor(fade, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, cy + fh / 2, Graphics.FONT_XTINY, _statHint, Graphics.TEXT_JUSTIFY_CENTER | vc);
+    }
+
+    // Крупнейший из обычных шрифтов, при котором статус-строка влезает по ширине.
+    private function statusFont(dc as Graphics.Dc, s as Lang.String, maxWidth as Lang.Number) as Graphics.FontDefinition {
+        var fonts = [Graphics.FONT_MEDIUM, Graphics.FONT_SMALL, Graphics.FONT_TINY, Graphics.FONT_XTINY];
+        for (var i = 0; i < fonts.size(); i++) {
+            if (dc.getTextWidthInPixels(s, fonts[i]) <= maxWidth) {
+                return fonts[i];
+            }
+        }
+        return Graphics.FONT_XTINY;
+    }
+
     // Отрисовка задней передачи тремя зонами с кружком-разделителем по центру (cx):
     //   • кружок      — по центру cx;
     //   • текущая     — правым краем к кружку (с зазором), растёт влево;
     //   • всего       — левым краем к кружку (с зазором), растёт вправо.
     // Одиночные цифры дополняются лидирующим "0" приглушённым цветом (стабильная ширина).
-    // Кружок не двигается при смене числа цифр/шрифта. Нет связи — крупное "---".
+    // Кружок не двигается при смене числа цифр/шрифта. Нет связи — статус через drawStatus.
     private function drawRear(dc as Graphics.Dc, cx as Lang.Number, cy as Lang.Number,
                              maxWidth as Lang.Number, maxHeight as Lang.Number,
                              connected as Lang.Boolean, fg as Graphics.ColorType,
                              fade as Graphics.ColorType) as Void {
-        var vc = Graphics.TEXT_JUSTIFY_VCENTER;
         if (!connected) {
-            var f0 = fitRearFont(dc, _noData, _noData, maxWidth, maxHeight);
-            dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(cx, cy, f0, _noData, Graphics.TEXT_JUSTIFY_CENTER | vc);
+            drawStatus(dc, cx, cy, maxWidth, fg, fade);
             return;
         }
         var left = (rearVal() < 0) ? "-" : rearVal().toString();

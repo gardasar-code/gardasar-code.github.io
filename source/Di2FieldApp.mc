@@ -43,8 +43,12 @@ class Di2FieldApp extends Application.AppBase {
     }
 
     // Пользователь поменял настройки в Garmin Connect Mobile — перечитываем.
+    // Делегат обрабатывает тоггл Forget (сброс sticky-lock и рескан).
     function onSettingsChanged() as Void {
         loadSettings();
+        if (_delegate != null) {
+            _delegate.onSettingsChanged();
+        }
         WatchUi.requestUpdate();
     }
 

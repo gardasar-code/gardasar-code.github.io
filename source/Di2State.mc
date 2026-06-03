@@ -1,11 +1,23 @@
 using Toybox.Lang;
 
+// Фазы установления BLE-связи — для наглядной индикации в UI.
+// Точка-индикатор и центральный статус-текст рисуются по этому значению.
+enum {
+    CONN_SCANNING = 0,   // ищем устройство в эфире
+    CONN_CONNECTING,     // нашли, поднимаем соединение/подписку
+    CONN_LIVE,           // подключены, данные идут
+    CONN_RETRY           // связь потеряна, ждём следующей попытки
+}
+
 // Разделяемое состояние между BLE-делегатом (писатель) и View (читатель).
 // Один экземпляр создаётся в Di2FieldApp и передаётся обоим.
 // Значение -1 означает «нет данных» (рисуем "---").
 class Di2State {
 
     public var connected as Lang.Boolean = false;  // есть ли активное BLE-соединение
+    public var phase as Lang.Number = CONN_SCANNING;  // фаза связи (см. enum выше)
+    public var anim as Lang.Number = 0;            // монотонный счётчик кадров для пульсации
+    public var locked as Lang.Boolean = false;     // sticky-lock активен (привязаны к «своему» Di2)
     public var rear as Lang.Number = -1;            // текущая задняя передача (1-based)
     public var rearTotal as Lang.Number = -1;       // число задних передач
     public var front as Lang.Number = -1;           // текущая передняя передача (1-based)
