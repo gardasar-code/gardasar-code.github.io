@@ -109,7 +109,11 @@ class Di2FieldView extends WatchUi.DataField {
         dc.drawText(2, centerY, Graphics.FONT_XTINY, _lblDi2, Graphics.TEXT_JUSTIFY_LEFT | topVC);
         var di2Width = dc.getTextWidthInPixels(_lblDi2, Graphics.FONT_XTINY);
         var dotX = 2 + di2Width + 8;
-        var dotY = centerY;
+        // VCENTER центрирует текст по font-box, но в «Di2» нет свисающих глифов,
+        // поэтому видимые буквы сидят выше centerY на ~descent/2. Поднимаем точку
+        // на ту же величину, чтобы она встала по оптическому центру букв (заметно
+        // в фазе поиска, где точка крупнее). Шрифт фиксирован → поправка одна на все раскладки.
+        var dotY = centerY - Graphics.getFontDescent(Graphics.FONT_XTINY) / 2;
         dc.setColor(phaseColor(connected), Graphics.COLOR_TRANSPARENT);
         dc.fillCircle(dotX, dotY, dotRadius(connected));
 
