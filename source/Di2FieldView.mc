@@ -434,7 +434,9 @@ class Di2FieldView extends WatchUi.DataField {
         }
         var mode = (_state != null) ? _state.displayMode : 0;
         if (mode == 1) {
-            drawCassette(dc, cx, cy, maxWidth, maxHeight, fg, fade);
+            // Только график: ужимаем высоту до 0.78 зоны → появляются отступы
+            // сверху/снизу, чтобы на малых полях кассета не сливалась с соседями.
+            drawCassette(dc, cx, cy, maxWidth, (maxHeight * 0.78).toNumber(), fg, fade);
         } else if (mode == 2) {
             // Кассета в верхней части зоны, цифры — в нижней.
             drawCassette(dc, cx, cy - (maxHeight * 0.26).toNumber(), maxWidth,
@@ -461,10 +463,15 @@ class Di2FieldView extends WatchUi.DataField {
         }
 
         var slot = maxWidth.toFloat() / n;
-        var barW = (slot * 0.6).toNumber();
+        var barW = (slot * 0.72).toNumber();   // чуть толще
         if (barW < 1) { barW = 1; }
         var baseline = cy + maxHeight / 2;
         var x0 = cx - maxWidth / 2;
+
+        // Цвет неактивных столбиков — средне-серый (а не бледный fade), чтобы они
+        // были заметны, но меньше контрастировали с активной (fg: чёрной днём /
+        // белой ночью). Тему определяем по fg.
+        var barOff = (fg == Graphics.COLOR_WHITE) ? 0xAAAAAA : 0x808080;
 
         // Профиль высот по зубьям, если список задан и совпадает по длине.
         var teeth = (_state != null) ? _state.rearTeeth : null;
@@ -495,7 +502,7 @@ class Di2FieldView extends WatchUi.DataField {
             // Зеркалим по X: бóльшая звезда (i=n, самый высокий столбик) — СЛЕВА,
             // меньшая (i=1) — справа. Слот меняем на (n - i + 0.5).
             var bx = (x0 + slot * (n - i + 0.5)).toNumber() - barW / 2;
-            dc.setColor((i == cur) ? fg : fade, Graphics.COLOR_TRANSPARENT);
+            dc.setColor((i == cur) ? fg : barOff, Graphics.COLOR_TRANSPARENT);
             dc.fillRectangle(bx, baseline - bh, barW, bh);
         }
     }
