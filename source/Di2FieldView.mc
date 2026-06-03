@@ -446,10 +446,10 @@ class Di2FieldView extends WatchUi.DataField {
         }
     }
 
-    // Визуальная задняя кассета: N столбиков (по числу звёзд) слева-направо от
-    // меньшей звезды к большей; высота столбика растёт с числом зубьев (или линейно,
-    // если зубья не заданы). Текущая передача — ярким цветом (fg), остальные —
-    // приглушённым (fade). Столбики выровнены по нижней линии зоны.
+    // Визуальная задняя кассета: N столбиков (по числу звёзд). Бóльшая звезда —
+    // СЛЕВА (высокий столбик), меньшая — справа; высота растёт с числом зубьев
+    // (или линейно, если зубья не заданы). Текущая передача — ярким цветом (fg),
+    // остальные — приглушённым (fade). Столбики выровнены по нижней линии зоны.
     private function drawCassette(dc as Graphics.Dc, cx as Lang.Number, cy as Lang.Number,
                                  maxWidth as Lang.Number, maxHeight as Lang.Number,
                                  fg as Graphics.ColorType, fade as Graphics.ColorType) as Void {
@@ -492,7 +492,9 @@ class Di2FieldView extends WatchUi.DataField {
             }
             var bh = (maxHeight * (0.3 + 0.7 * frac)).toNumber();
             if (bh < 2) { bh = 2; }
-            var bx = (x0 + slot * (i - 0.5)).toNumber() - barW / 2;
+            // Зеркалим по X: бóльшая звезда (i=n, самый высокий столбик) — СЛЕВА,
+            // меньшая (i=1) — справа. Слот меняем на (n - i + 0.5).
+            var bx = (x0 + slot * (n - i + 0.5)).toNumber() - barW / 2;
             dc.setColor((i == cur) ? fg : fade, Graphics.COLOR_TRANSPARENT);
             dc.fillRectangle(bx, baseline - bh, barW, bh);
         }
