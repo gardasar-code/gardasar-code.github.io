@@ -40,7 +40,7 @@ git checkout main
 
 ## Загрузка: шаг 1 — App File
 - **File:** `bin/Di2App.iq`
-- **App Version:** значение из `manifest.xml` (напр. `0.0.12`)
+- **App Version:** значение из `manifest.xml` (текущее — `0.0.16`)
 - **Beta App:** ❌ снять галочку для публичного релиза (поставить — для beta-теста).
 
 ## Шаг 2 — Title and Description
@@ -62,8 +62,8 @@ There is no button to press — it's a data field. Connection is automatic:
    invisible on the air until then).
 3. The field finds the nearest Di2 and connects on its own — the status dot
    turns green and the gear numbers appear.
-4. It then sticks to that shifter (a thin ring around the dot) and reconnects
-   to the same one automatically on every future ride.
+4. It then sticks to that Di2 (the dot turns dark blue) and reconnects to the
+   same one automatically on every future ride.
 
 If the link drops, the field keeps retrying on its own and reconnects as soon
 as the Di2 wakes up again — nothing to do.
@@ -110,7 +110,15 @@ Tested with Shimano XT Di2 RD-M8250-SGS (12-speed) on Garmin Edge Explore 2.
 Independent, unofficial app — not affiliated with or endorsed by Shimano.
 ```
 
-**What's New:** `Initial public release.`
+**What's New (0.0.16):** полный список — `CHANGELOG.md`. Для поля стора:
+```
+Smarter connection: the field now shows what it's doing while linking up
+(Searching / Connecting) and reminds you to wake the Di2. It pairs with your
+own Di2 and reconnects to it automatically; a new "Forget paired Di2" switch
+lets you move to another bike. Connection status is now a color-coded dot
+(blue searching, yellow connecting, green connected, dark blue your paired
+Di2, orange reconnecting), and its alignment is fixed across all layouts.
+```
 
 ## Шаг 3 — Изображения
 - **Cover Image 500×500** (<300 КБ): `store/cover.png`
