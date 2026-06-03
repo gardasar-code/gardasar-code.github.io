@@ -179,9 +179,8 @@ class Di2FieldView extends WatchUi.DataField {
         var frontStr = _lblFront + (connected ? pair(frontVal(), frontTotalVal()) : _noData);
         dc.drawText(w / 2, centerY, Graphics.FONT_XTINY, frontStr, Graphics.TEXT_JUSTIFY_CENTER | topVC);
 
-        // Справа: батарея {bat}%.
-        var battStr = batteryStr();
-        dc.drawText(w - 2, centerY, Graphics.FONT_XTINY, battStr, Graphics.TEXT_JUSTIFY_RIGHT | topVC);
+        // Справа: батарея — процент / иконка / иконка+процент (по настройке).
+        drawBattery(dc, w - 2, centerY, topFontH, fg);
 
         // ── Задняя передача (крупно): центр свободной зоны ПОД шапкой ──────────
         var maxWidth = (w * 0.84).toNumber();        // ~8% поля с каждой стороны
@@ -256,6 +255,61 @@ class Di2FieldView extends WatchUi.DataField {
             return _noData;
         }
         return b.toString() + "%";
+    }
+
+    // Отрисовка батареи справа в верхней строке по режиму _state.batteryMode:
+    //   0 — процент (как раньше); 1 — иконка; 2 — иконка + процент.
+    // Нет данных (b<0) — всегда "---" (иконку рисовать нечем). rightX — правый край,
+    // centerY — центр строки, fontH — высота FONT_XTINY (для масштаба иконки).
+    private function drawBattery(dc as Graphics.Dc, rightX as Lang.Number, centerY as Lang.Number,
+                                 fontH as Lang.Number, fg as Graphics.ColorType) as Void {
+        var b = (_state != null) ? _state.battery : -1;
+        var mode = (_state != null) ? _state.batteryMode : 0;
+        var vc = Graphics.TEXT_JUSTIFY_VCENTER;
+
+        // Режим «процент» или отсутствие данных → текст.
+        if (mode == 0 || b < 0) {
+            dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(rightX, centerY, Graphics.FONT_XTINY, batteryStr(),
+                        Graphics.TEXT_JUSTIFY_RIGHT | vc);
+            return;
+        }
+
+        // Геометрия иконки от высоты шрифта.
+        var bh = (fontH * 0.5).toNumber();
+        if (bh < 6) { bh = 6; }
+        var bw = (bh * 1.9).toNumber();
+        var nub = (bw * 0.10).toNumber();
+        if (nub < 1) { nub = 1; }
+
+        var iconRight = rightX;
+        // Режим «иконка + процент»: процент справа, иконка слева от него.
+        if (mode == 2) {
+            var pct = b.toString() + "%";
+            dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(rightX, centerY, Graphics.FONT_XTINY, pct, Graphics.TEXT_JUSTIFY_RIGHT | vc);
+            iconRight = rightX - dc.getTextWidthInPixels(pct, Graphics.FONT_XTINY) - 4;
+        }
+        drawBatteryIcon(dc, iconRight - bw - nub, centerY - bh / 2, bw, bh, nub, b, fg);
+    }
+
+    // Горизонтальная иконка батареи: корпус-рамка + клемма справа + заливка ∝ заряду.
+    // Цвет заливки кодирует уровень: <15 % красный, <40 % оранжевый, иначе зелёный.
+    private function drawBatteryIcon(dc as Graphics.Dc, bx as Lang.Number, by as Lang.Number,
+                                     bw as Lang.Number, bh as Lang.Number, nub as Lang.Number,
+                                     pct as Lang.Number, fg as Graphics.ColorType) as Void {
+        dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+        dc.setPenWidth(1);
+        dc.drawRectangle(bx, by, bw, bh);                              // корпус
+        dc.fillRectangle(bx + bw, by + (bh * 0.28).toNumber(),         // клемма
+                         nub, (bh * 0.44).toNumber());
+        var lvl = (pct < 15) ? Graphics.COLOR_RED
+                : (pct < 40) ? Graphics.COLOR_ORANGE : Graphics.COLOR_GREEN;
+        var innerW = ((bw - 3) * pct / 100).toNumber();               // ширина заливки
+        if (innerW > 0) {
+            dc.setColor(lvl, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(bx + 2, by + 2, innerW, bh - 4);
+        }
     }
 
     private function frontVal() as Lang.Number      { return (_state != null) ? _state.front : -1; }

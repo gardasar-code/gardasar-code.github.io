@@ -14,4 +14,6 @@
     <!-- Тоггл-«кнопка»: сбросить привязку к текущему Di2 и подключиться к ближайшему.
          Код снимает sticky-lock и сам выключает тоггл обратно в false. -->
     <property id="forgetDevice" type="boolean">false</property>
+    <!-- Показ батареи: 0=процент (по умолч.), 1=иконка, 2=иконка+процент. -->
+    <property id="batteryDisplay" type="number">0</property>
 </properties>

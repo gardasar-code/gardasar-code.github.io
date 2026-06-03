@@ -48,4 +48,15 @@
         <settingConfig type="boolean"/>
     </setting>
 
+    <!-- Показ батареи: процент / иконка / иконка+процент.
+         Метки опций инлайн (как у числа звёзд), заголовок локализован. -->
+    <setting propertyKey="@Properties.batteryDisplay"
+             title="@Strings.SetBattery">
+        <settingConfig type="list">
+            <listEntry value="0">Percent</listEntry>
+            <listEntry value="1">Icon</listEntry>
+            <listEntry value="2">Icon + percent</listEntry>
+        </settingConfig>
+    </setting>
+
 </settings>

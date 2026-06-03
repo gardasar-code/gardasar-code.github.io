@@ -4,6 +4,13 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.25
+
+### Added
+- Battery display options in the field settings: show the D-Fly charge as a
+  percentage (default), a colour-coded battery icon, or both. The icon fills in
+  proportion to the charge and turns orange below 40% and red below 15%.
+
 ## 0.0.24
 
 Connection reliability overhaul (consolidates the 0.0.17–0.0.23 beta builds).
