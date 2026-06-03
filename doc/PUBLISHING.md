@@ -55,13 +55,43 @@ wireless unit battery level right on your Edge data screen.
 It connects over Bluetooth Low Energy to a Shimano D-Fly module
 (EW-WU111 / SC-M9051) — no ANT+ needed.
 
+GETTING CONNECTED
+There is no button to press — it's a data field. Connection is automatic:
+1. Add the Di2 field to a data screen on your Edge.
+2. Wake your Di2 by tapping any shifter (it sleeps when idle and stays
+   invisible on the air until then).
+3. The field finds the nearest Di2 and connects on its own — the status dot
+   turns green and the gear numbers appear.
+4. It then sticks to that shifter (a thin ring around the dot) and reconnects
+   to the same one automatically on every future ride.
+
+If the link drops, the field keeps retrying on its own and reconnects as soon
+as the Di2 wakes up again — nothing to do.
+
+The status dot next to "Di2" is color-coded:
+- Blue — searching for a Di2 (pulsing while it scans)
+- Yellow — connecting
+- Green — connected and receiving data
+- Dark blue — connected to your paired Di2 (the one it locked onto)
+- Orange — link lost, retrying
+
+SWITCHING OR FORGETTING A DI2
+Riding a different bike, or want to pair with another unit?
+1. Open the field settings in Garmin Connect Mobile.
+2. Turn on "Forget paired Di2" and save.
+3. The field drops the current unit and locks onto the nearest awake Di2 on
+   the next scan. The toggle switches itself back off — it's a one-shot button.
+To pick a specific Di2 when two are nearby: bring your Edge close to the right
+bike (or keep the other Di2 asleep), then use Forget — it grabs the nearest
+one that's awake.
+
 FEATURES
 - Large, clear rear gear with cassette size (current • total)
 - Front chainring indicator
 - Configurable drivetrain: pick front chainrings (1–3) and cassette size,
   then enter the teeth of each ring/cog for accurate gear ratios
 - D-Fly battery percentage
-- Connection status indicator with auto-reconnect
+- Color-coded connection status dot with auto-reconnect
 - Day / night color theme
 - Six languages: English, French, Spanish, Russian, German, Arabic
 
