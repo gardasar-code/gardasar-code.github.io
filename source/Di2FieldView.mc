@@ -438,15 +438,18 @@ class Di2FieldView extends WatchUi.DataField {
             // сверху/снизу, чтобы на малых полях кассета не сливалась с соседями.
             drawCassette(dc, cx, cy, maxWidth, (maxHeight * 0.78).toNumber(), fg, fade);
         } else if (mode == 2) {
-            // Оба: делим зону пополам с явными отступами сверху и снизу (pad), чтобы
-            // на малых полях цифры не сливались с границей. Кассета над срединой,
-            // цифры под ней; каждая — по центру своей полосы.
+            // Оба: pad сверху/снизу + ЗАЗОР между кассетой и цифрами. Цифрам отдаём
+            // меньшую долю (шрифт мельче) → появляется воздух между графиком и числами,
+            // и на малых полях ничего не сливается с границей.
             var pad = (maxHeight * 0.10).toNumber();
             var top = cy - maxHeight / 2 + pad;        // верх рабочей области
             var bot = cy + maxHeight / 2 - pad;        // низ рабочей области
-            var mid = cy + (maxHeight * 0.02).toNumber();
-            drawCassette(dc, cx, (top + mid) / 2, maxWidth, mid - top, fg, fade);
-            drawRear(dc, cx, (mid + bot) / 2, maxWidth, bot - mid, true, fg, fade);
+            var work = bot - top;
+            var casH = (work * 0.52).toNumber();       // кассета
+            var gap = (work * 0.12).toNumber();        // воздух между графиком и цифрами
+            var numTop = top + casH + gap;
+            drawCassette(dc, cx, top + casH / 2, maxWidth, casH, fg, fade);
+            drawRear(dc, cx, (numTop + bot) / 2, maxWidth, bot - numTop, true, fg, fade);
         } else {
             drawRear(dc, cx, cy, maxWidth, maxHeight, true, fg, fade);
         }
