@@ -4,6 +4,14 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.19 (beta, diagnostic)
+
+### Debug
+- Sideload test build of the keep-pair reconnect change plus the timestamped
+  `Di2Log` logger. Version bumped so the build is distinguishable on-device
+  (Connect IQ → app info). Same diagnostic channel as 0.0.18
+  (`build-diag.sh` → `DI2DIAG.prg`, log in `GARMIN/APPS/LOGS/DI2DIAG.TXT`).
+
 ## 0.0.18 (beta, diagnostic)
 
 ### Debug
