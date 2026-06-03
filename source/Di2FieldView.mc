@@ -438,11 +438,15 @@ class Di2FieldView extends WatchUi.DataField {
             // сверху/снизу, чтобы на малых полях кассета не сливалась с соседями.
             drawCassette(dc, cx, cy, maxWidth, (maxHeight * 0.78).toNumber(), fg, fade);
         } else if (mode == 2) {
-            // Кассета в верхней части зоны, цифры — в нижней.
-            drawCassette(dc, cx, cy - (maxHeight * 0.26).toNumber(), maxWidth,
-                         (maxHeight * 0.46).toNumber(), fg, fade);
-            drawRear(dc, cx, cy + (maxHeight * 0.28).toNumber(), maxWidth,
-                     (maxHeight * 0.42).toNumber(), true, fg, fade);
+            // Оба: делим зону пополам с явными отступами сверху и снизу (pad), чтобы
+            // на малых полях цифры не сливались с границей. Кассета над срединой,
+            // цифры под ней; каждая — по центру своей полосы.
+            var pad = (maxHeight * 0.10).toNumber();
+            var top = cy - maxHeight / 2 + pad;        // верх рабочей области
+            var bot = cy + maxHeight / 2 - pad;        // низ рабочей области
+            var mid = cy + (maxHeight * 0.02).toNumber();
+            drawCassette(dc, cx, (top + mid) / 2, maxWidth, mid - top, fg, fade);
+            drawRear(dc, cx, (mid + bot) / 2, maxWidth, bot - mid, true, fg, fade);
         } else {
             drawRear(dc, cx, cy, maxWidth, maxHeight, true, fg, fade);
         }
