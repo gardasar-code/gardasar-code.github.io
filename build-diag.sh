@@ -43,6 +43,10 @@ sed -i '' 's#(:debug)   function bleEnabled() as Lang.Boolean { return false; }#
 sed -i '' 's#^    function applyDebugData() as Void {$#    function applyDebugData() as Void {\n        return;  // DIAG: real BLE data, no demo#' \
   "$SRC_TMP/Di2FieldView.mc"
 
+# Патч 3: включаем диагностический лог (в коммите DEBUG=false для release).
+sed -i '' 's#private const DEBUG = false;#private const DEBUG = true;   // DIAG#' \
+  "$SRC_TMP/Di2BleDelegate.mc"
+
 # Временный jungle с источниками из копии.
 cat > "$JUNGLE_TMP" <<EOF
 project.manifest = manifest.xml

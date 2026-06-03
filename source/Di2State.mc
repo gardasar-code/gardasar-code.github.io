@@ -18,6 +18,7 @@ class Di2State {
     public var phase as Lang.Number = CONN_SCANNING;  // фаза связи (см. enum выше)
     public var anim as Lang.Number = 0;            // монотонный счётчик кадров для пульсации
     public var locked as Lang.Boolean = false;     // sticky-lock активен (привязаны к «своему» Di2)
+    public var connSeconds as Lang.Number = 0;     // секунд в фазе CONNECTING (для индикации прогресса)
     public var rear as Lang.Number = -1;            // текущая задняя передача (1-based)
     public var rearTotal as Lang.Number = -1;       // число задних передач
     public var front as Lang.Number = -1;           // текущая передняя передача (1-based)

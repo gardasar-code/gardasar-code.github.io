@@ -11,8 +11,9 @@ using Toybox.Application;
 class Di2BleDelegate extends Ble.BleDelegate {
 
     // ── Режим отладки ────────────────────────────────────────────────────────
-    // true: System.println сырых байтов каждого notify (для отладки на симуляторе).
-    private const DEBUG = true;
+    // true: пишем диагностику через Di2Log в GARMIN/APPS/LOGS/*.TXT (см. doc/LOGGING.md).
+    // В коммите всегда false (release); диагностическая сборка build-diag.sh патчит в true.
+    private const DEBUG = false;
 
     // ── UUIDs (подтверждены по emtb/source/emtbDelegate.mc) ───────────────────
     // Advertised-маркер Shimano — используем как фильтр скана.
@@ -142,16 +143,23 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // ── Sticky-lock: хранение привязки ────────────────────────────────────────
 
     // Запомнить имя подключённого устройства как «своё» (в Storage и в поле).
+    // Привязка ставится ОДИН раз — при первом успешном коннекте. Дальше она «липкая»
+    // и меняется только тоглом Forget. На чужой переключатель мы не попадём: онн
+    // отбрасывается по имени в onConnected ещё до saveLock.
     private function saveLock(device as Ble.Device) as Void {
+        if (_lockedName != null) {
+            _state.locked = true;          // уже привязаны — не переписываем
+            return;
+        }
         try {
             var nm = device.getName();
-            if (nm != null && nm.length() > 0 && (_lockedName == null || !nm.equals(_lockedName))) {
+            if (nm != null && nm.length() > 0) {
                 _lockedName = nm;
                 Application.Storage.setValue(STORAGE_LOCK, nm);
             }
             _state.locked = (_lockedName != null);
         } catch (e) {
-            // имя недоступно — остаёмся на запасном пути «единственный кандидат»
+            // имя недоступно — остаёмся без привязки (подключаемся к ближайшему)
         }
     }
 
@@ -262,17 +270,13 @@ class Di2BleDelegate extends Ble.BleDelegate {
             }
         }
 
-        var target = null;
-        if (_lockedName != null) {
-            if (matched != null) {
-                target = matched;                 // блокировка: только «свой» по имени
-            } else if (shimanoCount == 1) {
-                target = best;                     // единственный кандидат — берём его
-            }
-            // иначе несколько чужих без совпадения → продолжаем скан, не подключаемся
-        } else {
-            target = best;                         // нет привязки → сильнейший
-        }
+        // Выбор цели. ВАЖНО (подтверждено логом DI2DIAG): на этом устройстве scan-
+        // результаты приходят БЕЗ имени (getDeviceName()==null), поэтому matched-по-имени
+        // в эфире недостижим. Имя доступно только ПОСЛЕ подключения (GATT), там и проверяем
+        // личность (см. onConnected). Здесь: при наличии привязки берём имя-совпадение, если
+        // оно вдруг есть (другая прошивка/устройство), иначе — ближайшего по RSSI. Чужого
+        // отбросим уже на коннекте, не вечно ждём недостижимого имени в скане.
+        var target = (_lockedName != null && matched != null) ? matched : best;
 
         if (target != null) {
             connectTo(target);
@@ -307,15 +311,31 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // Подписываемся на notify и читаем батарею.
     private function onConnected(device as Ble.Device) as Void {
+        // Проверка личности: имя в эфире недоступно, но после подключения доступно по GATT.
+        // Если мы привязаны и подключились к ДРУГОМУ переключателю (имя не совпало) —
+        // отбрасываем его и продолжаем искать «своего». Так sticky-lock работает даже без
+        // имени в скане. Если имя по GATT недоступно (null) — проверить нечем, принимаем.
+        if (_lockedName != null) {
+            var nm = device.getName();
+            if (nm != null && nm.length() > 0 && !nm.equals(_lockedName)) {
+                log("stranger '" + nm + "' != lock '" + _lockedName + "', dropping");
+                try {
+                    Ble.unpairDevice(device);   // разрыв → onDisconnected запланирует рескан
+                } catch (e) {
+                    scheduleReconnect();
+                }
+                return;
+            }
+        }
         _reconnectAttempts = 0;
         _reconnectCountdown = -1;
         _state.connected = true;
         _state.phase = CONN_LIVE;
-        saveLock(device);              // «прилипаем» к этому устройству по имени
+        saveLock(device);              // «прилипаем» к этому устройству по имени (только первый раз)
         enableNotifications(device);
         readBattery();                 // одно чтение сразу; далее — по тикам в onTick()
         _batteryTickCounter = 0;
-        log("connected");
+        log("connected" + (device.getName() != null ? " " + device.getName() : ""));
     }
 
     private function onDisconnected() as Void {
@@ -413,6 +433,14 @@ class Di2BleDelegate extends Ble.BleDelegate {
     function onTick() as Void {
         // Кадровый счётчик для пульсации индикатора в View (одна анимация на 1 c тик).
         _state.anim += 1;
+
+        // Счётчик секунд в фазе подключения: при слабом сигнале коннект длится до ~17 c,
+        // и без индикации жёлтый кружок выглядит «зависшим». Показываем прогресс в View.
+        if (_state.phase == CONN_CONNECTING) {
+            _state.connSeconds += 1;
+        } else {
+            _state.connSeconds = 0;
+        }
 
         // Отложенный реконнект (когда не подключены).
         if (_reconnectCountdown > 0) {

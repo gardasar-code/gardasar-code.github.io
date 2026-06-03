@@ -315,9 +315,14 @@ class Di2FieldView extends WatchUi.DataField {
         var wWidth = dc.getTextWidthInPixels(word, font);
         dc.drawText(cx + wWidth / 2, cy - fh / 2, font, dots, Graphics.TEXT_JUSTIFY_LEFT | vc);
 
-        // Подсказка пользователю приглушённым цветом под статусом.
+        // Подсказка под статусом. В фазе подключения показываем счётчик секунд
+        // (коннект при слабом сигнале длится до ~17 c — видно, что идёт, а не зависло);
+        // в фазе поиска — подсказку «разбудите Di2».
         dc.setColor(fade, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, cy + fh / 2, Graphics.FONT_XTINY, _statHint, Graphics.TEXT_JUSTIFY_CENTER | vc);
+        var hint = (phase == CONN_CONNECTING && _state != null)
+            ? _state.connSeconds.format("%d") + "s"
+            : _statHint;
+        dc.drawText(cx, cy + fh / 2, Graphics.FONT_XTINY, hint, Graphics.TEXT_JUSTIFY_CENTER | vc);
     }
 
     // Крупнейший из обычных шрифтов, при котором статус-строка влезает по ширине.

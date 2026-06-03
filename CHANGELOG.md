@@ -4,6 +4,24 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.21
+
+### Fixed
+- Automatic reconnect now actually works between rides: the field no longer
+  drops the Bluetooth pairing when it stops, so it relinks to your Di2 on its
+  own as soon as the unit is awake — no need to put the Di2 back into pairing
+  mode. (If the Di2 has been asleep for a long time, just wake it by tapping a
+  shifter and the field reconnects.)
+- Sticky-lock is now reliable: because the unit's name is not present in the
+  Bluetooth advertisement, the field verifies the unit's identity right after
+  connecting and drops a different Di2 if it isn't your paired one. Your lock no
+  longer silently jumps to another nearby unit.
+
+### Changed
+- While connecting, the status screen shows an elapsed-seconds counter under
+  "Connecting" so a weak-signal link (which can take ~15+ seconds) clearly looks
+  like progress, not a freeze.
+
 ## 0.0.20 (beta, diagnostic)
 
 ### Debug
