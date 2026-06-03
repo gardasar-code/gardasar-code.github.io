@@ -4,6 +4,10 @@ bin/
 *.prg.debug.xml
 *.iq
 
+# Временные артефакты build-diag.sh (создаются и удаляются скриптом)
+.diag-src/
+monkey-diag.jungle
+
 # SDK / editor
 .DS_Store
 .vscode/

@@ -4,6 +4,15 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.18 (beta, diagnostic)
+
+### Debug
+- Diagnostic sideload build (`build-diag.sh` → `Di2App-<ver>-diag.prg`): BLE is
+  forced on in a debug build so `System.println` is written to the on-device log
+  `GARMIN/APPS/LOGS/*.TXT`. Lets us capture scan results and confirm whether the
+  Di2 re-advertises after a wake without manual pairing. Source tree stays clean
+  (the script patches a temp copy and reverts).
+
 ## 0.0.17 (beta)
 
 ### Changed
