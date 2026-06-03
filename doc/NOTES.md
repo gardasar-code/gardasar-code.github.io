@@ -40,6 +40,34 @@ hex: 00 00 03 FF FF 0A 0C 80 80 80 FF EE 12 FF FF 15 00
   завершиться медленный BLE-коннект (~15-19 c) → срыв `connect failed before
   live`; помогает мгновенный рескан (поймать следующий блик) и близость к байку.
 
+### ALT: ANT-канал D-Fly как обход проблемы перепаринга (из DiHack/ki2)
+
+Референсы DiHack и ki2 работают НЕ по BLE, а по **Shimano Private ANT**. Прямой
+инфы про BLE-рекламу там нет, но они показывают контраст: у D-Fly два радио с
+РАЗНОЙ политикой энергосбережения.
+
+- **ANT:** щелчок/кнопка будят D-Fly → он broadcast'ит постоянно, пока система
+  активна; **паринг/bonding НЕ нужен** (ki2 README: «perform a shift or press a
+  button to wake up the shifting system»; в коде ki2 нет pairing вообще).
+- **BLE (наш путь):** connectable-реклама только после явного паринга; после
+  глубокого сна гаснет (доказано логами) → отсюда боль с перепарингом.
+
+Вывод: проблема перепаринга специфична для BLE-радио. **Потенциальный фикс —
+перейти на ANT** (`Toybox.Ant.GenericChannel`), как emtb/ki2.
+
+Параметры ANT-канала (ki2 `data/configuration/ConfigurationStore.java:28,41`):
+- Private ANT network — нужен **сетевой ключ Shimano** (в референсах НЕ лежит,
+  грузится из ресурса `network_key`; добывается реверсом, как в DiHack).
+- RF frequency = **57** (2457 MHz), channel period = **8198** (~4 Гц, ≈250 мс
+  beacon — совпадает с DiHack), режим **Rx scan** (slave receive-only).
+- Кнопки переключателей — каналы `D_FLY_CH1..CH4`
+  (ki2 `ShimanoShiftingProfileHandler.java:210-222`).
+- Reconnect в ki2: 10×/2 c, msg-timeout 30 c; RSSI −30…−60 ок, ниже −75 деградация.
+
+Цена: добыть ключ Shimano, заново разобрать байтовый формат ANT-пакета передач
+(другой, чем BLE), возможная конкуренция с ANT+ датчиками на Edge. Это крупная
+переработка, не правка.
+
 ---
 
 ## ⚠️ Главный вывод (читать первым)
