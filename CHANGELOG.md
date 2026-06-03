@@ -7,16 +7,16 @@ Store "What's New" field.
 ## 0.0.26
 
 ### Added
-- Gear display options in the field settings: show the rear gear as numbers
-  (default), as a graphic, or both. The graphic draws the cassette as a row of
-  bars — one per sprocket, height following the cog sizes — with the current
-  sprocket highlighted, so you can read your position at a glance.
+- Gear display options in the field settings: show the rear gear as numbers, as
+  a graphic, or both (default). The graphic draws the cassette as a row of bars —
+  one per sprocket, largest on the left, height following the cog sizes — with
+  the current sprocket highlighted, so you can read your position at a glance.
 
 ## 0.0.25
 
 ### Added
 - Battery display options in the field settings: show the D-Fly charge as a
-  percentage (default), a colour-coded battery icon, or both. The icon fills in
+  percentage, a colour-coded battery icon, or both (default). The icon fills in
   proportion to the charge and turns orange below 40% and red below 15%.
 
 ## 0.0.24
