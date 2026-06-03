@@ -62,6 +62,13 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private var _batteryTickCounter as Lang.Number = 0;
     private var _lockedName as Lang.String? = null;       // имя «своего» Di2 или null
 
+    // Троттлинг лога скана: onScanResults зовётся десятки раз в секунду и заспамил
+    // бы 5 КБ-файл за минуту (момент пробуждения Di2 не попадёт в окно). Логируем
+    // скан только при ИЗМЕНЕНИИ числа кандидатов + редкий хартбит раз в SCAN_LOG_HB_MS.
+    private const SCAN_LOG_HB_MS = 30000;
+    private var _lastScanShimano as Lang.Number = -1;
+    private var _lastScanLogMs as Lang.Number = 0;
+
     function initialize(state as Di2State) {
         BleDelegate.initialize();
         _state = state;
@@ -243,11 +250,16 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
 
         if (DEBUG) {
-            // Ключевой дамп для диагностики авто-реконнекта: видим ли мы рекламу Di2
-            // в этом скане. Если строки появляются после пробуждения переключения
-            // БЕЗ ручного паринга — устройство рекламируется само, и мы можем цепляться.
-            log("scan: shimano=" + shimanoCount + " best=" + (best != null ? best.getDeviceName() : "none")
-                + " rssi=" + bestRssi + " lock=" + (_lockedName != null ? _lockedName : "none"));
+            // Логируем скан только при изменении числа кандидатов или раз в ~30 c.
+            // Так в файл гарантированно попадёт переход shimano 0→N в момент, когда
+            // Di2 проснётся и начнёт рекламироваться (если вообще начнёт).
+            var nowMs = System.getTimer();
+            if (shimanoCount != _lastScanShimano || (nowMs - _lastScanLogMs) >= SCAN_LOG_HB_MS) {
+                Di2Log.line("scan: shimano=" + shimanoCount + " best=" + (best != null ? best.getDeviceName() : "none")
+                    + " rssi=" + bestRssi + " lock=" + (_lockedName != null ? _lockedName : "none"));
+                _lastScanShimano = shimanoCount;
+                _lastScanLogMs = nowMs;
+            }
         }
 
         var target = null;

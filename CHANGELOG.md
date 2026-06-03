@@ -4,6 +4,15 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.20 (beta, diagnostic)
+
+### Debug
+- Scan logging is now throttled: a `scan:` line is written only when the Di2
+  candidate count changes (e.g. 0→1 when the unit wakes) or once every ~30 s as
+  a heartbeat. Previously every `onScanResults` callback was logged (tens per
+  second), flooding the 5 KB device log and rolling the interesting wake moment
+  out of the window before it could be captured.
+
 ## 0.0.19 (beta, diagnostic)
 
 ### Debug
