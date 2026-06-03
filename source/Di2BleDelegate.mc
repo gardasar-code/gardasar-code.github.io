@@ -72,6 +72,10 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // Троттлинг лога notify: логируем пакет только при смене передачи + хартбит.
     private var _lastLoggedGear as Lang.Number = -2;   // -2 = ещё не логировали
     private var _lastNotifyLogMs as Lang.Number = 0;
+    // Дошла ли текущая попытка до живого соединения (LIVE). Нужен, чтобы отличить
+    // потерю установленной связи (обычный бэкофф) от сорвавшегося рукопожатия при
+    // слабом сигнале (нужен мгновенный рескан, чтобы поймать следующий блик Di2).
+    private var _attemptReachedLive as Lang.Boolean = false;
 
     function initialize(state as Di2State) {
         BleDelegate.initialize();
@@ -292,6 +296,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             Ble.setScanState(Ble.SCAN_STATE_OFF);
             _scanning = false;
             _state.phase = CONN_CONNECTING;
+            _attemptReachedLive = false;   // новая попытка: ещё не дошли до LIVE
             log("pairDevice name=" + (sr.getDeviceName() != null ? sr.getDeviceName() : "?") + " rssi=" + sr.getRssi());
             var d = Ble.pairDevice(sr);
             // emtb: иногда onConnectedStateChanged не приходит — проверяем сразу.
@@ -332,6 +337,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
         _reconnectAttempts = 0;
         _reconnectCountdown = -1;
+        _attemptReachedLive = true;    // соединение установлено: разрыв отсюда — «обычный»
         _state.connected = true;
         _state.phase = CONN_LIVE;
         saveLock(device);              // «прилипаем» к этому устройству по имени (только первый раз)
@@ -344,8 +350,21 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private function onDisconnected() as Void {
         _state.connected = false;
         _state.resetLiveData();
-        log("disconnected");
-        scheduleReconnect();
+        if (_attemptReachedLive) {
+            // Потеряли установленную связь — обычный бэкофф (растущий интервал).
+            log("disconnected");
+            scheduleReconnect();
+        } else {
+            // Рукопожатие сорвалось, не дойдя до LIVE (короткий блик слабого Di2).
+            // Не ждём бэкофф — сразу возобновляем скан, чтобы поймать следующий блик.
+            log("connect failed before live, fast rescan");
+            _reconnectAttempts = 0;
+            _reconnectCountdown = -1;
+            _state.phase = CONN_SCANNING;
+            if (!_scanning) {
+                startScan();
+            }
+        }
     }
 
     // Парсинг notify-пакетов передач. value — ByteArray (по контракту API не null).

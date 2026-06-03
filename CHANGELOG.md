@@ -4,6 +4,15 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.23
+
+### Fixed
+- Faster recovery from a failed weak-signal connect: when a connection attempt
+  drops before it goes live (a brief advertisement from a Di2 that is far away
+  or only half-awake), the field now resumes scanning immediately instead of
+  waiting out a back-off, so it has more chances to catch the next wake blip.
+  (A fully asleep Di2 still has to be woken with a shifter tap.)
+
 ## 0.0.22 (beta, diagnostic)
 
 ### Debug
