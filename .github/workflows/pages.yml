@@ -1,0 +1,46 @@
+# Публикация лендинга на GitHub Pages.
+# ВАЖНО: в Pages уходит ТОЛЬКО папка site/ (см. upload-pages-artifact: path: site).
+# Исходники Monkey C, doc/, логи и прочее в опубликованный сайт НЕ попадают.
+#
+# Включить однократно: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+name: Deploy landing (site/) to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Один деплой за раз; новый отменяет предыдущий в очереди.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload only the site/ folder
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

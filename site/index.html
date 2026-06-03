@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>document.documentElement.classList.add('js')</script>
+<title>Di2 Field — Shimano Di2 gear & D-Fly battery on your Garmin Edge</title>
+<meta name="description" content="A free, unofficial Connect IQ data field that shows your Shimano Di2 rear gear, a live cassette graphic and D-Fly battery on your Garmin Edge — over Bluetooth, no adapters.">
+
+<!-- Open Graph -->
+<meta property="og:title" content="Di2 Field — your Di2 gear on the Edge screen">
+<meta property="og:description" content="Free, unofficial Connect IQ data field for Shimano Di2 + Garmin Edge. Cassette graphic, D-Fly battery, smart auto-reconnect, 6 languages.">
+<meta property="og:type" content="website">
+
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Display: Archivo (technical, expandable weight). Mono: JetBrains Mono (instrument labels). -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#080B11;
+    --bg-2:#0C111A;
+    --panel:#0F1620;
+    --ink:#EBF1F4;
+    --muted:#7B8A99;
+    --faint:#3A4756;
+    --line:rgba(255,255,255,.075);
+    --acc:#B8FF3C;          /* сигнальный лайм — главный акцент */
+    --acc-dim:#7FB52A;
+    /* функциональные цвета точки связи — те же, что в приложении */
+    --blue:#3B82F6; --yellow:#EAB308; --green:#22C55E; --orange:#F97316; --navy:#2563EB;
+    --red:#EF4444;
+    --maxw:1200px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Archivo",system-ui,sans-serif;
+    font-size:17px; line-height:1.55; letter-spacing:-.01em;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  /* фоновая «приборная» сетка + виньетка */
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-2;
+    background:
+      radial-gradient(1100px 700px at 78% -10%, rgba(184,255,60,.10), transparent 60%),
+      radial-gradient(900px 600px at 0% 100%, rgba(37,99,235,.10), transparent 55%),
+      var(--bg);
+  }
+  body::after{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.5;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:64px 64px;
+    -webkit-mask-image:radial-gradient(circle at 50% 30%,#000,transparent 80%);
+    mask-image:radial-gradient(circle at 50% 30%,#000,transparent 80%);
+  }
+  .mono{font-family:"JetBrains Mono",monospace}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+
+  /* ---- header ---- */
+  header{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:blur(12px);
+    background:linear-gradient(180deg,rgba(8,11,17,.92),rgba(8,11,17,.55));
+    border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;gap:24px;height:64px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:"JetBrains Mono";font-weight:700;letter-spacing:.04em}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+  .brand b{font-size:15px}
+  .nav .spacer{flex:1}
+  .nav a.link{color:var(--muted);font-family:"JetBrains Mono";font-size:13px;letter-spacing:.02em;transition:color .2s}
+  .nav a.link:hover{color:var(--ink)}
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:"JetBrains Mono";font-weight:700;font-size:13px;letter-spacing:.02em;
+    padding:11px 18px;border-radius:10px;border:1px solid transparent;transition:.2s;white-space:nowrap;
+  }
+  .btn-primary{background:var(--acc);color:#0a0e08;box-shadow:0 0 0 0 rgba(184,255,60,.4)}
+  .btn-primary:hover{box-shadow:0 8px 30px -6px rgba(184,255,60,.5);transform:translateY(-1px)}
+  .btn-ghost{border-color:var(--line);color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--acc);color:var(--acc)}
+  @media(max-width:720px){.nav a.link{display:none}}
+
+  /* ---- hero ---- */
+  .hero{padding:78px 0 60px;position:relative}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center}
+  @media(max-width:920px){.hero-grid{grid-template-columns:1fr;gap:44px}}
+
+  .tagline{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:"JetBrains Mono";font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--acc);border:1px solid rgba(184,255,60,.3);border-radius:100px;padding:7px 14px;margin-bottom:26px;
+    background:rgba(184,255,60,.05);
+  }
+  .tagline .pulse{width:7px;height:7px;border-radius:50%;background:var(--acc);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+
+  h1{
+    font-weight:900;font-size:clamp(40px,6.4vw,76px);line-height:.96;letter-spacing:-.035em;
+    text-wrap:balance;
+  }
+  h1 em{font-style:normal;color:var(--acc);position:relative}
+  h1 em::after{content:"";position:absolute;left:0;right:0;bottom:.06em;height:.09em;background:var(--acc);opacity:.25}
+  .lede{color:var(--muted);font-size:clamp(17px,1.7vw,20px);margin:26px 0 34px;max-width:33ch}
+  .cta-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .free-pill{font-family:"JetBrains Mono";font-size:12px;color:var(--muted);letter-spacing:.04em}
+  .free-pill b{color:var(--acc)}
+
+  /* ---- device mock (живое поле) ---- */
+  .device{justify-self:center;width:100%;max-width:360px}
+  .edge{
+    background:linear-gradient(180deg,#f3f4f5,#e3e6e9);
+    border-radius:34px;padding:20px 16px 30px;
+    box-shadow:0 40px 80px -28px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.7);
+    position:relative;
+  }
+  .edge::before{content:"";position:absolute;top:9px;left:50%;transform:translateX(-50%);width:46px;height:5px;border-radius:5px;background:#c5c9cd}
+  .screen{
+    background:#000;border-radius:14px;aspect-ratio:5/8;margin-top:16px;
+    padding:16px 14px;display:flex;flex-direction:column;color:#fff;position:relative;overflow:hidden;
+    font-family:"JetBrains Mono";box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+  .scan{position:absolute;left:0;right:0;height:32%;top:-32%;
+    background:linear-gradient(180deg,transparent,rgba(184,255,60,.06),transparent);
+    animation:scan 5.5s linear infinite;pointer-events:none}
+  @keyframes scan{to{top:120%}}
+  .s-top{display:flex;align-items:center;font-size:12px;letter-spacing:.02em}
+  .s-top .l{display:flex;align-items:center;gap:7px}
+  .s-top .cdot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green);transition:.3s}
+  .s-top .mid{flex:1;text-align:center;color:#dfe3e6}
+  .s-top .bat{display:flex;align-items:center;gap:5px}
+  .baticon{width:22px;height:11px;border:1.5px solid #fff;border-radius:2px;position:relative;display:inline-block}
+  .baticon::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:#fff}
+  .batfill{position:absolute;left:1px;top:1px;bottom:1px;background:var(--green);border-radius:1px;transition:width .5s,background .5s}
+  .s-cassette{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:3px;padding:18px 6px 14px}
+  .s-cassette .bar{width:7px;background:#3a3a3a;border-radius:1px;transition:background .25s}
+  .s-cassette .bar.on{background:#fff}
+  .s-gear{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:700;font-size:46px;letter-spacing:-.02em;padding-bottom:6px}
+  .s-gear .sep{width:7px;height:7px;border-radius:50%;background:#555;display:inline-block;margin-bottom:6px}
+  .s-cap{font-family:"JetBrains Mono";text-align:center;color:var(--muted);font-size:11px;letter-spacing:.1em;margin-top:14px;text-transform:uppercase}
+
+  /* ---- spec strip ---- */
+  .strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-2);overflow:hidden}
+  .strip-track{display:flex;gap:54px;white-space:nowrap;font-family:"JetBrains Mono";font-size:13px;letter-spacing:.08em;color:var(--muted);padding:16px 0;animation:marq 28s linear infinite;width:max-content}
+  .strip-track span{display:inline-flex;gap:54px}
+  .strip b{color:var(--ink)}
+  .strip i{color:var(--acc);font-style:normal}
+  @keyframes marq{to{transform:translateX(-50%)}}
+
+  /* ---- sections ---- */
+  section{padding:96px 0;position:relative}
+  .eyebrow{font-family:"JetBrains Mono";font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);margin-bottom:16px}
+  h2{font-weight:800;font-size:clamp(30px,4vw,46px);line-height:1.02;letter-spacing:-.03em;max-width:18ch}
+  .sec-head{margin-bottom:52px;max-width:640px}
+  .sec-head p{color:var(--muted);margin-top:16px;font-size:18px}
+
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:880px){.features{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.features{grid-template-columns:1fr}}
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--bg-2));
+    border:1px solid var(--line);border-radius:16px;padding:26px;position:relative;overflow:hidden;
+    transition:.25s;
+  }
+  .card:hover{border-color:rgba(184,255,60,.4);transform:translateY(-3px)}
+  .card .ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--line);margin-bottom:18px;color:var(--acc)}
+  .card h3{font-size:19px;font-weight:700;letter-spacing:-.01em;margin-bottom:8px}
+  .card p{color:var(--muted);font-size:15px;line-height:1.5}
+  .card .tag{position:absolute;top:18px;right:18px;font-family:"JetBrains Mono";font-size:10px;letter-spacing:.1em;color:var(--faint)}
+
+  /* ---- dots / connection ---- */
+  .conn{background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .dots{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:14px}
+  @media(max-width:760px){.dots{grid-template-columns:1fr 1fr}}
+  .dchip{display:flex;align-items:center;gap:12px;padding:16px;border:1px solid var(--line);border-radius:13px;background:var(--panel)}
+  .dchip .d{width:14px;height:14px;border-radius:50%;flex:none}
+  .dchip .t b{display:block;font-size:14px}
+  .dchip .t small{color:var(--muted);font-family:"JetBrains Mono";font-size:11px;letter-spacing:.03em}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:46px}
+  @media(max-width:760px){.steps{grid-template-columns:1fr}}
+  .step{padding:24px;border:1px dashed var(--line);border-radius:14px}
+  .step .n{font-family:"JetBrains Mono";color:var(--acc);font-size:13px;letter-spacing:.1em}
+  .step h4{font-size:18px;margin:10px 0 6px;font-weight:700}
+  .step p{color:var(--muted);font-size:15px}
+
+  /* ---- compat ---- */
+  .compat-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:start}
+  @media(max-width:840px){.compat-grid{grid-template-columns:1fr}}
+  .speclist{border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .speclist .row{display:flex;justify-content:space-between;gap:16px;padding:16px 22px;border-bottom:1px solid var(--line);font-size:15px}
+  .speclist .row:last-child{border-bottom:0}
+  .speclist .row span{color:var(--muted);font-family:"JetBrains Mono";font-size:13px}
+  .speclist .row b{font-weight:600;text-align:right}
+  .langs{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .langs .lg{font-family:"JetBrains Mono";font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:7px 11px}
+
+  /* ---- CTA band ---- */
+  .band{
+    border:1px solid rgba(184,255,60,.35);border-radius:24px;
+    background:
+      radial-gradient(700px 300px at 80% 0%,rgba(184,255,60,.14),transparent 60%),
+      linear-gradient(180deg,var(--panel),var(--bg-2));
+    padding:56px 44px;text-align:center;position:relative;overflow:hidden;
+  }
+  .band h2{margin:0 auto 14px;max-width:20ch}
+  .band p{color:var(--muted);margin-bottom:30px}
+
+  footer{border-top:1px solid var(--line);padding:46px 0 60px;color:var(--muted)}
+  .foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:flex-start}
+  .foot a{color:var(--muted);font-family:"JetBrains Mono";font-size:13px;display:block;margin:7px 0;transition:.2s}
+  .foot a:hover{color:var(--acc)}
+  .foot .disc{max-width:42ch;font-size:13px;line-height:1.6}
+  .foot h5{font-family:"JetBrains Mono";font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+
+  /* reveal — прогрессивное улучшение: прячем только если есть JS (html.js).
+     Без JS весь контент виден сразу (важно для доступности/SEO/скриншотов). */
+  html.js .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  html.js .reveal.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){html.js .reveal{opacity:1;transform:none;transition:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top"><span class="dot"></span><b>DI2·FIELD</b></a>
+    <div class="spacer"></div>
+    <a class="link" href="#features">Features</a>
+    <a class="link" href="#connect">Connection</a>
+    <a class="link" href="#compat">Compatibility</a>
+    <a class="btn btn-primary" href="STORE_URL" data-todo>Get it →</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <span class="tagline reveal"><span class="pulse"></span> Connect IQ data field · Edge</span>
+        <h1 class="reveal">Your Di2 gear,<br>on the <em>Edge screen.</em></h1>
+        <p class="lede reveal">A free, unofficial data field that reads your Shimano Di2 over Bluetooth and shows the rear gear, a live cassette graphic and D-Fly battery — no ANT+, no adapters, no paywall.</p>
+        <div class="cta-row reveal">
+          <a class="btn btn-primary" href="STORE_URL" data-todo>Get on Connect IQ →</a>
+          <a class="btn btn-ghost" href="REPO_URL" data-todo>View source</a>
+          <span class="free-pill">// <b>Free</b> &amp; open · no subscription</span>
+        </div>
+      </div>
+
+      <!-- живая реплика дата-поля -->
+      <div class="device reveal">
+        <div class="edge">
+          <div class="screen">
+            <div class="scan"></div>
+            <div class="s-top">
+              <div class="l">Di2 <span class="cdot" id="cdot"></span></div>
+              <div class="mid">F:1/1</div>
+              <div class="bat"><span class="baticon"><span class="batfill" id="batfill" style="width:80%"></span></span><span id="batpct">90%</span></div>
+            </div>
+            <div class="s-cassette" id="cassette"></div>
+            <div class="s-gear"><span id="gcur">5</span><span class="sep"></span><span>12</span></div>
+            <div class="s-cap" id="scap">live · rd-m8250</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPEC STRIP -->
+  <div class="strip">
+    <div class="strip-track">
+      <span>
+        <b>Bluetooth LE</b> <i>///</i> D-Fly EW-WU111 / SC-M9051 <i>///</i> <b>Cassette graphic</b> <i>///</i> auto-reconnect <i>///</i> <b>FIT ride summary</b> <i>///</i> 6 languages <i>///</i> day / night <i>///</i> <b>no adapters</b> <i>///</i>
+      </span>
+      <span aria-hidden="true">
+        <b>Bluetooth LE</b> <i>///</i> D-Fly EW-WU111 / SC-M9051 <i>///</i> <b>Cassette graphic</b> <i>///</i> auto-reconnect <i>///</i> <b>FIT ride summary</b> <i>///</i> 6 languages <i>///</i> day / night <i>///</i> <b>no adapters</b> <i>///</i>
+      </span>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="eyebrow">What it shows</div>
+        <h2>Built to read at a glance, mid-ride.</h2>
+        <p>Everything sits in one data field — pick numbers, a graphic, or both. Nothing to tap, nothing to unlock.</p>
+      </div>
+      <div class="features">
+        <div class="card reveal"><span class="tag">01</span>
+          <div class="ic">▤</div><h3>Live cassette graphic</h3>
+          <p>The rear cassette drawn as bars — biggest sprocket on the left, your current cog lit up. Read your position without parsing numbers.</p>
+        </div>
+        <div class="card reveal"><span class="tag">02</span>
+          <div class="ic">◉</div><h3>D-Fly battery</h3>
+          <p>Wireless-unit charge as a colour-coded icon, a percentage, or both — orange under 40%, red under 15%.</p>
+        </div>
+        <div class="card reveal"><span class="tag">03</span>
+          <div class="ic">⟳</div><h3>Smart auto-reconnect</h3>
+          <p>Keeps its Bluetooth bond between rides and relinks on its own the moment the Di2 is awake. No re-pairing after a short break.</p>
+        </div>
+        <div class="card reveal"><span class="tag">04</span>
+          <div class="ic">⚙</div><h3>Configurable drivetrain</h3>
+          <p>Set your chainrings (1–3) and cassette, enter the teeth of each cog — accurate gear ratios and a true cassette profile.</p>
+        </div>
+        <div class="card reveal"><span class="tag">05</span>
+          <div class="ic">▦</div><h3>Records to your ride</h3>
+          <p>Per-second gears, teeth, ratio and battery to the FIT file, plus a summary: avg/max ratio, shift counts, most-used combo, top sprockets.</p>
+        </div>
+        <div class="card reveal"><span class="tag">06</span>
+          <div class="ic">◐</div><h3>Day / night · 6 languages</h3>
+          <p>Adapts to the Edge colour theme. English, French, Spanish, Russian, German and Arabic out of the box.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONNECTION -->
+  <section id="connect" class="conn">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="eyebrow">Connection</div>
+        <h2>A colour-coded dot tells you exactly what's happening.</h2>
+      </div>
+      <div class="dots reveal">
+        <div class="dchip"><span class="d" style="background:var(--blue);box-shadow:0 0 10px var(--blue)"></span><div class="t"><b>Searching</b><small>scanning</small></div></div>
+        <div class="dchip"><span class="d" style="background:var(--yellow);box-shadow:0 0 10px var(--yellow)"></span><div class="t"><b>Connecting</b><small>linking up</small></div></div>
+        <div class="dchip"><span class="d" style="background:var(--green);box-shadow:0 0 10px var(--green)"></span><div class="t"><b>Connected</b><small>receiving</small></div></div>
+        <div class="dchip"><span class="d" style="background:var(--navy);box-shadow:0 0 10px var(--navy)"></span><div class="t"><b>Your Di2</b><small>locked on</small></div></div>
+        <div class="dchip"><span class="d" style="background:var(--orange);box-shadow:0 0 10px var(--orange)"></span><div class="t"><b>Retrying</b><small>link lost</small></div></div>
+      </div>
+
+      <div class="steps">
+        <div class="step reveal"><div class="n">STEP 01</div><h4>Add the field</h4><p>Drop Di2 Field onto a data screen on your Edge. There's no button — it's a data field.</p></div>
+        <div class="step reveal"><div class="n">STEP 02</div><h4>Wake the Di2</h4><p>Tap a shifter to wake the system. The field finds the nearest Di2 and connects on its own.</p></div>
+        <div class="step reveal"><div class="n">STEP 03</div><h4>Ride</h4><p>It sticks to your unit and reconnects automatically every ride. Switch bikes with one "Forget" toggle.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPAT -->
+  <section id="compat">
+    <div class="wrap compat-grid">
+      <div class="reveal">
+        <div class="eyebrow">Compatibility</div>
+        <h2>What you need.</h2>
+        <p style="color:var(--muted);margin:16px 0 0">Connects to a Shimano D-Fly wireless module advertising over Bluetooth LE — the native radio on your Edge, no ANT+ and no extra hardware.</p>
+        <div class="langs">
+          <span class="lg">EN</span><span class="lg">FR</span><span class="lg">ES</span><span class="lg">RU</span><span class="lg">DE</span><span class="lg">AR</span>
+        </div>
+      </div>
+      <div class="speclist reveal">
+        <div class="row"><span>Device</span><b>Garmin Edge Explore 2</b></div>
+        <div class="row"><span>D-Fly module</span><b>EW-WU111 / SC-M9051</b></div>
+        <div class="row"><span>Link</span><b>Bluetooth Low Energy</b></div>
+        <div class="row"><span>Tested with</span><b>XT Di2 RD-M8250 · 12-sp</b></div>
+        <div class="row"><span>Price</span><b style="color:var(--acc)">Free</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="band reveal">
+        <div class="eyebrow" style="justify-content:center">Ready when you are</div>
+        <h2>Put your Di2 on the screen.</h2>
+        <p>Install from the Connect IQ Store, add it to a data field, and ride.</p>
+        <div class="cta-row" style="justify-content:center">
+          <a class="btn btn-primary" href="STORE_URL" data-todo>Get on Connect IQ →</a>
+          <a class="btn btn-ghost" href="REPO_URL" data-todo>Source on GitHub</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>
+      <a class="brand" href="#top" style="margin-bottom:14px"><span class="dot"></span><b>DI2·FIELD</b></a>
+      <p class="disc">Independent, unofficial app. Not affiliated with or endorsed by Shimano or Garmin. Di2, D-Fly and Edge are trademarks of their respective owners.</p>
+    </div>
+    <div>
+      <h5>Links</h5>
+      <a href="STORE_URL" data-todo>Connect IQ Store</a>
+      <a href="REPO_URL" data-todo>Source code</a>
+      <a href="REPO_URL/blob/main/CHANGELOG.md" data-todo>Changelog</a>
+    </div>
+    <div>
+      <h5>Made by</h5>
+      <a href="#">Sergey Lapshin</a>
+      <span class="mono" style="font-size:12px;color:var(--faint)">© 2026 · MIT-ish, free to use</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ----- живое дата-поле: бегущая передача, кассета, точка связи, батарея -----
+  (function(){
+    var N=12, teeth=[10,12,14,16,18,21,24,28,33,39,45,51];
+    var cas=document.getElementById('cassette');
+    var maxT=Math.max.apply(null,teeth), minT=Math.min.apply(null,teeth);
+    var bars=[];
+    // строим столбики: большая звезда слева (i=N) -> малая справа (i=1)
+    for(var k=N;k>=1;k--){
+      var b=document.createElement('div'); b.className='bar';
+      var frac=(teeth[k-1]-minT)/(maxT-minT);
+      b.style.height=(22+frac*58)+'px';
+      b.dataset.idx=k; cas.appendChild(b); bars.push(b);
+    }
+    var gcur=document.getElementById('gcur'), cdot=document.getElementById('cdot'),
+        batfill=document.getElementById('batfill'), batpct=document.getElementById('batpct'),
+        scap=document.getElementById('scap');
+    var cur=5, dir=1, bat=90;
+    function batColor(p){return p<15?'var(--red)':p<40?'var(--orange)':'var(--green)';}
+    function render(){
+      gcur.textContent=cur;
+      bars.forEach(function(b){ b.classList.toggle('on', +b.dataset.idx===cur); });
+      batfill.style.width=bat+'%'; batfill.style.background=batColor(bat);
+      batpct.textContent=bat+'%';
+    }
+    render();
+    setInterval(function(){
+      cur+=dir; if(cur>=N){cur=N;dir=-1;} else if(cur<=1){cur=1;dir=1;}
+      if(Math.random()<0.12){ bat=Math.max(8, bat-1); }
+      render();
+    },900);
+    // лёгкая пульсация точки «connected»
+    setInterval(function(){ cdot.style.opacity = cdot.style.opacity==='0.45'?'1':'0.45'; },1100);
+
+    // ----- reveal on scroll -----
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+    },{threshold:.12});
+    document.querySelectorAll('.reveal').forEach(function(el,i){
+      el.style.transitionDelay=(Math.min(i,6)*60)+'ms';
+      io.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>
