@@ -6,11 +6,17 @@
     <string id="LabelNoData">---</string>
     <string id="LabelFront">Av:</string>
 
+    <string id="StatusSearching">Recherche</string>
+    <string id="StatusConnecting">Connexion</string>
+    <string id="StatusHint">Réveillez le Di2</string>
+
     <string id="SetFrontChainrings">Plateaux avant</string>
     <string id="SetFrontTitle">Dents avant</string>
     <string id="SetRearCogs">Pignons arrière</string>
     <string id="SetRearTitle">Dents arrière</string>
     <string id="TeethPrompt">Séparés par des virgules, une valeur par vitesse.</string>
+    <string id="SetForgetDevice">Oublier le Di2 associé</string>
+    <string id="ForgetPrompt">Activez et enregistrez pour dissocier le Di2 actuel et connecter le plus proche au prochain scan. L’interrupteur se désactive tout seul.</string>
     <string id="AboutText">Champ Di2 par Sergey Lapshin. Affiche votre vitesse Shimano Di2, le rapport et la batterie D-Fly via Bluetooth, et enregistre un résumé complet de la sortie (rapports, changements, combinaisons) dans l'activité. Réglez vos plateaux, cassette et dents ci-dessous. Testé avec Shimano XT Di2 RD-M8250-SGS (12 vitesses) sur Garmin Edge Explore 2. Application non officielle, sans lien avec Shimano.</string>
 
     <string id="FieldRearGear">Pignon arrière</string>

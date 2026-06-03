@@ -1,6 +1,7 @@
 using Toybox.BluetoothLowEnergy as Ble;
 using Toybox.System;
 using Toybox.Lang;
+using Toybox.Application;
 
 // BLE-делегат: скан -> подключение -> подписка на notify -> парсинг -> реконнект.
 //
@@ -35,9 +36,22 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // ── Тайминги/лимиты ───────────────────────────────────────────────────────
     // Периодику гоним от onTick() (вызывается из View.compute() ~раз в секунду).
     // Toybox.Timer в Data Field недоступен — его использование роняет поле.
-    private const RECONNECT_DELAY_TICKS = 3;    // ~3 c до повторного скана
-    private const MAX_RECONNECT         = 10;
-    private const BATTERY_POLL_TICKS    = 30;   // опрос батареи ~раз в 30 c
+    // Реконнект бесконечный: связь должна восстанавливаться сама, когда переключатель
+    // снова проснётся. Интервал растёт с числом неудач (RECONNECT_MIN..RECONNECT_MAX),
+    // чтобы не жечь батарею непрерывным сканом, но не сдаётся никогда.
+    private const RECONNECT_MIN_TICKS = 3;    // ~3 c до первой повторной попытки
+    private const RECONNECT_MAX_TICKS = 30;   // потолок интервала между попытками
+    private const BATTERY_POLL_TICKS  = 30;   // опрос батареи ~раз в 30 c
+
+    // ── Sticky-lock: привязка к конкретному переключателю ─────────────────────
+    // Имя устройства, к которому «прилипли». Сохраняется в Storage и переживает
+    // перезапуск поля: при последующих сканах подключаемся только к нему, даже если
+    // рядом другой Di2 громче. Сбрасывается тогглом Forget в настройках Connect.
+    // Имя — единственный персистимый дискриминатор, который даёт BLE API (адрес
+    // устройства между сессиями не сохраняется). Если эфирное имя недоступно,
+    // действует запасной путь «единственный кандидат» (см. onScanResults).
+    private const STORAGE_LOCK    = "lockedDi2Name";
+    private const PROP_FORGET     = "forgetDevice";
 
     // ── Зависимости/состояние ────────────────────────────────────────────────
     private var _state as Di2State;
@@ -46,6 +60,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private var _batteryReadInFlight as Lang.Boolean = false;
     private var _reconnectCountdown as Lang.Number = -1;  // -1 = реконнект не запланирован
     private var _batteryTickCounter as Lang.Number = 0;
+    private var _lockedName as Lang.String? = null;       // имя «своего» Di2 или null
 
     function initialize(state as Di2State) {
         BleDelegate.initialize();
@@ -62,6 +77,10 @@ class Di2BleDelegate extends Ble.BleDelegate {
             Ble.setDelegate(self);
             registerProfiles();
             _reconnectAttempts = 0;
+            applyForgetIfRequested();          // сброс привязки, если включён Forget
+            _lockedName = loadLockedName();     // подхватываем «свой» Di2 из Storage
+            _state.locked = (_lockedName != null);
+            _state.phase = CONN_SCANNING;
             startScan();
         } catch (e) {
             log("BLE init failed: " + e.getErrorMessage());
@@ -85,6 +104,76 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
         _state.connected = false;
         _state.resetLiveData();
+    }
+
+    // Пользователь поменял настройки (в т.ч. тоггл Forget) в Garmin Connect.
+    // Если включён Forget — снимаем привязку, рвём текущее соединение и сканируем
+    // заново, чтобы «прилипнуть» к ближайшему (другому) переключателю.
+    function onSettingsChanged() as Void {
+        if (!forgetRequested()) {
+            return;
+        }
+        applyForgetIfRequested();          // удалит имя из Storage + reset тоггла
+        try {
+            var d = Ble.getPairedDevices().next() as Ble.Device?;
+            if (d != null) {
+                Ble.unpairDevice(d);       // разрыв со «старым» Di2
+            }
+        } catch (e) {
+            // разрыв не критичен — следующий скан подберёт новое устройство
+        }
+        _reconnectAttempts = 0;
+        _reconnectCountdown = -1;
+        _state.connected = false;
+        _state.resetLiveData();
+        _state.phase = CONN_SCANNING;
+        if (!_scanning) {
+            startScan();
+        }
+    }
+
+    // ── Sticky-lock: хранение привязки ────────────────────────────────────────
+
+    // Запомнить имя подключённого устройства как «своё» (в Storage и в поле).
+    private function saveLock(device as Ble.Device) as Void {
+        try {
+            var nm = device.getName();
+            if (nm != null && nm.length() > 0 && (_lockedName == null || !nm.equals(_lockedName))) {
+                _lockedName = nm;
+                Application.Storage.setValue(STORAGE_LOCK, nm);
+            }
+            _state.locked = (_lockedName != null);
+        } catch (e) {
+            // имя недоступно — остаёмся на запасном пути «единственный кандидат»
+        }
+    }
+
+    // Прочитать сохранённое имя «своего» Di2 (null, если привязки нет).
+    private function loadLockedName() as Lang.String? {
+        var v = Application.Storage.getValue(STORAGE_LOCK);
+        return (v instanceof Lang.String) ? v : null;
+    }
+
+    // Запрошен ли сброс привязки (тоггл Forget в настройках).
+    private function forgetRequested() as Lang.Boolean {
+        var v = Application.Properties.getValue(PROP_FORGET);
+        return (v instanceof Lang.Boolean) ? v : false;
+    }
+
+    // Снять привязку, если включён Forget, и автоматически выключить сам тоггл,
+    // чтобы он сработал однократно (как «кнопка», а не постоянный режим).
+    private function applyForgetIfRequested() as Void {
+        if (!forgetRequested()) {
+            return;
+        }
+        Application.Storage.deleteValue(STORAGE_LOCK);
+        _lockedName = null;
+        _state.locked = false;
+        try {
+            Application.Properties.setValue(PROP_FORGET, false);
+        } catch (e) {
+            // не смогли сбросить флаг — не критично, привязка уже снята
+        }
     }
 
     // ── Регистрация профилей и скан ───────────────────────────────────────────
@@ -120,37 +209,70 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // ── BLE callbacks ─────────────────────────────────────────────────────────
 
-    // Результаты скана: фильтруем по advertised-UUID, подключаемся к сильнейшему RSSI.
+    // Результаты скана: фильтруем по advertised-UUID Shimano и выбираем цель.
+    //   • нет привязки      → берём сильнейший по RSSI (и затем «прилипаем» к нему);
+    //   • есть привязка     → только устройство с совпавшим именем (sticky-lock);
+    //   • привязка есть, но совпадения нет и кандидат ровно один → берём его
+    //     (эфирное имя могло не прийти; одиночный Di2 почти наверняка «свой»);
+    //   • привязка есть, совпадения нет, кандидатов несколько → ждём (не хватаем чужой).
     function onScanResults(scanResults) {
         var advUuid = Ble.stringToUuid(ADV_SERVICE_UUID);
         var best = null;
         var bestRssi = -999;
+        var matched = null;          // устройство с именем == _lockedName (сильнейшее)
+        var matchedRssi = -999;
+        var shimanoCount = 0;
 
         for (var r = scanResults.next(); r != null; r = scanResults.next()) {
             var sr = r as Ble.ScanResult;
             if (iterContains(sr.getServiceUuids(), advUuid)) {
+                shimanoCount += 1;
                 var rssi = sr.getRssi();
                 if (rssi > bestRssi) {
                     bestRssi = rssi;
                     best = sr;
                 }
+                if (_lockedName != null) {
+                    var nm = sr.getDeviceName();
+                    if (nm != null && nm.equals(_lockedName) && rssi > matchedRssi) {
+                        matchedRssi = rssi;
+                        matched = sr;
+                    }
+                }
             }
         }
 
-        if (best != null) {
-            // Нашли устройство — скан больше не нужен, подключаемся.
-            try {
-                Ble.setScanState(Ble.SCAN_STATE_OFF);
-                _scanning = false;
-                var d = Ble.pairDevice(best);
-                // emtb: иногда onConnectedStateChanged не приходит — проверяем сразу.
-                if (d != null && d.isConnected()) {
-                    onConnected(d);
-                }
-            } catch (e) {
-                log("pair failed: " + e.getErrorMessage());
-                scheduleReconnect();
+        var target = null;
+        if (_lockedName != null) {
+            if (matched != null) {
+                target = matched;                 // блокировка: только «свой» по имени
+            } else if (shimanoCount == 1) {
+                target = best;                     // единственный кандидат — берём его
             }
+            // иначе несколько чужих без совпадения → продолжаем скан, не подключаемся
+        } else {
+            target = best;                         // нет привязки → сильнейший
+        }
+
+        if (target != null) {
+            connectTo(target);
+        }
+    }
+
+    // Останавливаем скан и поднимаем соединение с выбранным устройством.
+    private function connectTo(sr as Ble.ScanResult) as Void {
+        try {
+            Ble.setScanState(Ble.SCAN_STATE_OFF);
+            _scanning = false;
+            _state.phase = CONN_CONNECTING;
+            var d = Ble.pairDevice(sr);
+            // emtb: иногда onConnectedStateChanged не приходит — проверяем сразу.
+            if (d != null && d.isConnected()) {
+                onConnected(d);
+            }
+        } catch (e) {
+            log("pair failed: " + e.getErrorMessage());
+            scheduleReconnect();
         }
     }
 
@@ -167,6 +289,8 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _reconnectAttempts = 0;
         _reconnectCountdown = -1;
         _state.connected = true;
+        _state.phase = CONN_LIVE;
+        saveLock(device);              // «прилипаем» к этому устройству по имени
         enableNotifications(device);
         readBattery();                 // одно чтение сразу; далее — по тикам в onTick()
         _batteryTickCounter = 0;
@@ -266,11 +390,15 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // Heartbeat дата-филда: гоним отложенный реконнект и периодический опрос батареи.
     function onTick() as Void {
+        // Кадровый счётчик для пульсации индикатора в View (одна анимация на 1 c тик).
+        _state.anim += 1;
+
         // Отложенный реконнект (когда не подключены).
         if (_reconnectCountdown > 0) {
             _reconnectCountdown -= 1;
             if (_reconnectCountdown == 0) {
                 _reconnectCountdown = -1;
+                _state.phase = CONN_SCANNING;
                 log("reconnect attempt " + _reconnectAttempts);
                 startScan();
             }
@@ -286,14 +414,13 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
     }
 
-    // Запланировать повторный скан через RECONNECT_DELAY_TICKS тиков.
+    // Запланировать повторный скан. Интервал растёт с числом неудач до потолка,
+    // но попытки не заканчиваются — связь восстановится, как только Di2 проснётся.
     private function scheduleReconnect() as Void {
-        if (_reconnectAttempts >= MAX_RECONNECT) {
-            log("reconnect attempts exhausted");
-            return;
-        }
+        _state.phase = CONN_RETRY;
         _reconnectAttempts += 1;
-        _reconnectCountdown = RECONNECT_DELAY_TICKS;
+        var delay = _reconnectAttempts * RECONNECT_MIN_TICKS;
+        _reconnectCountdown = (delay < RECONNECT_MAX_TICKS) ? delay : RECONNECT_MAX_TICKS;
     }
 
     // ── Утилиты ───────────────────────────────────────────────────────────────

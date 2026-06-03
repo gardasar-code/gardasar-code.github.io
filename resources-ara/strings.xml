@@ -6,11 +6,17 @@
     <string id="LabelNoData">---</string>
     <string id="LabelFront">أمام:</string>
 
+    <string id="StatusSearching">جارٍ البحث</string>
+    <string id="StatusConnecting">جارٍ الاتصال</string>
+    <string id="StatusHint">أيقظ جهاز Di2</string>
+
     <string id="SetFrontChainrings">النجوم الأمامية</string>
     <string id="SetFrontTitle">أسنان أمامية</string>
     <string id="SetRearCogs">النجوم الخلفية</string>
     <string id="SetRearTitle">أسنان خلفية</string>
     <string id="TeethPrompt">مفصولة بفواصل، قيمة واحدة لكل سرعة.</string>
+    <string id="SetForgetDevice">نسيان جهاز Di2 المقترن</string>
+    <string id="ForgetPrompt">فعّل هذا الخيار واحفظ لفصل جهاز Di2 الحالي والاتصال بالأقرب في الفحص التالي. يُغلق المفتاح نفسه تلقائيًا.</string>
     <string id="AboutText">حقل Di2 بواسطة Sergey Lapshin. يعرض سرعة Shimano Di2 ونسبة التروس وبطارية D-Fly عبر البلوتوث، ويسجّل ملخصاً كاملاً للرحلة (النسب، التبديلات، التركيبات) في النشاط. اضبط النجوم والكاسيت والأسنان أدناه. تم اختباره مع Shimano XT Di2 RD-M8250-SGS (12 سرعة) على Garmin Edge Explore 2. تطبيق غير رسمي وغير تابع لشركة شيمانو.</string>
 
     <string id="FieldRearGear">السرعة الخلفية</string>

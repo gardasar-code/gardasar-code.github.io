@@ -40,4 +40,12 @@
         <settingConfig type="alphaNumeric" maxLength="80"/>
     </setting>
 
+    <!-- Forget: одноразовый тоггл сброса привязки. Включи и сохрани — поле забудет
+         текущий Di2 и при следующем скане подключится к ближайшему. -->
+    <setting propertyKey="@Properties.forgetDevice"
+             title="@Strings.SetForgetDevice"
+             prompt="@Strings.ForgetPrompt">
+        <settingConfig type="boolean"/>
+    </setting>
+
 </settings>

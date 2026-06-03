@@ -11,4 +11,7 @@
     <property id="rearCogs" type="number">12</property>
     <!-- Зубья кассеты (через запятую, от меньшей звезды к большей). -->
     <property id="rearTeeth" type="string">10,12,14,16,18,21,24,28,33,39,45,51</property>
+    <!-- Тоггл-«кнопка»: сбросить привязку к текущему Di2 и подключиться к ближайшему.
+         Код снимает sticky-lock и сам выключает тоггл обратно в false. -->
+    <property id="forgetDevice" type="boolean">false</property>
 </properties>
