@@ -98,7 +98,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             _state.phase = CONN_SCANNING;
             startScan();
         } catch (e) {
-            log("BLE init failed: " + e.getErrorMessage());
+            if (DEBUG) { log("BLE init failed: " + e.getErrorMessage()); }
         }
     }
 
@@ -225,7 +225,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             Ble.setScanState(Ble.SCAN_STATE_SCANNING);
             _scanning = true;
         } catch (e) {
-            log("scan start failed: " + e.getErrorMessage());
+            if (DEBUG) { log("scan start failed: " + e.getErrorMessage()); }
         }
     }
 
@@ -297,14 +297,14 @@ class Di2BleDelegate extends Ble.BleDelegate {
             _scanning = false;
             _state.phase = CONN_CONNECTING;
             _attemptReachedLive = false;   // новая попытка: ещё не дошли до LIVE
-            log("pairDevice name=" + (sr.getDeviceName() != null ? sr.getDeviceName() : "?") + " rssi=" + sr.getRssi());
+            if (DEBUG) { log("pairDevice name=" + (sr.getDeviceName() != null ? sr.getDeviceName() : "?") + " rssi=" + sr.getRssi()); }
             var d = Ble.pairDevice(sr);
             // emtb: иногда onConnectedStateChanged не приходит — проверяем сразу.
             if (d != null && d.isConnected()) {
                 onConnected(d);
             }
         } catch (e) {
-            log("pair failed: " + e.getErrorMessage());
+            if (DEBUG) { log("pair failed: " + e.getErrorMessage()); }
             scheduleReconnect();
         }
     }
@@ -326,7 +326,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         if (_lockedName != null) {
             var nm = device.getName();
             if (nm != null && nm.length() > 0 && !nm.equals(_lockedName)) {
-                log("stranger '" + nm + "' != lock '" + _lockedName + "', dropping");
+                if (DEBUG) { log("stranger '" + nm + "' != lock '" + _lockedName + "', dropping"); }
                 try {
                     Ble.unpairDevice(device);   // разрыв → onDisconnected запланирует рескан
                 } catch (e) {
@@ -344,7 +344,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         enableNotifications(device);
         readBattery();                 // одно чтение сразу; далее — по тикам в onTick()
         _batteryTickCounter = 0;
-        log("connected" + (device.getName() != null ? " " + device.getName() : ""));
+        if (DEBUG) { log("connected" + (device.getName() != null ? " " + device.getName() : "")); }
     }
 
     private function onDisconnected() as Void {
@@ -352,12 +352,12 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _state.resetLiveData();
         if (_attemptReachedLive) {
             // Потеряли установленную связь — обычный бэкофф (растущий интервал).
-            log("disconnected");
+            if (DEBUG) { log("disconnected"); }
             scheduleReconnect();
         } else {
             // Рукопожатие сорвалось, не дойдя до LIVE (короткий блик слабого Di2).
             // Не ждём бэкофф — сразу возобновляем скан, чтобы поймать следующий блик.
-            log("connect failed before live, fast rescan");
+            if (DEBUG) { log("connect failed before live, fast rescan"); }
             _reconnectAttempts = 0;
             _reconnectCountdown = -1;
             _state.phase = CONN_SCANNING;
@@ -435,7 +435,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 }
             }
         } catch (e) {
-            log("enable notify failed: " + e.getErrorMessage());
+            if (DEBUG) { log("enable notify failed: " + e.getErrorMessage()); }
         }
     }
 
@@ -458,7 +458,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             }
         } catch (e) {
             _batteryReadInFlight = false;
-            log("battery read failed: " + e.getErrorMessage());
+            if (DEBUG) { log("battery read failed: " + e.getErrorMessage()); }
         }
     }
 
@@ -491,7 +491,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             if (_reconnectCountdown == 0) {
                 _reconnectCountdown = -1;
                 _state.phase = CONN_SCANNING;
-                log("reconnect attempt " + _reconnectAttempts);
+                if (DEBUG) { log("reconnect attempt " + _reconnectAttempts); }
                 startScan();
             }
         }
@@ -513,7 +513,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _reconnectAttempts += 1;
         var delay = _reconnectAttempts * RECONNECT_MIN_TICKS;
         _reconnectCountdown = (delay < RECONNECT_MAX_TICKS) ? delay : RECONNECT_MAX_TICKS;
-        log("reconnect scheduled in " + _reconnectCountdown + " ticks (attempt " + _reconnectAttempts + ")");
+        if (DEBUG) { log("reconnect scheduled in " + _reconnectCountdown + " ticks (attempt " + _reconnectAttempts + ")"); }
     }
 
     // ── Утилиты ───────────────────────────────────────────────────────────────
