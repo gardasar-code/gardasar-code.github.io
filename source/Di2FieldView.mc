@@ -468,10 +468,9 @@ class Di2FieldView extends WatchUi.DataField {
         var baseline = cy + maxHeight / 2;
         var x0 = cx - maxWidth / 2;
 
-        // Цвет неактивных столбиков — средне-серый (а не бледный fade), чтобы они
-        // были заметны, но меньше контрастировали с активной (fg: чёрной днём /
-        // белой ночью). Тему определяем по fg.
-        var barOff = (fg == Graphics.COLOR_WHITE) ? 0xAAAAAA : 0x808080;
+        // Неактивные столбики — тем же светлым цветом, что и кружок-разделитель
+        // между цифрами передач (fade: LT_GRAY днём / DK_GRAY ночью): мягкий контраст
+        // с активной (fg).
 
         // Профиль высот по зубьям, если список задан и совпадает по длине.
         var teeth = (_state != null) ? _state.rearTeeth : null;
@@ -502,7 +501,7 @@ class Di2FieldView extends WatchUi.DataField {
             // Зеркалим по X: бóльшая звезда (i=n, самый высокий столбик) — СЛЕВА,
             // меньшая (i=1) — справа. Слот меняем на (n - i + 0.5).
             var bx = (x0 + slot * (n - i + 0.5)).toNumber() - barW / 2;
-            dc.setColor((i == cur) ? fg : barOff, Graphics.COLOR_TRANSPARENT);
+            dc.setColor((i == cur) ? fg : fade, Graphics.COLOR_TRANSPARENT);
             dc.fillRectangle(bx, baseline - bh, barW, bh);
         }
     }
