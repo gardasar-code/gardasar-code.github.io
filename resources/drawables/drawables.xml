@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <drawables xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
     <bitmap id="LauncherIcon" filename="launcher_icon.svg" dithering="none"/>
+    <!-- Бета-вариант (тёмно-синий фон + оранжевый уголок). В manifest используется
+         только на ветке main (бета); на prod остаётся LauncherIcon. -->
+    <bitmap id="LauncherIconBeta" filename="launcher_icon_beta.svg" dithering="none"/>
 </drawables>

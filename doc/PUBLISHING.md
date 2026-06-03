@@ -4,13 +4,18 @@
 
 ## App ID и ветки
 
-Beta и публичная версии — РАЗНЫЕ app id (требование Garmin). Различие вынесено в ветки;
-единственное расхождение между ветками — `id` приложения в `manifest.xml`.
+Beta и публичная версии — РАЗНЫЕ app id (требование Garmin). Различие вынесено в ветки.
+Расхождение между ветками — ровно одна строка `<iq:application>` в `manifest.xml`:
+атрибуты `id` И `launcherIcon` (бета-иконка с оранжевым уголком vs обычная).
 
-| Ветка | App ID | Назначение |
-|---|---|---|
-| **main** | `a46118db030d4d489268501a3e80547d` | beta — разработка, «Upload New Version» в beta-приложение |
-| **prod** | `a7fea1a873694f3ba5c27c4312b4062a` | публичный релиз — загрузка БЕЗ галочки Beta |
+| Ветка | App ID | launcherIcon | Назначение |
+|---|---|---|---|
+| **main** | `a46118db030d4d489268501a3e80547d` | `@Drawables.LauncherIconBeta` | beta — разработка, «Upload New Version» в beta-приложение |
+| **prod** | `a7fea1a873694f3ba5c27c4312b4062a` | `@Drawables.LauncherIcon` | публичный релиз — загрузка БЕЗ галочки Beta |
+
+Оба drawable (`LauncherIcon`, `LauncherIconBeta`) есть на обеих ветках — отличается
+только ссылка в manifest. При мердже main→prod конфликт будет в той же строке
+`<iq:application>` → оставить prod-значения (prod-id + `@Drawables.LauncherIcon`).
 
 ### Сборка .iq
 ```bash
@@ -21,8 +26,9 @@ Beta и публичная версии — РАЗНЫЕ app id (требова�
 ### Релиз публичной версии
 ```bash
 git checkout prod
-git merge main             # при конфликте в manifest.xml оставить prod-id (a7fea1a8...)
-./build.sh store           # -> bin/Di2App.iq с публичным id
+git merge main             # конфликт в строке <iq:application>: оставить prod-id
+                           # (a7fea1a8...) И launcherIcon=@Drawables.LauncherIcon
+./build.sh store           # -> bin/Di2App.iq с публичным id и обычной иконкой
 git checkout main
 ```
 
