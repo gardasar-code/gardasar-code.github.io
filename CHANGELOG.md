@@ -4,6 +4,15 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.27
+
+### Changed
+- Cassette graphic polish: largest sprocket on the left, inactive bars use the
+  same light shade as the gear separator dot, slightly thicker bars, and proper
+  top/bottom padding so the graphic and the numbers never touch the field edge
+  on half/quarter layouts.
+- The battery icon and the cassette graphic are now shown by default.
+
 ## 0.0.26
 
 ### Added
