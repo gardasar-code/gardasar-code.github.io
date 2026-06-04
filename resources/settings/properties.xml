@@ -7,10 +7,16 @@
     <property id="frontChainrings" type="number">1</property>
     <!-- Зубья передних звёзд (через запятую; для 1x — одно число). -->
     <property id="frontTeeth" type="string">32</property>
+    <!-- Пресет передних звёзд: индекс в таблице FRONT_PRESETS (Di2FieldApp). Значение
+         >0 ПЕРЕОПРЕДЕЛЯЕТ ручной ввод frontChainrings/frontTeeth. 0 = Custom (ручной). -->
+    <property id="frontTeethPreset" type="number">0</property>
     <!-- Число задних звёзд (размер кассеты). -->
     <property id="rearCogs" type="number">12</property>
     <!-- Зубья кассеты (через запятую, от меньшей звезды к большей). -->
     <property id="rearTeeth" type="string">10,12,14,16,18,21,24,28,33,39,45,51</property>
+    <!-- Пресет кассеты: индекс в таблице REAR_PRESETS (Di2FieldApp). Значение >0
+         ПЕРЕОПРЕДЕЛЯЕТ ручной ввод rearCogs/rearTeeth. 0 = Custom (ручной). -->
+    <property id="rearTeethPreset" type="number">0</property>
     <!-- Тоггл-«кнопка»: сбросить привязку к текущему Di2 и подключиться к ближайшему.
          Код снимает sticky-lock и сам выключает тоггл обратно в false. -->
     <property id="forgetDevice" type="boolean">false</property>

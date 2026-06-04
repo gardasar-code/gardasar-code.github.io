@@ -16,9 +16,13 @@
     <!-- Настройки -->
     <string id="SetFrontChainrings">Front chainrings</string>
     <string id="SetFrontTitle">Front teeth</string>
+    <string id="SetFrontPreset">Front preset</string>
     <string id="SetRearCogs">Rear cogs</string>
     <string id="SetRearTitle">Rear teeth</string>
+    <string id="SetRearPreset">Cassette preset</string>
     <string id="TeethPrompt">Comma-separated, one value per gear.</string>
+    <string id="PresetPrompt">Pick a common Shimano setup. Overrides the manual count and teeth above. Choose Custom to enter your own.</string>
+    <string id="OptPresetCustom">Custom (manual)</string>
     <string id="SetForgetDevice">Forget paired Di2</string>
     <string id="SetBattery">Battery display</string>
     <string id="SetDisplay">Gear display</string>
