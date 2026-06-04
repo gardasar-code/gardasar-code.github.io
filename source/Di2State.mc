@@ -28,10 +28,16 @@ class Di2State {
     public var batteryMode as Lang.Number = 0;      // показ батареи: 0=процент, 1=иконка, 2=иконка+процент
     public var displayMode as Lang.Number = 0;      // показ передачи: 0=цифры, 1=график (кассета), 2=оба
 
+    // Дефолтная конфигурация звёзд — единый источник правды (дублировалась в
+    // Di2FieldApp.loadSettings и properties.xml). Ссылка делится только для чтения:
+    // парсер настроек (readTeeth) при валидном вводе создаёт новый массив.
+    public const DEFAULT_FRONT_TEETH as Lang.Array<Lang.Number> = [32];
+    public const DEFAULT_REAR_TEETH  as Lang.Array<Lang.Number> = [10, 12, 14, 16, 18, 21, 24, 28, 33, 39, 45, 51];
+
     // Зубья из настроек: передние звёзды и кассета (от меньшей к большей).
     // Длина списков задаёт frontTotal/rearTotal.
-    public var frontTeeth as Lang.Array<Lang.Number> = [32];
-    public var rearTeeth as Lang.Array<Lang.Number> = [10, 12, 14, 16, 18, 21, 24, 28, 33, 39, 45, 51];
+    public var frontTeeth as Lang.Array<Lang.Number> = DEFAULT_FRONT_TEETH;
+    public var rearTeeth as Lang.Array<Lang.Number> = DEFAULT_REAR_TEETH;
 
     // Отладка калибровки: hex последнего gear-пакета + его длина.
     // Показывается на экране при DEBUG_OVERLAY, чтобы вручную найти байт передней.
