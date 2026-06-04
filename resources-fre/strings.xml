@@ -10,6 +10,14 @@
     <string id="StatusConnecting">Connexion</string>
     <string id="StatusHint">Réveillez le Di2</string>
     <string id="StatusHintPair">Maintenez le bouton Di2</string>
+    <string id="SetBattery">Affichage batterie</string>
+    <string id="SetDisplay">Affichage vitesse</string>
+    <string id="OptBatteryPercent">Pourcentage</string>
+    <string id="OptBatteryIcon">Icône</string>
+    <string id="OptBatteryBoth">Icône + %</string>
+    <string id="OptDisplayNumbers">Chiffres</string>
+    <string id="OptDisplayGraphic">Graphique</string>
+    <string id="OptDisplayBoth">Les deux</string>
 
     <string id="SetFrontChainrings">Plateaux avant</string>
     <string id="SetFrontTitle">Dents avant</string>

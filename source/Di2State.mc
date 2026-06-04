@@ -9,6 +9,20 @@ enum {
     CONN_RETRY           // связь потеряна, ждём следующей попытки
 }
 
+// Режим показа батареи (настройка batteryDisplay / Di2State.batteryMode).
+enum {
+    BAT_PCT = 0,         // только процент
+    BAT_ICON,            // только иконка
+    BAT_BOTH             // иконка + процент
+}
+
+// Режим показа задней передачи (настройка displayMode / Di2State.displayMode).
+enum {
+    DISP_NUM = 0,        // цифры
+    DISP_GRAPH,          // график (визуальная кассета)
+    DISP_BOTH            // оба (кассета сверху, цифры снизу)
+}
+
 // Разделяемое состояние между BLE-делегатом (писатель) и View (читатель).
 // Один экземпляр создаётся в Di2FieldApp и передаётся обоим.
 // Значение -1 означает «нет данных» (рисуем "---").
@@ -25,11 +39,19 @@ class Di2State {
     public var front as Lang.Number = -1;           // текущая передняя передача (1-based)
     public var frontTotal as Lang.Number = -1;      // число передних передач
     public var battery as Lang.Number = -1;         // заряд D-Fly, % (0..100)
+    public var batteryMode as Lang.Number = BAT_PCT;   // показ батареи (см. enum BAT_*)
+    public var displayMode as Lang.Number = DISP_NUM;  // показ передачи (см. enum DISP_*)
+
+    // Дефолтная конфигурация звёзд — единый источник правды (дублировалась в
+    // Di2FieldApp.loadSettings и properties.xml). Ссылка делится только для чтения:
+    // парсер настроек (readTeeth) при валидном вводе создаёт новый массив.
+    public const DEFAULT_FRONT_TEETH as Lang.Array<Lang.Number> = [32];
+    public const DEFAULT_REAR_TEETH  as Lang.Array<Lang.Number> = [10, 12, 14, 16, 18, 21, 24, 28, 33, 39, 45, 51];
 
     // Зубья из настроек: передние звёзды и кассета (от меньшей к большей).
     // Длина списков задаёт frontTotal/rearTotal.
-    public var frontTeeth as Lang.Array<Lang.Number> = [32];
-    public var rearTeeth as Lang.Array<Lang.Number> = [10, 12, 14, 16, 18, 21, 24, 28, 33, 39, 45, 51];
+    public var frontTeeth as Lang.Array<Lang.Number> = DEFAULT_FRONT_TEETH;
+    public var rearTeeth as Lang.Array<Lang.Number> = DEFAULT_REAR_TEETH;
 
     // Отладка калибровки: hex последнего gear-пакета + его длина.
     // Показывается на экране при DEBUG_OVERLAY, чтобы вручную найти байт передней.

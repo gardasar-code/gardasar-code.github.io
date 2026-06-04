@@ -54,6 +54,16 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private const STORAGE_LOCK    = "lockedDi2Name";
     private const PROP_FORGET     = "forgetDevice";
 
+    // ── Кэш Uuid-объектов ─────────────────────────────────────────────────────
+    // stringToUuid аллоцирует объект на каждый вызов; раньше это происходило в
+    // горячих путях (onCharacteristicRead, readBattery, enableNotifications).
+    // Строим один раз в initialize() и переиспользуем.
+    private var _advSvcUuid as Ble.Uuid?;
+    private var _modeSvcUuid as Ble.Uuid?;
+    private var _modeCharUuid as Ble.Uuid?;
+    private var _battSvcUuid as Ble.Uuid?;
+    private var _battCharUuid as Ble.Uuid?;
+
     // ── Зависимости/состояние ────────────────────────────────────────────────
     private var _state as Di2State;
     private var _reconnectAttempts as Lang.Number = 0;
@@ -80,6 +90,11 @@ class Di2BleDelegate extends Ble.BleDelegate {
     function initialize(state as Di2State) {
         BleDelegate.initialize();
         _state = state;
+        _advSvcUuid   = Ble.stringToUuid(ADV_SERVICE_UUID);
+        _modeSvcUuid  = Ble.stringToUuid(MODE_SERVICE_UUID);
+        _modeCharUuid = Ble.stringToUuid(MODE_CHAR_UUID);
+        _battSvcUuid  = Ble.stringToUuid(BATT_SERVICE_UUID);
+        _battCharUuid = Ble.stringToUuid(BATT_CHAR_UUID);
     }
 
     // ── Публичный API (вызывается из App) ─────────────────────────────────────
@@ -203,17 +218,17 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private function registerProfiles() as Void {
         // Профиль батареи (Read).
         Ble.registerProfile({
-            :uuid => Ble.stringToUuid(BATT_SERVICE_UUID),
+            :uuid => _battSvcUuid,
             :characteristics => [
-                { :uuid => Ble.stringToUuid(BATT_CHAR_UUID) }
+                { :uuid => _battCharUuid }
             ]
         });
         // Профиль нотификаций (Notify через CCCD).
         Ble.registerProfile({
-            :uuid => Ble.stringToUuid(MODE_SERVICE_UUID),
+            :uuid => _modeSvcUuid,
             :characteristics => [
                 {
-                    :uuid => Ble.stringToUuid(MODE_CHAR_UUID),
+                    :uuid => _modeCharUuid,
                     :descriptors => [Ble.cccdUuid()]
                 }
             ]
@@ -238,7 +253,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
     //     (эфирное имя могло не прийти; одиночный Di2 почти наверняка «свой»);
     //   • привязка есть, совпадения нет, кандидатов несколько → ждём (не хватаем чужой).
     function onScanResults(scanResults) {
-        var advUuid = Ble.stringToUuid(ADV_SERVICE_UUID);
+        var advUuid = _advSvcUuid;
         var best = null;
         var bestRssi = -999;
         var matched = null;          // устройство с именем == _lockedName (сильнейшее)
@@ -387,7 +402,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // Ответ на requestRead батареи: байт[0] = процент 0..100.
     function onCharacteristicRead(characteristic, status, value) {
         _batteryReadInFlight = false;
-        if (characteristic.getUuid().equals(Ble.stringToUuid(BATT_CHAR_UUID))) {
+        if (characteristic.getUuid().equals(_battCharUuid)) {
             if (value != null && value.size() > 0) {
                 _state.battery = value[0].toNumber();
             }
@@ -424,9 +439,9 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     private function enableNotifications(device as Ble.Device) as Void {
         try {
-            var svc = device.getService(Ble.stringToUuid(MODE_SERVICE_UUID));
+            var svc = device.getService(_modeSvcUuid);
             if (svc != null) {
-                var ch = svc.getCharacteristic(Ble.stringToUuid(MODE_CHAR_UUID));
+                var ch = svc.getCharacteristic(_modeCharUuid);
                 if (ch != null) {
                     var cccd = ch.getDescriptor(Ble.cccdUuid());
                     if (cccd != null) {
@@ -447,9 +462,9 @@ class Di2BleDelegate extends Ble.BleDelegate {
         try {
             var d = Ble.getPairedDevices().next() as Ble.Device?;
             if (d != null && d.isConnected()) {
-                var svc = d.getService(Ble.stringToUuid(BATT_SERVICE_UUID));
+                var svc = d.getService(_battSvcUuid);
                 if (svc != null) {
-                    var ch = svc.getCharacteristic(Ble.stringToUuid(BATT_CHAR_UUID));
+                    var ch = svc.getCharacteristic(_battCharUuid);
                     if (ch != null) {
                         _batteryReadInFlight = true;
                         ch.requestRead();
@@ -531,11 +546,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         if (!DEBUG) {
             return;
         }
-        var hex = "";
-        for (var i = 0; i < value.size(); i++) {
-            hex += value[i].format("%02X") + " ";
-        }
-        Di2Log.line("notify char=" + characteristic.getUuid().toString() + " len=" + value.size() + " bytes=[" + hex + "]");
+        Di2Log.line("notify char=" + characteristic.getUuid().toString() + " len=" + value.size() + " bytes=[" + toHex(value) + "]");
     }
 
     private function log(msg as Lang.String) as Void {

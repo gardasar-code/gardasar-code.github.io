@@ -10,6 +10,14 @@
     <string id="StatusConnecting">Verbinde</string>
     <string id="StatusHint">Di2 aufwecken</string>
     <string id="StatusHintPair">Di2-Taste halten</string>
+    <string id="SetBattery">Batterieanzeige</string>
+    <string id="SetDisplay">Ganganzeige</string>
+    <string id="OptBatteryPercent">Prozent</string>
+    <string id="OptBatteryIcon">Symbol</string>
+    <string id="OptBatteryBoth">Symbol + %</string>
+    <string id="OptDisplayNumbers">Zahlen</string>
+    <string id="OptDisplayGraphic">Grafik</string>
+    <string id="OptDisplayBoth">Beide</string>
 
     <string id="SetFrontChainrings">Kettenblätter vorne</string>
     <string id="SetFrontTitle">Zähne vorne</string>

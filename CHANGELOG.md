@@ -4,6 +4,41 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.28
+
+### Changed
+- The battery and gear display option labels in the field settings are now fully
+  translated in all six supported languages (English, French, Russian, Spanish,
+  German, Arabic) instead of falling back to English.
+
+### Performance
+- Faster BLE handling: the gear and battery characteristic UUIDs are now cached
+  as objects instead of being rebuilt from strings on every notification.
+
+## 0.0.27
+
+### Changed
+- Cassette graphic polish: largest sprocket on the left, inactive bars use the
+  same light shade as the gear separator dot, slightly thicker bars, and proper
+  top/bottom padding so the graphic and the numbers never touch the field edge
+  on half/quarter layouts.
+- The battery icon and the cassette graphic are now shown by default.
+
+## 0.0.26
+
+### Added
+- Gear display options in the field settings: show the rear gear as numbers, as
+  a graphic, or both (default). The graphic draws the cassette as a row of bars —
+  one per sprocket, largest on the left, height following the cog sizes — with
+  the current sprocket highlighted, so you can read your position at a glance.
+
+## 0.0.25
+
+### Added
+- Battery display options in the field settings: show the D-Fly charge as a
+  percentage, a colour-coded battery icon, or both (default). The icon fills in
+  proportion to the charge and turns orange below 40% and red below 15%.
+
 ## 0.0.24
 
 Connection reliability overhaul (consolidates the 0.0.17–0.0.23 beta builds).

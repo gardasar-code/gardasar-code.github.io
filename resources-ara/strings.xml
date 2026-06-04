@@ -10,6 +10,14 @@
     <string id="StatusConnecting">جارٍ الاتصال</string>
     <string id="StatusHint">أيقظ جهاز Di2</string>
     <string id="StatusHintPair">اضغط مطولاً زر Di2</string>
+    <string id="SetBattery">عرض البطارية</string>
+    <string id="SetDisplay">عرض السرعة</string>
+    <string id="OptBatteryPercent">نسبة مئوية</string>
+    <string id="OptBatteryIcon">أيقونة</string>
+    <string id="OptBatteryBoth">أيقونة + ٪</string>
+    <string id="OptDisplayNumbers">أرقام</string>
+    <string id="OptDisplayGraphic">رسم</string>
+    <string id="OptDisplayBoth">كلاهما</string>
 
     <string id="SetFrontChainrings">النجوم الأمامية</string>
     <string id="SetFrontTitle">أسنان أمامية</string>

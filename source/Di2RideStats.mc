@@ -52,10 +52,8 @@ class Di2RideStats {
     function frontShifts() as Lang.Number { return _frontShifts; }
     function rearShifts() as Lang.Number { return _rearShifts; }
 
-    function mostCombo() as Lang.String { return comboKey(true); }
-    function leastCombo() as Lang.String { return comboKey(false); }
-    function mostComboPct() as Lang.Float { return pct(comboSec(true)); }
-    function leastComboPct() as Lang.Float { return pct(comboSec(false)); }
+    function mostCombo() as Lang.String { return mostComboKey(); }
+    function mostComboPct() as Lang.Float { return pct(maxComboSec()); }
 
     // Зубья n-й по используемости задней звезды (1 = самая частая); 0 если нет данных.
     function rearTop(n as Lang.Number) as Lang.Number {
@@ -79,13 +77,14 @@ class Di2RideStats {
     }
 
     // ── приватные ──
-    private function comboKey(wantMax as Lang.Boolean) as Lang.String {
+    // Ключ самой используемой комбинации ("Ft/Rt"); "" если данных нет.
+    private function mostComboKey() as Lang.String {
         var keys = _comboSec.keys();
         var bestKey = null;
         var bestVal = 0;
         for (var i = 0; i < keys.size(); i++) {
             var v = _comboSec[keys[i]] as Lang.Number;
-            if (bestKey == null || (wantMax ? v > bestVal : v < bestVal)) {
+            if (bestKey == null || v > bestVal) {
                 bestKey = keys[i];
                 bestVal = v;
             }
@@ -93,16 +92,15 @@ class Di2RideStats {
         return (bestKey == null) ? "" : (bestKey as Lang.String);
     }
 
-    private function comboSec(wantMax as Lang.Boolean) as Lang.Number {
+    // Секунды в самой используемой комбинации; 0 если данных нет.
+    private function maxComboSec() as Lang.Number {
         var keys = _comboSec.keys();
-        var bestVal = -1;
+        var bestVal = 0;
         for (var i = 0; i < keys.size(); i++) {
             var v = _comboSec[keys[i]] as Lang.Number;
-            if (bestVal < 0 || (wantMax ? v > bestVal : v < bestVal)) {
-                bestVal = v;
-            }
+            if (v > bestVal) { bestVal = v; }
         }
-        return (bestVal < 0) ? 0 : bestVal;
+        return bestVal;
     }
 
     private function pct(sec as Lang.Number) as Lang.Float {
