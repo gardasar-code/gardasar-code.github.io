@@ -546,11 +546,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         if (!DEBUG) {
             return;
         }
-        var hex = "";
-        for (var i = 0; i < value.size(); i++) {
-            hex += value[i].format("%02X") + " ";
-        }
-        Di2Log.line("notify char=" + characteristic.getUuid().toString() + " len=" + value.size() + " bytes=[" + hex + "]");
+        Di2Log.line("notify char=" + characteristic.getUuid().toString() + " len=" + value.size() + " bytes=[" + toHex(value) + "]");
     }
 
     private function log(msg as Lang.String) as Void {
