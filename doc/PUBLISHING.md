@@ -46,7 +46,7 @@ git checkout main
 
 ## Загрузка: шаг 1 — App File
 - **File:** `bin/Di2App.iq`
-- **App Version:** значение из `manifest.xml` (текущее — `0.0.24`)
+- **App Version:** значение из `manifest.xml` (текущее — `0.0.28`)
 - **Beta App:** ❌ снять галочку для публичного релиза (поставить — для beta-теста).
 
 ## Шаг 2 — Title and Description
@@ -119,15 +119,18 @@ Tested with Shimano XT Di2 RD-M8250-SGS (12-speed) on Garmin Edge Explore 2.
 Independent, unofficial app — not affiliated with or endorsed by Shimano.
 ```
 
-**What's New (0.0.24):** полный список — `CHANGELOG.md`. Для поля стора:
+**What's New (0.0.28):** полный список — `CHANGELOG.md`. Текст для поля стора
+покрывает всё, что появилось с последнего публичного релиза (0.0.24):
 ```
-More reliable connection. The field now keeps its Bluetooth bond between rides
-and reconnects to your Di2 on its own as soon as it's awake — no re-pairing
-after a short break. Sticky-lock is more dependable: it confirms it's really
-your unit before locking on, instead of jumping to another nearby Di2. While
-linking, a seconds counter shows progress, and after a long search the hint
-reminds you to hold the Di2 button (a Di2 left asleep for a long time stops
-broadcasting and must be re-paired — a Shimano limitation).
+New display options and a clearer readout. You can now show the rear gear as
+numbers, as a cassette graphic, or both: the graphic draws every sprocket as a
+bar — largest on the left, height following the cog sizes — with your current
+sprocket highlighted, so you can read your position at a glance. The D-Fly
+battery can be shown as a percentage, a colour-coded battery icon, or both; the
+icon fills with the charge and turns orange below 40% and red below 15%. The
+battery icon and cassette graphic are now on by default, and the settings option
+labels are fully translated in all six languages. Plus faster, more efficient
+Bluetooth handling under the hood.
 ```
 
 ## Шаг 3 — Изображения
