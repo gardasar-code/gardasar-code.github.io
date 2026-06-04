@@ -232,6 +232,12 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // совпал с началом имени. Имя null/без совпадения → дефолт (XT M8250). Применяется
     // к смещениям парсинга (_pktLen/_rearIdx/_frontIdx) и метке модели в state.
     private function selectProfile(name as Lang.String?) as Void {
+        // Старт с дефолта (XT M8250): подходит и как fallback для нераспознанной модели —
+        // пробуем самую вероятную раскладку, а сырой пакет всё равно виден в diag.
+        _pktLen   = DEFAULT_PKT_LEN;
+        _rearIdx  = DEFAULT_REAR_IDX;
+        _frontIdx = DEFAULT_FRONT_IDX;
+
         var p = matchProfile(name);
         if (p != null) {
             _pktLen   = p[:len] as Lang.Number;
@@ -239,11 +245,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             _frontIdx = p[:front] as Lang.Number;
             _state.dbgModel = p[:label] as Lang.String;
         } else {
-            _pktLen   = DEFAULT_PKT_LEN;
-            _rearIdx  = DEFAULT_REAR_IDX;
-            _frontIdx = DEFAULT_FRONT_IDX;
-            // Имя есть, но не распознано — покажем сырое имя как «неизвестную» модель,
-            // чтобы по фото оверлея можно было добавить новый профиль.
+            // Имя есть, но не распознано — метим "?" (по фото оверлея добавим профиль).
             _state.dbgModel = (name != null && name.length() > 0) ? "?" : "";
         }
     }

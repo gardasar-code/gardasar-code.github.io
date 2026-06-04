@@ -274,10 +274,10 @@ class Di2FieldView extends WatchUi.DataField {
             + (ratio > 0.0 ? " " + ratio.format("%.2f") : ""));
         lines.add("len=" + s.dbgGearLen);
 
-        // Рисуем технические строки под индикатором.
+        // Рисуем технические строки под индикатором (с защитой от выхода за экран).
         var y = fh + 1;
         dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
-        for (var i = 0; i < lines.size(); i++) {
+        for (var i = 0; i < lines.size() && y + fh <= h; i++) {
             dc.drawText(x, y, Graphics.FONT_XTINY, lines[i], Graphics.TEXT_JUSTIFY_LEFT);
             y += fh;
         }
