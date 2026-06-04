@@ -12,6 +12,8 @@
     <string id="StatusHintPair">اضغط مطولاً زر Di2</string>
     <string id="SetBattery">عرض البطارية</string>
     <string id="SetDisplay">عرض السرعة</string>
+    <string id="SetDiagOverlay">تشخيص على الشاشة</string>
+    <string id="DiagOverlayPrompt">عرض تشخيصات BLE على الشاشة (عدد عمليات المسح، الإشارة، حزمة الترس الخام) لحل مشكلات الاتصال على الأجهزة غير المدعومة. أرسل صورة للشاشة إلى المطوّر. أوقف التشغيل للاستخدام العادي.</string>
     <string id="OptBatteryPercent">نسبة مئوية</string>
     <string id="OptBatteryIcon">أيقونة</string>
     <string id="OptBatteryBoth">أيقونة + ٪</string>

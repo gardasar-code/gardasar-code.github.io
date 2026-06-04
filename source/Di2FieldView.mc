@@ -9,8 +9,10 @@ using Toybox.Application;
 // Нет данных -> "---". Точка подключения: зелёная (connected) / серая (нет).
 class Di2FieldView extends WatchUi.DataField {
 
-    // Калибровка: показывать сырые байты gear-пакета двумя строками снизу.
-    // true только для настройки смещений (напр. поиск байта передней для 2x).
+    // Принудительный диаг-оверлей для симулятора/калибровки (где настройки не подать).
+    // В обычной работе оверлей включается настройкой diagOverlay (Di2State.diagOverlay),
+    // которая работает в любой store-сборке. Здесь true — чтобы форсировать оверлей в
+    // debug-сборке. В коммите всегда false.
     private const DEBUG_OVERLAY = false;
 
     private var _state as Di2State?;
@@ -209,16 +211,61 @@ class Di2FieldView extends WatchUi.DataField {
         var maxHeight = ((h - headerBottom) * 0.9).toNumber();  // запас по высоте
         drawRearZone(dc, w / 2, rearY, maxWidth, maxHeight, connected, fg, fade);
 
-        // ── Отладочный дамп gear-пакета (калибровка байта передней) ────────────
-        if (DEBUG_OVERLAY && _state != null && _state.dbgGear.length() > 0) {
-            dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
-            var bytes = toTokens(_state.dbgGear);
-            var half = (bytes.size() + 1) / 2;
-            var line1 = joinRange(bytes, 0, half);          // байты 0..half-1
-            var line2 = joinRange(bytes, half, bytes.size()); // остальные
-            dc.drawText(w / 2, (h * 0.78).toNumber(), Graphics.FONT_XTINY, line1, Graphics.TEXT_JUSTIFY_CENTER);
-            dc.drawText(w / 2, (h * 0.88).toNumber(), Graphics.FONT_XTINY, line2, Graphics.TEXT_JUSTIFY_CENTER);
+        // ── Диагностический оверлей (настройка diagOverlay или DEBUG_OVERLAY) ──
+        // Рисуется поверх макета внизу: discovery скана + сырой notify-пакет. Нужен
+        // для разбора подключения на неподдержанных устройствах по ФОТО экрана —
+        // работает в обычной store-сборке (это рисование, не println).
+        if ((DEBUG_OVERLAY || (_state != null && _state.diagOverlay)) && _state != null) {
+            drawDiagOverlay(dc, w, h, fg, bg);
         }
+    }
+
+    // ── Диагностический оверлей ─────────────────────────────────────────────────
+
+    // BLE-диагностика внизу экрана. Под текстом — плашка фоновым цветом для
+    // читаемости поверх крупных цифр передачи. Строки (FONT_XTINY, по центру):
+    //   dev=<всего> shi=<shimano> r=<best RSSI>   — виден ли эфир и наш Shimano-маркер
+    //   ph=<SCN/CON/LIV/RTY> lk=<0/1> len=<байт>  — фаза связи, привязка, длина пакета
+    //   <hex первой половины пакета>              — сырые байты notify (если приходили)
+    //   <hex второй половины пакета>
+    private function drawDiagOverlay(dc as Graphics.Dc, w as Lang.Number, h as Lang.Number,
+                                     fg as Graphics.ColorType, bg as Graphics.ColorType) as Void {
+        var s = _state;
+        if (s == null) {
+            return;
+        }
+        var lines = [
+            "dev=" + s.dbgScanTotal + " shi=" + s.dbgScanShimano
+                + " r=" + (s.dbgBestRssi > -999 ? s.dbgBestRssi.toString() : "--"),
+            "ph=" + phaseLetter() + " lk=" + (s.locked ? "1" : "0") + " len=" + s.dbgGearLen
+        ] as Lang.Array<Lang.String>;
+        if (s.dbgGear.length() > 0) {
+            var bytes = toTokens(s.dbgGear);
+            var half = (bytes.size() + 1) / 2;
+            lines.add(joinRange(bytes, 0, half));          // байты 0..half-1
+            lines.add(joinRange(bytes, half, bytes.size())); // остальные
+        }
+
+        var fh = dc.getFontHeight(Graphics.FONT_XTINY);
+        var blockH = fh * lines.size();
+        var top = h - blockH - 2;
+        dc.setColor(bg, bg);
+        dc.fillRectangle(0, top - 1, w, blockH + 3);       // плашка под текст
+        dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+        for (var i = 0; i < lines.size(); i++) {
+            dc.drawText(w / 2, top + i * fh, Graphics.FONT_XTINY, lines[i], Graphics.TEXT_JUSTIFY_CENTER);
+        }
+    }
+
+    // Буква фазы связи для diag-оверлея: LIV(e)/CON(necting)/RTY(retry)/SCN(scanning).
+    private function phaseLetter() as Lang.String {
+        if (_state != null && _state.connected) {
+            return "LIV";
+        }
+        var p = (_state != null) ? _state.phase : CONN_SCANNING;
+        if (p == CONN_CONNECTING) { return "CON"; }
+        if (p == CONN_RETRY)      { return "RTY"; }
+        return "SCN";
     }
 
     // ── Отладочные утилиты ──────────────────────────────────────────────────────

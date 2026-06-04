@@ -12,6 +12,8 @@
     <string id="StatusHintPair">Зажмите кнопку Di2</string>
     <string id="SetBattery">Показ батареи</string>
     <string id="SetDisplay">Показ передачи</string>
+    <string id="SetDiagOverlay">Диагностика на экране</string>
+    <string id="DiagOverlayPrompt">Показывать BLE-диагностику на экране (счётчики скана, сигнал, сырой пакет передачи) для разбора проблем подключения на неподдержанных устройствах. Пришлите фото экрана разработчику. Для обычной работы выключите.</string>
     <string id="OptBatteryPercent">Процент</string>
     <string id="OptBatteryIcon">Иконка</string>
     <string id="OptBatteryBoth">Иконка + процент</string>

@@ -12,6 +12,8 @@
     <string id="StatusHintPair">Di2-Taste halten</string>
     <string id="SetBattery">Batterieanzeige</string>
     <string id="SetDisplay">Ganganzeige</string>
+    <string id="SetDiagOverlay">Diagnose-Overlay</string>
+    <string id="DiagOverlayPrompt">Zeigt BLE-Diagnose auf dem Bildschirm (Scan-Zähler, Signal, Roh-Schaltpaket), um Verbindungsprobleme auf nicht unterstützten Geräten zu beheben. Sende ein Foto des Bildschirms an den Entwickler. Für den normalen Betrieb ausschalten.</string>
     <string id="OptBatteryPercent">Prozent</string>
     <string id="OptBatteryIcon">Symbol</string>
     <string id="OptBatteryBoth">Symbol + %</string>

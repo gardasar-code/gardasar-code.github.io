@@ -18,4 +18,9 @@
     <property id="batteryDisplay" type="number">2</property>
     <!-- Показ передачи: 0=цифры, 1=график (кассета), 2=оба (по умолч.). -->
     <property id="displayMode" type="number">2</property>
+    <!-- Диагностический оверлей: рисует на экране BLE-диагностику (счётчики скана,
+         RSSI, сырой notify-пакет) для разбора проблем подключения на чужих устройствах.
+         Работает в обычной store-сборке (это рисование, не println) — юзер фотографирует
+         экран и присылает. По умолчанию выключен. -->
+    <property id="diagOverlay" type="boolean">false</property>
 </properties>

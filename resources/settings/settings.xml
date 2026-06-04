@@ -69,4 +69,12 @@
         </settingConfig>
     </setting>
 
+    <!-- Диагностический оверлей: для разбора проблем подключения на новых устройствах.
+         Включи → на экране появится BLE-диагностика → пришли фото разработчику. -->
+    <setting propertyKey="@Properties.diagOverlay"
+             title="@Strings.SetDiagOverlay"
+             prompt="@Strings.DiagOverlayPrompt">
+        <settingConfig type="boolean"/>
+    </setting>
+
 </settings>

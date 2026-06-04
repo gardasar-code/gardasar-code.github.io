@@ -64,6 +64,7 @@ class Di2FieldApp extends Application.AppBase {
         _state.rearTotal = readNumberProperty("rearCogs", 12);
         _state.batteryMode = readNumberProperty("batteryDisplay", BAT_BOTH);
         _state.displayMode = readNumberProperty("displayMode", DISP_BOTH);
+        _state.diagOverlay = readBooleanProperty("diagOverlay", false);
         _state.frontTeeth = readTeeth("frontTeeth", _state.DEFAULT_FRONT_TEETH);
         _state.rearTeeth = readTeeth("rearTeeth", _state.DEFAULT_REAR_TEETH);
         // Текущую переднюю позицию из пакета не вычислить; для 1x она всегда 1,
@@ -75,6 +76,12 @@ class Di2FieldApp extends Application.AppBase {
     private function readNumberProperty(key as Lang.String, dflt as Lang.Number) as Lang.Number {
         var v = Application.Properties.getValue(key);
         return (v instanceof Lang.Number) ? v : dflt;
+    }
+
+    // Безопасное чтение булева свойства с дефолтом.
+    private function readBooleanProperty(key as Lang.String, dflt as Lang.Boolean) as Lang.Boolean {
+        var v = Application.Properties.getValue(key);
+        return (v instanceof Lang.Boolean) ? v : dflt;
     }
 
     // Прочитать строковое свойство и распарсить в список чисел (зубья).

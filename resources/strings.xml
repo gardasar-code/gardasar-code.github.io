@@ -22,6 +22,8 @@
     <string id="SetForgetDevice">Forget paired Di2</string>
     <string id="SetBattery">Battery display</string>
     <string id="SetDisplay">Gear display</string>
+    <string id="SetDiagOverlay">Diagnostics overlay</string>
+    <string id="DiagOverlayPrompt">Show BLE diagnostics on screen (scan counts, signal, raw gear packet) to troubleshoot connection on unsupported devices. Send a photo of the screen to the developer. Turn off for normal use.</string>
     <!-- Опции селекторов показа батареи/передачи (метки списков в настройках) -->
     <string id="OptBatteryPercent">Percent</string>
     <string id="OptBatteryIcon">Icon</string>

@@ -12,6 +12,8 @@
     <string id="StatusHintPair">Maintenez le bouton Di2</string>
     <string id="SetBattery">Affichage batterie</string>
     <string id="SetDisplay">Affichage vitesse</string>
+    <string id="SetDiagOverlay">Diagnostic à l'écran</string>
+    <string id="DiagOverlayPrompt">Affiche les diagnostics BLE à l'écran (compteurs de scan, signal, paquet de vitesse brut) pour résoudre les problèmes de connexion sur les appareils non pris en charge. Envoyez une photo de l'écran au développeur. Désactivez pour un usage normal.</string>
     <string id="OptBatteryPercent">Pourcentage</string>
     <string id="OptBatteryIcon">Icône</string>
     <string id="OptBatteryBoth">Icône + %</string>

@@ -259,9 +259,11 @@ class Di2BleDelegate extends Ble.BleDelegate {
         var matched = null;          // устройство с именем == _lockedName (сильнейшее)
         var matchedRssi = -999;
         var shimanoCount = 0;
+        var totalCount = 0;          // всего устройств в эфире (для diag-discovery)
 
         for (var r = scanResults.next(); r != null; r = scanResults.next()) {
             var sr = r as Ble.ScanResult;
+            totalCount += 1;
             if (iterContains(sr.getServiceUuids(), advUuid)) {
                 shimanoCount += 1;
                 var rssi = sr.getRssi();
@@ -290,6 +292,15 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 _lastScanShimano = shimanoCount;
                 _lastScanLogMs = nowMs;
             }
+        }
+
+        // Diag-discovery эфира на экран: сводка последнего скана в state (см. Di2State).
+        // Безусловной записи избегаем — только при включённом оверлее, чтобы в обычном
+        // релизе не трогать state из горячего колбэка. Лучший RSSI берём среди shimano.
+        if (_state.diagOverlay) {
+            _state.dbgScanTotal = totalCount;
+            _state.dbgScanShimano = shimanoCount;
+            _state.dbgBestRssi = (shimanoCount > 0) ? bestRssi : -999;
         }
 
         // Выбор цели. ВАЖНО (подтверждено логом DI2DIAG): на этом устройстве scan-
@@ -396,6 +407,12 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 _lastNotifyLogMs = nowMs;
             }
         }
+        // Diag-overlay: сырой пакет ЛЮБОЙ длины на экран (для разбора формата чужой
+        // серии Di2, у которой длина/смещения могут отличаться от PKT_GEAR_LEN).
+        if (_state.diagOverlay) {
+            _state.dbgGear = toHex(value);
+            _state.dbgGearLen = value.size();
+        }
         parseGearPacket(value);
     }
 
@@ -417,12 +434,8 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 _state.rear = value[PKT_REAR_IDX].toNumber();
             }
             // front/frontTotal/rearTotal задаются настройками (см. Di2FieldApp).
-            // Калибровочный дамп gear-пакета на экран (для будущей настройки 2x) —
-            // только в диагностической сборке, чтобы в release не собирать hex
-            // каждый пакет (десятки в секунду) и не таскать DEBUG_OVERLAY-данные.
-            if (DEBUG) {
-                _state.dbgGear = toHex(value);
-            }
+            // Сырой дамп пакета для diag-overlay снимается в onCharacteristicChanged
+            // (любой длины), здесь не дублируем.
         }
     }
 
