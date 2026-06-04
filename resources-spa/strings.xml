@@ -12,6 +12,12 @@
     <string id="StatusHintPair">Mantén el botón Di2</string>
     <string id="SetBattery">Mostrar batería</string>
     <string id="SetDisplay">Mostrar marcha</string>
+    <string id="OptBatteryPercent">Porcentaje</string>
+    <string id="OptBatteryIcon">Icono</string>
+    <string id="OptBatteryBoth">Icono + %</string>
+    <string id="OptDisplayNumbers">Números</string>
+    <string id="OptDisplayGraphic">Gráfico</string>
+    <string id="OptDisplayBoth">Ambos</string>
 
     <string id="SetFrontChainrings">Platos delanteros</string>
     <string id="SetFrontTitle">Dientes delant.</string>

@@ -53,9 +53,9 @@
     <setting propertyKey="@Properties.batteryDisplay"
              title="@Strings.SetBattery">
         <settingConfig type="list">
-            <listEntry value="0">Percent</listEntry>
-            <listEntry value="1">Icon</listEntry>
-            <listEntry value="2">Icon + percent</listEntry>
+            <listEntry value="0">@Strings.OptBatteryPercent</listEntry>
+            <listEntry value="1">@Strings.OptBatteryIcon</listEntry>
+            <listEntry value="2">@Strings.OptBatteryBoth</listEntry>
         </settingConfig>
     </setting>
 
@@ -63,9 +63,9 @@
     <setting propertyKey="@Properties.displayMode"
              title="@Strings.SetDisplay">
         <settingConfig type="list">
-            <listEntry value="0">Numbers</listEntry>
-            <listEntry value="1">Graphic</listEntry>
-            <listEntry value="2">Both</listEntry>
+            <listEntry value="0">@Strings.OptDisplayNumbers</listEntry>
+            <listEntry value="1">@Strings.OptDisplayGraphic</listEntry>
+            <listEntry value="2">@Strings.OptDisplayBoth</listEntry>
         </settingConfig>
     </setting>
 

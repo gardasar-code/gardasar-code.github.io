@@ -12,6 +12,12 @@
     <string id="StatusHintPair">Зажмите кнопку Di2</string>
     <string id="SetBattery">Показ батареи</string>
     <string id="SetDisplay">Показ передачи</string>
+    <string id="OptBatteryPercent">Процент</string>
+    <string id="OptBatteryIcon">Иконка</string>
+    <string id="OptBatteryBoth">Иконка + процент</string>
+    <string id="OptDisplayNumbers">Цифры</string>
+    <string id="OptDisplayGraphic">График</string>
+    <string id="OptDisplayBoth">Оба</string>
 
     <string id="SetFrontChainrings">Передние звёзды</string>
     <string id="SetFrontTitle">Зубья перед.</string>
