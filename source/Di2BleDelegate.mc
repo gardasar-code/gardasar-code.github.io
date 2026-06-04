@@ -185,6 +185,18 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
     }
 
+    // Снять идентичность подключённого устройства: GATT-имя в state (для diag-оверлея
+    // и краудсорса моделей). Имя доступно только после подключения; в эфире скана его нет.
+    private function captureIdentity(device as Ble.Device) as Void {
+        var nm = null;
+        try {
+            nm = device.getName();
+        } catch (e) {
+            // имя недоступно — оставляем пустым
+        }
+        _state.dbgDeviceName = (nm != null) ? nm : "";
+    }
+
     // Прочитать сохранённое имя «своего» Di2 (null, если привязки нет).
     private function loadLockedName() as Lang.String? {
         var v = Application.Storage.getValue(STORAGE_LOCK);
@@ -366,6 +378,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _attemptReachedLive = true;    // соединение установлено: разрыв отсюда — «обычный»
         _state.connected = true;
         _state.phase = CONN_LIVE;
+        captureIdentity(device);       // GATT-имя + авто-детект профиля модели (для diag/парсинга)
         saveLock(device);              // «прилипаем» к этому устройству по имени (только первый раз)
         enableNotifications(device);
         readBattery();                 // одно чтение сразу; далее — по тикам в onTick()

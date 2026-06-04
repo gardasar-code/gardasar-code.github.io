@@ -239,6 +239,9 @@ class Di2FieldView extends WatchUi.DataField {
                 + " r=" + (s.dbgBestRssi > -999 ? s.dbgBestRssi.toString() : "--"),
             "ph=" + phaseLetter() + " lk=" + (s.locked ? "1" : "0") + " len=" + s.dbgGearLen
         ] as Lang.Array<Lang.String>;
+        if (s.dbgDeviceName.length() > 0) {
+            lines.add("id=" + s.dbgDeviceName);   // GATT-имя устройства (модель Di2)
+        }
         if (s.dbgGear.length() > 0) {
             var bytes = toTokens(s.dbgGear);
             var half = (bytes.size() + 1) / 2;

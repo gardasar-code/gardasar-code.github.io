@@ -72,6 +72,14 @@ class Di2State {
     public var dbgGear as Lang.String = "";
     public var dbgGearLen as Lang.Number = 0;
 
+    // GATT-имя подключённого устройства (напр. "RDM8250S2A8"). В эфире скана имя
+    // недоступно (null) — приходит только после подключения по GATT. Это единственный
+    // идентификатор модели переключателя: по нему авто-детектится профиль (см.
+    // Di2BleDelegate.PROFILES) и краудсорсятся новые серии Di2 по ФОТО оверлея.
+    public var dbgDeviceName as Lang.String = "";
+    // Метка активного профиля парсинга (модель/серия Di2), определённого по имени.
+    public var dbgModel as Lang.String = "";
+
     function initialize() {
     }
 
