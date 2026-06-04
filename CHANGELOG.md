@@ -7,9 +7,13 @@ Store "What's New" field.
 ## 0.0.28
 
 ### Changed
-- Maintenance rebuild against the current SDK; no user-facing behaviour change
-  versus 0.0.27. Version bumped so the Connect IQ Store accepts a fresh beta
-  upload.
+- The battery and gear display option labels in the field settings are now fully
+  translated in all six supported languages (English, French, Russian, Spanish,
+  German, Arabic) instead of falling back to English.
+
+### Performance
+- Faster BLE handling: the gear and battery characteristic UUIDs are now cached
+  as objects instead of being rebuilt from strings on every notification.
 
 ## 0.0.27
 
