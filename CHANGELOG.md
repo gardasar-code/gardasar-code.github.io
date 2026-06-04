@@ -4,6 +4,13 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.28
+
+### Changed
+- Maintenance rebuild against the current SDK; no user-facing behaviour change
+  versus 0.0.27. Version bumped so the Connect IQ Store accepts a fresh beta
+  upload.
+
 ## 0.0.27
 
 ### Changed
