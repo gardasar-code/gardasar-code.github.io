@@ -62,8 +62,8 @@ class Di2FieldApp extends Application.AppBase {
         }
         _state.frontTotal = readNumberProperty("frontChainrings", 1);
         _state.rearTotal = readNumberProperty("rearCogs", 12);
-        _state.batteryMode = readNumberProperty("batteryDisplay", 2);
-        _state.displayMode = readNumberProperty("displayMode", 2);
+        _state.batteryMode = readNumberProperty("batteryDisplay", BAT_BOTH);
+        _state.displayMode = readNumberProperty("displayMode", DISP_BOTH);
         _state.frontTeeth = readTeeth("frontTeeth", _state.DEFAULT_FRONT_TEETH);
         _state.rearTeeth = readTeeth("rearTeeth", _state.DEFAULT_REAR_TEETH);
         // Текущую переднюю позицию из пакета не вычислить; для 1x она всегда 1,

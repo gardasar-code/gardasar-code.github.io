@@ -284,11 +284,11 @@ class Di2FieldView extends WatchUi.DataField {
     private function drawBattery(dc as Graphics.Dc, rightX as Lang.Number, centerY as Lang.Number,
                                  fontH as Lang.Number, fg as Graphics.ColorType) as Void {
         var b = (_state != null) ? _state.battery : -1;
-        var mode = (_state != null) ? _state.batteryMode : 0;
+        var mode = (_state != null) ? _state.batteryMode : BAT_PCT;
         var vc = Graphics.TEXT_JUSTIFY_VCENTER;
 
         // Режим «процент» или отсутствие данных → текст.
-        if (mode == 0 || b < 0) {
+        if (mode == BAT_PCT || b < 0) {
             dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
             dc.drawText(rightX, centerY, Graphics.FONT_XTINY, batteryStr(),
                         Graphics.TEXT_JUSTIFY_RIGHT | vc);
@@ -304,7 +304,7 @@ class Di2FieldView extends WatchUi.DataField {
 
         var iconRight = rightX;
         // Режим «иконка + процент»: процент справа, иконка слева от него.
-        if (mode == 2) {
+        if (mode == BAT_BOTH) {
             var pct = b.toString() + "%";
             dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
             dc.drawText(rightX, centerY, Graphics.FONT_XTINY, pct, Graphics.TEXT_JUSTIFY_RIGHT | vc);
@@ -432,12 +432,12 @@ class Di2FieldView extends WatchUi.DataField {
             drawStatus(dc, cx, cy, maxWidth, fg, fade);
             return;
         }
-        var mode = (_state != null) ? _state.displayMode : 0;
-        if (mode == 1) {
+        var mode = (_state != null) ? _state.displayMode : DISP_NUM;
+        if (mode == DISP_GRAPH) {
             // Только график: ужимаем высоту до 0.78 зоны → появляются отступы
             // сверху/снизу, чтобы на малых полях кассета не сливалась с соседями.
             drawCassette(dc, cx, cy, maxWidth, (maxHeight * 0.78).toNumber(), fg, fade);
-        } else if (mode == 2) {
+        } else if (mode == DISP_BOTH) {
             // Оба: pad сверху/снизу + ЗАЗОР между кассетой и цифрами. Цифрам отдаём
             // меньшую долю (шрифт мельче) → появляется воздух между графиком и числами,
             // и на малых полях ничего не сливается с границей.

@@ -9,6 +9,20 @@ enum {
     CONN_RETRY           // связь потеряна, ждём следующей попытки
 }
 
+// Режим показа батареи (настройка batteryDisplay / Di2State.batteryMode).
+enum {
+    BAT_PCT = 0,         // только процент
+    BAT_ICON,            // только иконка
+    BAT_BOTH             // иконка + процент
+}
+
+// Режим показа задней передачи (настройка displayMode / Di2State.displayMode).
+enum {
+    DISP_NUM = 0,        // цифры
+    DISP_GRAPH,          // график (визуальная кассета)
+    DISP_BOTH            // оба (кассета сверху, цифры снизу)
+}
+
 // Разделяемое состояние между BLE-делегатом (писатель) и View (читатель).
 // Один экземпляр создаётся в Di2FieldApp и передаётся обоим.
 // Значение -1 означает «нет данных» (рисуем "---").
@@ -25,8 +39,8 @@ class Di2State {
     public var front as Lang.Number = -1;           // текущая передняя передача (1-based)
     public var frontTotal as Lang.Number = -1;      // число передних передач
     public var battery as Lang.Number = -1;         // заряд D-Fly, % (0..100)
-    public var batteryMode as Lang.Number = 0;      // показ батареи: 0=процент, 1=иконка, 2=иконка+процент
-    public var displayMode as Lang.Number = 0;      // показ передачи: 0=цифры, 1=график (кассета), 2=оба
+    public var batteryMode as Lang.Number = BAT_PCT;   // показ батареи (см. enum BAT_*)
+    public var displayMode as Lang.Number = DISP_NUM;  // показ передачи (см. enum DISP_*)
 
     // Дефолтная конфигурация звёзд — единый источник правды (дублировалась в
     // Di2FieldApp.loadSettings и properties.xml). Ссылка делится только для чтения:
