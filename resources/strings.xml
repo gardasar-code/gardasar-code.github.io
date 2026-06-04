@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Базовые строки (английский) — fallback для всех языков. -->
 <strings>
-    <string id="AppName">Di2 Field</string>
+    <string id="AppName">Di2 Field Beta</string>
     <string id="LabelDi2">Di2</string>
     <string id="LabelNoData">---</string>
     <string id="LabelFront">F:</string>

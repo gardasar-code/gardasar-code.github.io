@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Испанская локализация. -->
 <strings>
-    <string id="AppName">Campo Di2</string>
+    <string id="AppName">Campo Di2 Beta</string>
     <string id="LabelDi2">Di2</string>
     <string id="LabelNoData">---</string>
     <string id="LabelFront">Del:</string>

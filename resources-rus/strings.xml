@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Русская локализация. -->
 <strings>
-    <string id="AppName">Поле Di2</string>
+    <string id="AppName">Поле Di2 Beta</string>
     <string id="LabelDi2">Di2</string>
     <string id="LabelNoData">---</string>
     <string id="LabelFront">Пер:</string>
