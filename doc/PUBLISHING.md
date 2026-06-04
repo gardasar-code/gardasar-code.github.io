@@ -5,17 +5,23 @@
 ## App ID и ветки
 
 Beta и публичная версии — РАЗНЫЕ app id (требование Garmin). Различие вынесено в ветки.
-Расхождение между ветками — ровно одна строка `<iq:application>` в `manifest.xml`:
-атрибуты `id` И `launcherIcon` (бета-иконка с оранжевым уголком vs обычная).
 
-| Ветка | App ID | launcherIcon | Назначение |
-|---|---|---|---|
-| **main** | `a46118db030d4d489268501a3e80547d` | `@Drawables.LauncherIconBeta` | beta — разработка, «Upload New Version» в beta-приложение |
-| **prod** | `a7fea1a873694f3ba5c27c4312b4062a` | `@Drawables.LauncherIcon` | публичный релиз — загрузка БЕЗ галочки Beta |
+| Ветка | App ID | launcherIcon | AppName | Назначение |
+|---|---|---|---|---|
+| **main** | `a46118db030d4d489268501a3e80547d` | `@Drawables.LauncherIconBeta` | `… Beta` (суффикс во всех локалях) | beta — разработка, «Upload New Version» в beta-приложение |
+| **prod** | `a7fea1a873694f3ba5c27c4312b4062a` | `@Drawables.LauncherIcon` | без суффикса | публичный релиз — загрузка БЕЗ галочки Beta |
+
+Расхождения beta↔prod (что правится при мердже main→prod):
+
+1. `manifest.xml`, строка `<iq:application>`: атрибуты `id` И `launcherIcon`
+   (бета-иконка с оранжевым уголком vs обычная) — даёт git-конфликт, оставить prod-значения.
+2. **`AppName` в strings.xml** (6 локалей: `resources*/strings.xml`): на main суффикс
+   ` Beta` (`Di2 Field Beta`, `Поле Di2 Beta`, …), в prod — без него.
+   ⚠️ КОНФЛИКТА git НЕ будет (строки одинаковы в обеих ветках) → **легко забыть**.
+   Перед сборкой prod вручную убрать ` Beta`/` Beta` из `AppName` во всех 6 файлах.
 
 Оба drawable (`LauncherIcon`, `LauncherIconBeta`) есть на обеих ветках — отличается
-только ссылка в manifest. При мердже main→prod конфликт будет в той же строке
-`<iq:application>` → оставить prod-значения (prod-id + `@Drawables.LauncherIcon`).
+только ссылка в manifest.
 
 ### Сборка .iq
 ```bash
@@ -28,7 +34,9 @@ Beta и публичная версии — РАЗНЫЕ app id (требова�
 git checkout prod
 git merge main             # конфликт в строке <iq:application>: оставить prod-id
                            # (a7fea1a8...) И launcherIcon=@Drawables.LauncherIcon
-./build.sh store           # -> bin/Di2App.iq с публичным id и обычной иконкой
+# ВРУЧНУЮ: убрать суффикс " Beta" из AppName во всех 6 resources*/strings.xml
+# (git-конфликта тут НЕТ — строки одинаковы, легко пропустить)
+./build.sh store           # -> bin/Di2App.iq с публичным id, обычной иконкой и без "Beta"
 git checkout main
 ```
 
