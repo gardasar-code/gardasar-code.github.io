@@ -3,23 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>document.documentElement.classList.add('js')</script>
-<title>Di2 Field — Shimano Di2 gear & D-Fly battery on your Garmin Edge</title>
-<meta name="description" content="A free, unofficial Connect IQ data field that shows your Shimano Di2 rear gear, a live cassette graphic and D-Fly battery on your Garmin Edge — over Bluetooth, no adapters.">
+<script>
+  (function(){
+    try{
+      var t=localStorage.getItem('di2-theme');
+      if(t==='dark') document.documentElement.setAttribute('data-theme','dark');
+    }catch(e){}
+    document.documentElement.classList.add('js');
+  })();
+</script>
+<title>Di2 Field — Shimano Di2 gear & D-Fly battery on Garmin Edge Explore 2</title>
+<meta name="description" content="A free, unofficial Connect IQ data field that shows your Shimano Di2 rear gear, a live cassette graphic and D-Fly battery on the Garmin Edge Explore 2 — over Bluetooth, no adapters, no subscription.">
+<meta name="keywords" content="Shimano Di2, D-Fly, Garmin Edge Explore 2, Connect IQ, data field, gear display, cassette graphic, Di2 battery, EW-WU111, SC-M9051, cycling, bike computer">
+<meta name="author" content="Sergey Lapshin">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#080B11">
+<link rel="canonical" href="https://gardasar-code.github.io/Di2Field/">
 
-<!-- Open Graph -->
-<meta property="og:title" content="Di2 Field — your Di2 gear on the Edge screen">
-<meta property="og:description" content="Free, unofficial Connect IQ data field for Shimano Di2 + Garmin Edge. Cassette graphic, D-Fly battery, smart auto-reconnect, 6 languages.">
+<meta property="og:site_name" content="Di2 Field">
+<meta property="og:title" content="Di2 Field — Shimano Di2 gear & D-Fly battery on Garmin Edge Explore 2">
+<meta property="og:description" content="Free, unofficial Connect IQ data field for Shimano Di2 + Garmin Edge Explore 2. Live cassette graphic, D-Fly battery, smart auto-reconnect, 6 languages.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://gardasar-code.github.io/Di2Field/">
+<meta property="og:image" content="https://gardasar-code.github.io/Di2Field/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Di2 Field — Shimano Di2 system monitor for Garmin Edge Explore 2">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta property="og:locale:alternate" content="de_DE">
+<meta property="og:locale:alternate" content="ar_AR">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Di2 Field — Shimano Di2 gear & D-Fly battery on Garmin Edge Explore 2">
+<meta name="twitter:description" content="Free, unofficial Connect IQ data field for Shimano Di2 + Garmin Edge Explore 2. Live cassette graphic, D-Fly battery, auto-reconnect, 6 languages.">
+<meta name="twitter:image" content="https://gardasar-code.github.io/Di2Field/og-cover.png">
+<meta name="twitter:image:alt" content="Di2 Field — Shimano Di2 system monitor for Garmin Edge Explore 2">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Di2 Field",
+  "applicationCategory": "SportsApplication",
+  "operatingSystem": "Garmin Connect IQ (Edge Explore 2)",
+  "description": "Free, unofficial Connect IQ data field that shows your Shimano Di2 rear gear, a live cassette graphic and D-Fly battery on the Garmin Edge Explore 2 over Bluetooth, and records a full ride summary to the FIT activity.",
+  "url": "https://gardasar-code.github.io/Di2Field/",
+  "image": "https://gardasar-code.github.io/Di2Field/og-cover.png",
+  "inLanguage": ["en", "fr", "es", "ru", "de", "ar"],
+  "isAccessibleForFree": true,
+  "author": { "@type": "Person", "name": "Sergey Lapshin" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" }
+}
+</script>
 
 <link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Display: Archivo (technical, expandable weight). Mono: JetBrains Mono (instrument labels). -->
+
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
+
   :root{
+    --bg:#FFFFFF;
+    --bg-2:#F3F6F9;
+    --panel:#FFFFFF;
+    --ink:#10151B;
+    --muted:#5B6773;
+    --faint:#9AA6B2;
+    --line:rgba(16,21,27,.10);
+    --acc:#1486D8;
+    --lime:#9CE000;
+    --free:#3F8C00;
+    --glow:rgba(41,169,226,.30);
+
+    --blue:#2563EB; --yellow:#D69E00; --green:#1FA84A; --orange:#EA6A00; --navy:#1D4ED8;
+    --red:#DC2626;
+    --maxw:1200px;
+  }
+  [data-theme="dark"]{
     --bg:#080B11;
     --bg-2:#0C111A;
     --panel:#0F1620;
@@ -27,12 +94,12 @@
     --muted:#7B8A99;
     --faint:#3A4756;
     --line:rgba(255,255,255,.075);
-    --acc:#B8FF3C;          /* сигнальный лайм — главный акцент */
-    --acc-dim:#7FB52A;
-    /* функциональные цвета точки связи — те же, что в приложении */
+    --acc:#3DB2F2;
+    --lime:#B8FF3C;
+    --free:#B8FF3C;
+    --glow:rgba(61,178,242,.38);
     --blue:#3B82F6; --yellow:#EAB308; --green:#22C55E; --orange:#F97316; --navy:#2563EB;
     --red:#EF4444;
-    --maxw:1200px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
@@ -42,17 +109,18 @@
     font-size:17px; line-height:1.55; letter-spacing:-.01em;
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
+    transition:background .4s ease,color .4s ease;
   }
-  /* фоновая «приборная» сетка + виньетка */
+
   body::before{
     content:""; position:fixed; inset:0; z-index:-2;
     background:
-      radial-gradient(1100px 700px at 78% -10%, rgba(184,255,60,.10), transparent 60%),
+      radial-gradient(1100px 700px at 78% -10%, var(--glow), transparent 60%),
       radial-gradient(900px 600px at 0% 100%, rgba(37,99,235,.10), transparent 55%),
       var(--bg);
   }
   body::after{
-    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.5;
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.55;
     background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
     background-size:64px 64px;
     -webkit-mask-image:radial-gradient(circle at 50% 30%,#000,transparent 80%);
@@ -62,43 +130,66 @@
   a{color:inherit;text-decoration:none}
   .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
 
-  /* ---- header ---- */
   header{
     position:sticky;top:0;z-index:50;
     backdrop-filter:blur(12px);
-    background:linear-gradient(180deg,rgba(8,11,17,.92),rgba(8,11,17,.55));
+    background:color-mix(in srgb,var(--bg) 80%,transparent);
     border-bottom:1px solid var(--line);
   }
-  .nav{display:flex;align-items:center;gap:24px;height:64px}
-  .brand{display:flex;align-items:center;gap:11px;font-family:"JetBrains Mono";font-weight:700;letter-spacing:.04em}
-  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+  .nav{display:flex;align-items:center;gap:18px;height:64px}
+  .brand{display:flex;align-items:center;gap:11px;line-height:1;font-family:"JetBrains Mono";font-weight:700;letter-spacing:.04em}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);position:relative;top:-.05em}
   .brand b{font-size:15px}
   .nav .spacer{flex:1}
   .nav a.link{color:var(--muted);font-family:"JetBrains Mono";font-size:13px;letter-spacing:.02em;transition:color .2s}
   .nav a.link:hover{color:var(--ink)}
-  .btn{
-    display:inline-flex;align-items:center;gap:9px;
-    font-family:"JetBrains Mono";font-weight:700;font-size:13px;letter-spacing:.02em;
-    padding:11px 18px;border-radius:10px;border:1px solid transparent;transition:.2s;white-space:nowrap;
-  }
-  .btn-primary{background:var(--acc);color:#0a0e08;box-shadow:0 0 0 0 rgba(184,255,60,.4)}
-  .btn-primary:hover{box-shadow:0 8px 30px -6px rgba(184,255,60,.5);transform:translateY(-1px)}
-  .btn-ghost{border-color:var(--line);color:var(--ink)}
-  .btn-ghost:hover{border-color:var(--acc);color:var(--acc)}
-  @media(max-width:720px){.nav a.link{display:none}}
 
-  /* ---- hero ---- */
+  .badge{
+    display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+    font-family:"JetBrains Mono";font-weight:700;font-size:12px;letter-spacing:.02em;
+    padding:9px 14px;border-radius:100px;color:var(--free);
+    background:color-mix(in srgb,var(--lime) 16%,transparent);
+    border:1px solid color-mix(in srgb,var(--free) 35%,transparent);
+  }
+
+  .store-note{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:"JetBrains Mono";font-size:13.5px;letter-spacing:.01em;color:var(--ink);
+    padding:12px 17px;border-radius:12px;
+    background:color-mix(in srgb,var(--acc) 8%,transparent);
+    border:1px dashed color-mix(in srgb,var(--acc) 45%,transparent);
+  }
+  .store-note .si{color:var(--acc);font-size:16px;line-height:1}
+
+  .tool{
+    display:inline-flex;align-items:center;justify-content:center;
+    height:38px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--muted);
+    font-family:"JetBrains Mono";font-size:13px;cursor:pointer;transition:.2s;
+  }
+  .tool:hover{border-color:var(--acc);color:var(--acc)}
+  .theme-toggle{width:38px;font-size:16px}
+  .lang-wrap{position:relative}
+  .lang-sel{
+    appearance:none;-webkit-appearance:none;
+    padding:0 30px 0 12px;height:38px;
+  }
+  .lang-wrap::after{content:"▾";position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:10px;pointer-events:none}
+  [dir="rtl"] .lang-sel{padding:0 12px 0 30px}
+  [dir="rtl"] .lang-wrap::after{right:auto;left:11px}
+  @media(max-width:820px){.nav a.link{display:none}}
+  @media(max-width:520px){.brand b{font-size:13px}}
+
   .hero{padding:78px 0 60px;position:relative}
   .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center}
   @media(max-width:920px){.hero-grid{grid-template-columns:1fr;gap:44px}}
 
   .tagline{
     display:inline-flex;align-items:center;gap:9px;
-    font-family:"JetBrains Mono";font-size:12px;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--acc);border:1px solid rgba(184,255,60,.3);border-radius:100px;padding:7px 14px;margin-bottom:26px;
-    background:rgba(184,255,60,.05);
+    font-family:"JetBrains Mono";font-size:12px;line-height:1;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--acc);border:1px solid color-mix(in srgb,var(--acc) 40%,transparent);border-radius:100px;padding:8px 14px;margin-bottom:26px;
+    background:color-mix(in srgb,var(--acc) 8%,transparent);
   }
-  .tagline .pulse{width:7px;height:7px;border-radius:50%;background:var(--acc);animation:pulse 1.6s infinite}
+  .tagline .pulse{width:7px;height:7px;border-radius:50%;background:var(--acc);animation:pulse 1.6s infinite;position:relative;top:-.06em}
   @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
 
   h1{
@@ -106,54 +197,73 @@
     text-wrap:balance;
   }
   h1 em{font-style:normal;color:var(--acc);position:relative}
-  h1 em::after{content:"";position:absolute;left:0;right:0;bottom:.06em;height:.09em;background:var(--acc);opacity:.25}
-  .lede{color:var(--muted);font-size:clamp(17px,1.7vw,20px);margin:26px 0 34px;max-width:33ch}
+  h1 em::after{content:"";position:absolute;left:0;right:0;bottom:.06em;height:.09em;background:var(--acc);opacity:.4}
+  .lede{color:var(--muted);font-size:clamp(17px,1.7vw,20px);margin:26px 0 34px;max-width:34ch}
   .cta-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
   .free-pill{font-family:"JetBrains Mono";font-size:12px;color:var(--muted);letter-spacing:.04em}
-  .free-pill b{color:var(--acc)}
+  .free-pill b{color:var(--free)}
 
-  /* ---- device mock (живое поле) ---- */
-  .device{justify-self:center;width:100%;max-width:360px}
-  .edge{
-    background:linear-gradient(180deg,#f3f4f5,#e3e6e9);
-    border-radius:34px;padding:20px 16px 30px;
-    box-shadow:0 40px 80px -28px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.7);
-    position:relative;
+  .device{justify-self:center;width:100%;max-width:300px;position:relative}
+
+  .device::before{
+    content:"";position:absolute;inset:-14% -26%;z-index:-1;opacity:.5;
+    background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><g fill="none" stroke="%2329ABE2" stroke-width="2"><circle cx="100" cy="100" r="86"/><circle cx="100" cy="100" r="30"/></g><g fill="%2329ABE2"><circle cx="100" cy="14" r="6"/><circle cx="143" cy="26" r="6"/><circle cx="174" cy="57" r="6"/><circle cx="186" cy="100" r="6"/><circle cx="174" cy="143" r="6"/><circle cx="143" cy="174" r="6"/><circle cx="100" cy="186" r="6"/><circle cx="57" cy="174" r="6"/><circle cx="26" cy="143" r="6"/><circle cx="14" cy="100" r="6"/><circle cx="26" cy="57" r="6"/><circle cx="57" cy="26" r="6"/></g></svg>') center/contain no-repeat;
+    animation:spin 60s linear infinite;
   }
-  .edge::before{content:"";position:absolute;top:9px;left:50%;transform:translateX(-50%);width:46px;height:5px;border-radius:5px;background:#c5c9cd}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .frame{display:block;width:100%;height:auto;filter:drop-shadow(0 26px 40px rgba(11,15,20,.32))}
+
   .screen{
-    background:#000;border-radius:14px;aspect-ratio:5/8;margin-top:16px;
-    padding:16px 14px;display:flex;flex-direction:column;color:#fff;position:relative;overflow:hidden;
-    font-family:"JetBrains Mono";box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+    position:absolute;top:7.87%;left:14.17%;right:14.17%;bottom:25.46%;
+    display:flex;flex-direction:column;overflow:hidden;background:transparent;
+    direction:ltr;
   }
-  .scan{position:absolute;left:0;right:0;height:32%;top:-32%;
-    background:linear-gradient(180deg,transparent,rgba(184,255,60,.06),transparent);
+
+  .field{
+    background:#fff;flex:1;margin:6% 0;
+    display:flex;flex-direction:column;padding:11px 10px 9px;
+    color:#10151B;font-family:"JetBrains Mono";
+  }
+  .scan{position:absolute;left:0;right:0;height:30%;top:-30%;
+    background:linear-gradient(180deg,transparent,rgba(41,169,226,.16),transparent);
     animation:scan 5.5s linear infinite;pointer-events:none}
   @keyframes scan{to{top:120%}}
-  .s-top{display:flex;align-items:center;font-size:12px;letter-spacing:.02em}
-  .s-top .l{display:flex;align-items:center;gap:7px}
-  .s-top .cdot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green);transition:.3s}
-  .s-top .mid{flex:1;text-align:center;color:#dfe3e6}
-  .s-top .bat{display:flex;align-items:center;gap:5px}
-  .baticon{width:22px;height:11px;border:1.5px solid #fff;border-radius:2px;position:relative;display:inline-block}
-  .baticon::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:#fff}
+  .s-top{display:flex;align-items:center;font-size:11px;letter-spacing:.02em}
+  .s-top .l{display:flex;align-items:center;gap:6px;font-weight:700;color:#767676}
+  .s-top .cdot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green);transition:.3s}
+  .s-top .mid{flex:1;text-align:center;font-weight:700;color:#767676}
+  .s-top .bat{display:flex;align-items:center;gap:5px;font-weight:700;color:#767676}
+  .baticon{width:20px;height:10px;border:1.5px solid #767676;border-radius:2px;position:relative;display:inline-block}
+  .baticon::after{content:"";position:absolute;right:-3px;top:2.5px;width:2px;height:4px;background:#767676}
   .batfill{position:absolute;left:1px;top:1px;bottom:1px;background:var(--green);border-radius:1px;transition:width .5s,background .5s}
-  .s-cassette{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:3px;padding:18px 6px 14px}
-  .s-cassette .bar{width:7px;background:#3a3a3a;border-radius:1px;transition:background .25s}
-  .s-cassette .bar.on{background:#fff}
-  .s-gear{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:700;font-size:46px;letter-spacing:-.02em;padding-bottom:6px}
-  .s-gear .sep{width:7px;height:7px;border-radius:50%;background:#555;display:inline-block;margin-bottom:6px}
-  .s-cap{font-family:"JetBrains Mono";text-align:center;color:var(--muted);font-size:11px;letter-spacing:.1em;margin-top:14px;text-transform:uppercase}
+  .s-cassette{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:3px;padding:14px 2px 10px}
+  .s-cassette .bar{width:6px;background:#d2d6da;border-radius:1px;transition:background .25s}
+  .s-cassette .bar.on{background:#10151B}
+  .s-gear{display:flex;align-items:center;justify-content:center;gap:9px;font-weight:700;font-size:42px;letter-spacing:-.02em;padding-bottom:2px;color:#10151B}
+  .s-gear .sep{width:6px;height:6px;border-radius:50%;background:#bdbdbd;display:inline-block;margin-bottom:6px}
+  .s-cap{text-align:center;color:#9AA6B2;font-size:9px;letter-spacing:.1em;margin-top:8px;text-transform:uppercase}
 
-  /* ---- spec strip ---- */
+  [data-theme="dark"] .field{background:#000;color:#fff}
+  [data-theme="dark"] .s-top .l,
+  [data-theme="dark"] .s-top .mid,
+  [data-theme="dark"] .s-top .bat{color:#e6e9ec}
+  [data-theme="dark"] .baticon{border-color:#cfd3d7}
+  [data-theme="dark"] .baticon::after{background:#cfd3d7}
+  [data-theme="dark"] .s-cassette .bar{background:#8b9097}
+  [data-theme="dark"] .s-cassette .bar.on{background:#fff}
+  [data-theme="dark"] .s-gear{color:#fff}
+  [data-theme="dark"] .s-gear .sep{background:#6b7178}
+  [data-theme="dark"] .s-cap{color:#6b7178}
+
   .strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-2);overflow:hidden}
-  .strip-track{display:flex;gap:54px;white-space:nowrap;font-family:"JetBrains Mono";font-size:13px;letter-spacing:.08em;color:var(--muted);padding:16px 0;animation:marq 28s linear infinite;width:max-content}
-  .strip-track span{display:inline-flex;gap:54px}
+  .strip-track{display:flex;white-space:nowrap;font-family:"JetBrains Mono";font-size:13px;letter-spacing:.08em;color:var(--muted);padding:16px 0;animation:marq 28s linear infinite;width:max-content}
+  .strip-track .seg{display:inline-flex;padding-right:54px}
   .strip b{color:var(--ink)}
-  .strip i{color:var(--acc);font-style:normal}
+  .strip i{color:var(--acc);font-style:normal;padding:0 14px}
   @keyframes marq{to{transform:translateX(-50%)}}
+  [dir="rtl"] .strip-track{animation-direction:reverse}
 
-  /* ---- sections ---- */
   section{padding:96px 0;position:relative}
   .eyebrow{font-family:"JetBrains Mono";font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);margin-bottom:16px}
   h2{font-weight:800;font-size:clamp(30px,4vw,46px);line-height:1.02;letter-spacing:-.03em;max-width:18ch}
@@ -168,13 +278,13 @@
     border:1px solid var(--line);border-radius:16px;padding:26px;position:relative;overflow:hidden;
     transition:.25s;
   }
-  .card:hover{border-color:rgba(184,255,60,.4);transform:translateY(-3px)}
-  .card .ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--line);margin-bottom:18px;color:var(--acc)}
+  .card:hover{border-color:color-mix(in srgb,var(--acc) 45%,transparent);transform:translateY(-3px);box-shadow:0 18px 40px -24px var(--glow)}
+  .card .ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--line);margin-bottom:18px;color:var(--acc);font-size:19px}
   .card h3{font-size:19px;font-weight:700;letter-spacing:-.01em;margin-bottom:8px}
   .card p{color:var(--muted);font-size:15px;line-height:1.5}
   .card .tag{position:absolute;top:18px;right:18px;font-family:"JetBrains Mono";font-size:10px;letter-spacing:.1em;color:var(--faint)}
+  [dir="rtl"] .card .tag{right:auto;left:18px}
 
-  /* ---- dots / connection ---- */
   .conn{background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
   .dots{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:14px}
   @media(max-width:760px){.dots{grid-template-columns:1fr 1fr}}
@@ -190,22 +300,45 @@
   .step h4{font-size:18px;margin:10px 0 6px;font-weight:700}
   .step p{color:var(--muted);font-size:15px}
 
-  /* ---- compat ---- */
   .compat-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:start}
   @media(max-width:840px){.compat-grid{grid-template-columns:1fr}}
-  .speclist{border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .speclist{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel)}
   .speclist .row{display:flex;justify-content:space-between;gap:16px;padding:16px 22px;border-bottom:1px solid var(--line);font-size:15px}
   .speclist .row:last-child{border-bottom:0}
   .speclist .row span{color:var(--muted);font-family:"JetBrains Mono";font-size:13px}
   .speclist .row b{font-weight:600;text-align:right}
+  [dir="rtl"] .speclist .row b{text-align:left}
   .langs{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
-  .langs .lg{font-family:"JetBrains Mono";font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:7px 11px}
+  .langs .lg{font-family:"JetBrains Mono";font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:7px 11px;cursor:pointer;transition:.2s}
+  .langs .lg:hover{border-color:var(--acc);color:var(--acc)}
 
-  /* ---- CTA band ---- */
+  .rec-group{
+    display:flex;align-items:center;gap:14px;margin:0 0 22px;
+    font-family:"JetBrains Mono";font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  }
+  .rec-group::after{content:"";flex:1;height:1px;background:var(--line)}
+  .rec-graphs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:46px}
+  @media(max-width:820px){.rec-graphs{grid-template-columns:1fr 1fr}}
+  @media(max-width:520px){.rec-graphs{grid-template-columns:1fr}}
+  .gchip{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px 18px 18px;min-height:96px}
+  .gchip .gh{display:flex;align-items:center;gap:9px;position:relative;z-index:1}
+  .gchip .d{width:11px;height:11px;border-radius:50%;flex:none;background:currentColor}
+  .gchip b{font-size:15px;font-weight:700;color:var(--ink)}
+  .gchip small{display:block;margin-top:3px;color:var(--muted);font-family:"JetBrains Mono";font-size:11px;letter-spacing:.06em;position:relative;z-index:1}
+  .gchip svg{position:absolute;left:0;right:0;bottom:0;width:100%;height:40px;opacity:.45}
+  [dir="rtl"] .gchip svg{transform:scaleX(-1)}
+  .rec-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:820px){.rec-summary{grid-template-columns:1fr 1fr}}
+  @media(max-width:420px){.rec-summary{grid-template-columns:1fr}}
+  .schip{border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:15px 16px}
+  .schip .v{font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1;color:var(--ink)}
+  .schip .v span{font-family:"JetBrains Mono";font-weight:500;font-size:12px;color:var(--muted);letter-spacing:.02em}
+  .schip .k{margin-top:7px;color:var(--muted);font-family:"JetBrains Mono";font-size:11.5px;letter-spacing:.02em}
+
   .band{
-    border:1px solid rgba(184,255,60,.35);border-radius:24px;
+    border:1px solid color-mix(in srgb,var(--acc) 38%,transparent);border-radius:24px;
     background:
-      radial-gradient(700px 300px at 80% 0%,rgba(184,255,60,.14),transparent 60%),
+      radial-gradient(700px 300px at 80% 0%,var(--glow),transparent 60%),
       linear-gradient(180deg,var(--panel),var(--bg-2));
     padding:56px 44px;text-align:center;position:relative;overflow:hidden;
   }
@@ -214,16 +347,18 @@
 
   footer{border-top:1px solid var(--line);padding:46px 0 60px;color:var(--muted)}
   .foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:flex-start}
-  .foot a{color:var(--muted);font-family:"JetBrains Mono";font-size:13px;display:block;margin:7px 0;transition:.2s}
-  .foot a:hover{color:var(--acc)}
-  .foot .disc{max-width:42ch;font-size:13px;line-height:1.6}
+  .foot .disc{max-width:46ch;font-size:13px;line-height:1.6}
   .foot h5{font-family:"JetBrains Mono";font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+  .foot .made .author{color:var(--ink);font-weight:600}
+  .foot .made .mono{font-size:12px;color:var(--faint);display:block;margin-top:7px}
 
-  /* reveal — прогрессивное улучшение: прячем только если есть JS (html.js).
-     Без JS весь контент виден сразу (важно для доступности/SEO/скриншотов). */
   html.js .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
   html.js .reveal.in{opacity:1;transform:none}
-  @media(prefers-reduced-motion:reduce){html.js .reveal{opacity:1;transform:none;transition:none}}
+  @media(prefers-reduced-motion:reduce){
+    html.js .reveal{opacity:1;transform:none;transition:none}
+    .device::before,.strip-track,.tagline .pulse{animation:none}
+    .scan{display:none}
+  }
 </style>
 </head>
 <body>
@@ -232,34 +367,44 @@
   <div class="wrap nav">
     <a class="brand" href="#top"><span class="dot"></span><b>DI2·FIELD</b></a>
     <div class="spacer"></div>
-    <a class="link" href="#features">Features</a>
-    <a class="link" href="#connect">Connection</a>
-    <a class="link" href="#compat">Compatibility</a>
-    <a class="btn btn-primary" href="STORE_URL" data-todo>Get it →</a>
+    <a class="link" href="#features" data-i18n="nav.features">Features</a>
+    <a class="link" href="#connect" data-i18n="nav.connection">Connection</a>
+    <a class="link" href="#data" data-i18n="nav.data">Data</a>
+    <a class="link" href="#compat" data-i18n="nav.compat">Compatibility</a>
+    <button class="tool theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Toggle theme">☀</button>
+    <span class="lang-wrap">
+      <select class="tool lang-sel" id="langSel" aria-label="Language">
+        <option value="en">EN</option>
+        <option value="fr">FR</option>
+        <option value="es">ES</option>
+        <option value="ru">RU</option>
+        <option value="de">DE</option>
+        <option value="ar">AR</option>
+      </select>
+    </span>
+    <span class="badge" data-i18n="nav.get">Free · Connect IQ</span>
   </div>
 </header>
 
 <main id="top">
 
-  <!-- HERO -->
   <section class="hero">
     <div class="wrap hero-grid">
       <div class="hero-copy">
-        <span class="tagline reveal"><span class="pulse"></span> Connect IQ data field · Edge</span>
-        <h1 class="reveal">Your Di2 gear,<br>on the <em>Edge screen.</em></h1>
-        <p class="lede reveal">A free, unofficial data field that reads your Shimano Di2 over Bluetooth and shows the rear gear, a live cassette graphic and D-Fly battery — no ANT+, no adapters, no paywall.</p>
+        <span class="tagline reveal"><span class="pulse"></span> <span data-i18n="hero.badge">Connect IQ data field · Edge Explore 2</span></span>
+        <h1 class="reveal"><span data-i18n="hero.h1a">Your Di2 gear,</span><br><em data-i18n="hero.h1b">on the Edge Explore 2 screen</em></h1>
+        <p class="lede reveal" data-i18n="hero.lede">A free, unofficial data field that reads your Shimano Di2 over Bluetooth and shows the rear gear, a live cassette graphic and D-Fly battery — no ANT+, no adapters, no paywall.</p>
         <div class="cta-row reveal">
-          <a class="btn btn-primary" href="STORE_URL" data-todo>Get on Connect IQ →</a>
-          <a class="btn btn-ghost" href="REPO_URL" data-todo>View source</a>
-          <span class="free-pill">// <b>Free</b> &amp; open · no subscription</span>
+          <span class="store-note"><span class="si" aria-hidden="true">⌕</span> <span data-i18n="hero.cta">Search “Di2 Field” in the Connect IQ Store</span></span>
+          <span class="free-pill">// <b data-i18n="hero.freeb">Free</b> <span data-i18n="hero.free">&amp; open · no subscription</span></span>
         </div>
       </div>
 
-      <!-- живая реплика дата-поля -->
       <div class="device reveal">
-        <div class="edge">
-          <div class="screen">
-            <div class="scan"></div>
+        <img class="frame" src="edge-explore2.svg" alt="Garmin Edge Explore 2" width="240" height="432">
+        <div class="screen" dir="ltr">
+          <div class="scan"></div>
+          <div class="field">
             <div class="s-top">
               <div class="l">Di2 <span class="cdot" id="cdot"></span></div>
               <div class="mid">F:1/1</div>
@@ -274,109 +419,152 @@
     </div>
   </section>
 
-  <!-- SPEC STRIP -->
   <div class="strip">
     <div class="strip-track">
-      <span>
-        <b>Bluetooth LE</b> <i>///</i> D-Fly EW-WU111 / SC-M9051 <i>///</i> <b>Cassette graphic</b> <i>///</i> auto-reconnect <i>///</i> <b>FIT ride summary</b> <i>///</i> 6 languages <i>///</i> day / night <i>///</i> <b>no adapters</b> <i>///</i>
-      </span>
-      <span aria-hidden="true">
-        <b>Bluetooth LE</b> <i>///</i> D-Fly EW-WU111 / SC-M9051 <i>///</i> <b>Cassette graphic</b> <i>///</i> auto-reconnect <i>///</i> <b>FIT ride summary</b> <i>///</i> 6 languages <i>///</i> day / night <i>///</i> <b>no adapters</b> <i>///</i>
-      </span>
+      <span class="seg" data-i18n-html="strip"></span>
+      <span class="seg" aria-hidden="true" data-i18n-html="strip"></span>
     </div>
   </div>
 
-  <!-- FEATURES -->
   <section id="features">
     <div class="wrap">
       <div class="sec-head reveal">
-        <div class="eyebrow">What it shows</div>
-        <h2>Built to read at a glance, mid-ride.</h2>
-        <p>Everything sits in one data field — pick numbers, a graphic, or both. Nothing to tap, nothing to unlock.</p>
+        <div class="eyebrow" data-i18n="feat.eyebrow">What it shows</div>
+        <h2 data-i18n="feat.h2">Built to read at a glance, mid-ride</h2>
+        <p data-i18n="feat.sub">Everything sits in one data field — numbers, a graphic, or both. Nothing to tap, nothing to unlock.</p>
       </div>
       <div class="features">
         <div class="card reveal"><span class="tag">01</span>
-          <div class="ic">▤</div><h3>Live cassette graphic</h3>
-          <p>The rear cassette drawn as bars — biggest sprocket on the left, your current cog lit up. Read your position without parsing numbers.</p>
+          <div class="ic">▤</div><h3 data-i18n="feat.c1t">Live cassette graphic</h3>
+          <p data-i18n="feat.c1d">The rear cassette drawn as bars — biggest sprocket on the left, your current cog lit up. Read your position without parsing numbers.</p>
         </div>
         <div class="card reveal"><span class="tag">02</span>
-          <div class="ic">◉</div><h3>D-Fly battery</h3>
-          <p>Wireless-unit charge as a colour-coded icon, a percentage, or both — orange under 40%, red under 15%.</p>
+          <div class="ic">◉</div><h3 data-i18n="feat.c2t">D-Fly battery</h3>
+          <p data-i18n="feat.c2d">Wireless-unit charge as a colour-coded icon, a percentage, or both — orange under 40%, red under 15%.</p>
         </div>
         <div class="card reveal"><span class="tag">03</span>
-          <div class="ic">⟳</div><h3>Smart auto-reconnect</h3>
-          <p>Keeps its Bluetooth bond between rides and relinks on its own the moment the Di2 is awake. No re-pairing after a short break.</p>
+          <div class="ic">⟳</div><h3 data-i18n="feat.c3t">Smart auto-reconnect</h3>
+          <p data-i18n="feat.c3d">Keeps its Bluetooth bond between rides and relinks on its own the moment the Di2 is awake. No re-pairing after a short break.</p>
         </div>
         <div class="card reveal"><span class="tag">04</span>
-          <div class="ic">⚙</div><h3>Configurable drivetrain</h3>
-          <p>Set your chainrings (1–3) and cassette, enter the teeth of each cog — accurate gear ratios and a true cassette profile.</p>
+          <div class="ic">⚙</div><h3 data-i18n="feat.c4t">Configurable drivetrain</h3>
+          <p data-i18n="feat.c4d">Set your chainrings (1–3) and cassette, enter the teeth of each cog — accurate gear ratios and a true cassette profile.</p>
         </div>
         <div class="card reveal"><span class="tag">05</span>
-          <div class="ic">▦</div><h3>Records to your ride</h3>
-          <p>Per-second gears, teeth, ratio and battery to the FIT file, plus a summary: avg/max ratio, shift counts, most-used combo, top sprockets.</p>
+          <div class="ic">▦</div><h3 data-i18n="feat.c5t">Records to your ride</h3>
+          <p data-i18n="feat.c5d">Per-second gears, teeth, ratio and battery to the FIT file, plus a summary: avg/max ratio, shift counts, most-used combo, top sprockets.</p>
         </div>
         <div class="card reveal"><span class="tag">06</span>
-          <div class="ic">◐</div><h3>Day / night · 6 languages</h3>
-          <p>Adapts to the Edge colour theme. English, French, Spanish, Russian, German and Arabic out of the box.</p>
+          <div class="ic">◐</div><h3 data-i18n="feat.c6t">Day / night · 6 languages</h3>
+          <p data-i18n="feat.c6d">Adapts to the Edge Explore 2 colour theme. English, French, Spanish, Russian, German and Arabic out of the box.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CONNECTION -->
   <section id="connect" class="conn">
     <div class="wrap">
       <div class="sec-head reveal">
-        <div class="eyebrow">Connection</div>
-        <h2>A colour-coded dot tells you exactly what's happening.</h2>
+        <div class="eyebrow" data-i18n="conn.eyebrow">Connection</div>
+        <h2 data-i18n="conn.h2">A colour-coded dot tells you exactly what's happening</h2>
       </div>
       <div class="dots reveal">
-        <div class="dchip"><span class="d" style="background:var(--blue);box-shadow:0 0 10px var(--blue)"></span><div class="t"><b>Searching</b><small>scanning</small></div></div>
-        <div class="dchip"><span class="d" style="background:var(--yellow);box-shadow:0 0 10px var(--yellow)"></span><div class="t"><b>Connecting</b><small>linking up</small></div></div>
-        <div class="dchip"><span class="d" style="background:var(--green);box-shadow:0 0 10px var(--green)"></span><div class="t"><b>Connected</b><small>receiving</small></div></div>
-        <div class="dchip"><span class="d" style="background:var(--navy);box-shadow:0 0 10px var(--navy)"></span><div class="t"><b>Your Di2</b><small>locked on</small></div></div>
-        <div class="dchip"><span class="d" style="background:var(--orange);box-shadow:0 0 10px var(--orange)"></span><div class="t"><b>Retrying</b><small>link lost</small></div></div>
+        <div class="dchip"><span class="d" style="background:var(--blue);box-shadow:0 0 10px var(--blue)"></span><div class="t"><b data-i18n="conn.d1">Searching</b><small data-i18n="conn.d1s">scanning</small></div></div>
+        <div class="dchip"><span class="d" style="background:var(--yellow);box-shadow:0 0 10px var(--yellow)"></span><div class="t"><b data-i18n="conn.d2">Connecting</b><small data-i18n="conn.d2s">linking up</small></div></div>
+        <div class="dchip"><span class="d" style="background:var(--green);box-shadow:0 0 10px var(--green)"></span><div class="t"><b data-i18n="conn.d3">Connected</b><small data-i18n="conn.d3s">receiving</small></div></div>
+        <div class="dchip"><span class="d" style="background:var(--navy);box-shadow:0 0 10px var(--navy)"></span><div class="t"><b data-i18n="conn.d4">Your Di2</b><small data-i18n="conn.d4s">locked on</small></div></div>
+        <div class="dchip"><span class="d" style="background:var(--orange);box-shadow:0 0 10px var(--orange)"></span><div class="t"><b data-i18n="conn.d5">Retrying</b><small data-i18n="conn.d5s">link lost</small></div></div>
       </div>
 
       <div class="steps">
-        <div class="step reveal"><div class="n">STEP 01</div><h4>Add the field</h4><p>Drop Di2 Field onto a data screen on your Edge. There's no button — it's a data field.</p></div>
-        <div class="step reveal"><div class="n">STEP 02</div><h4>Wake the Di2</h4><p>Tap a shifter to wake the system. The field finds the nearest Di2 and connects on its own.</p></div>
-        <div class="step reveal"><div class="n">STEP 03</div><h4>Ride</h4><p>It sticks to your unit and reconnects automatically every ride. Switch bikes with one "Forget" toggle.</p></div>
+        <div class="step reveal"><div class="n"><span data-i18n="conn.step">STEP</span> 01</div><h4 data-i18n="conn.s1t">Add the field</h4><p data-i18n="conn.s1d">Drop Di2 Field onto a data screen on your Edge Explore 2. There's no button — it's a data field.</p></div>
+        <div class="step reveal"><div class="n"><span data-i18n="conn.step">STEP</span> 02</div><h4 data-i18n="conn.s2t">Wake the Di2</h4><p data-i18n="conn.s2d">Tap a shifter to wake the system. The field finds the nearest Di2 and connects on its own.</p></div>
+        <div class="step reveal"><div class="n"><span data-i18n="conn.step">STEP</span> 03</div><h4 data-i18n="conn.s3t">Ride</h4><p data-i18n="conn.s3d">It sticks to your unit and reconnects automatically every ride. Switch bikes with one "Forget" toggle.</p></div>
       </div>
     </div>
   </section>
 
-  <!-- COMPAT -->
+  <section id="data">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="eyebrow" data-i18n="rec.eyebrow">Recorded data</div>
+        <h2 data-i18n="rec.h2">Every shift, written to your ride</h2>
+        <p data-i18n="rec.sub">While you ride, Di2 Field logs the whole drivetrain to the FIT activity — so Garmin Connect and any analysis tool can chart it afterwards. Field names match the app, in your language.</p>
+      </div>
+
+      <div class="rec-group reveal"><span data-i18n="rec.graphs">Per-second graphs · 6 fields</span></div>
+      <div class="rec-graphs reveal">
+        <div class="gchip" style="color:var(--blue)">
+          <div class="gh"><span class="d"></span><b data-i18n="f.rearGear">Rear Gear</b></div><small>gear</small>
+          <svg viewBox="0 0 100 42" preserveAspectRatio="none" fill="currentColor"><path d="M0,40 C18,38 26,24 40,18 C54,12 64,26 78,28 C88,29 94,33 100,33 L100,42 L0,42 Z"/></svg>
+        </div>
+        <div class="gchip" style="color:var(--red)">
+          <div class="gh"><span class="d"></span><b data-i18n="f.frontGear">Front Gear</b></div><small>gear</small>
+          <svg viewBox="0 0 100 42" preserveAspectRatio="none" fill="currentColor"><path d="M0,16 L100,16 L100,42 L0,42 Z"/></svg>
+        </div>
+        <div class="gchip" style="color:#22B8CF">
+          <div class="gh"><span class="d"></span><b data-i18n="f.rearTeeth">Rear Teeth</b></div><small>T</small>
+          <svg viewBox="0 0 100 42" preserveAspectRatio="none" fill="currentColor"><path d="M0,40 C18,38 26,24 40,18 C54,12 64,26 78,28 C88,29 94,33 100,33 L100,42 L0,42 Z"/></svg>
+        </div>
+        <div class="gchip" style="color:var(--orange)">
+          <div class="gh"><span class="d"></span><b data-i18n="f.frontTeeth">Front Teeth</b></div><small>T</small>
+          <svg viewBox="0 0 100 42" preserveAspectRatio="none" fill="currentColor"><path d="M0,22 L100,22 L100,42 L0,42 Z"/></svg>
+        </div>
+        <div class="gchip" style="color:var(--yellow)">
+          <div class="gh"><span class="d"></span><b data-i18n="f.ratio">Gears Ratio</b></div><small>:1</small>
+          <svg viewBox="0 0 100 42" preserveAspectRatio="none" fill="currentColor"><path d="M0,20 C16,22 24,33 40,34 C56,35 64,28 78,24 C88,21 94,19 100,18 L100,42 L0,42 Z"/></svg>
+        </div>
+        <div class="gchip" style="color:var(--green)">
+          <div class="gh"><span class="d"></span><b data-i18n="f.battery">Di2 Battery</b></div><small>%</small>
+          <svg viewBox="0 0 100 42" preserveAspectRatio="none" fill="currentColor"><path d="M0,10 L100,12 L100,42 L0,42 Z"/></svg>
+        </div>
+      </div>
+
+      <div class="rec-group reveal"><span data-i18n="rec.summary">End-of-ride summary · 11 values</span></div>
+      <div class="rec-summary reveal">
+        <div class="schip"><div class="v">12 <span>gear</span></div><div class="k" data-i18n="f.maxRear">Max Rear Gear</div></div>
+        <div class="schip"><div class="v">3.2 <span>:1</span></div><div class="k" data-i18n="f.maxRatio">Max Ratio</div></div>
+        <div class="schip"><div class="v">80 <span>%</span></div><div class="k" data-i18n="f.minBat">Min Di2 Battery</div></div>
+        <div class="schip"><div class="v">2.10 <span>:1</span></div><div class="k" data-i18n="f.avgRatio">Avg Ratio</div></div>
+        <div class="schip"><div class="v">0 <span>shifts</span></div><div class="k" data-i18n="f.frontShifts">Front Shifts</div></div>
+        <div class="schip"><div class="v">23 <span>shifts</span></div><div class="k" data-i18n="f.rearShifts">Rear Shifts</div></div>
+        <div class="schip"><div class="v">32/10 <span>T</span></div><div class="k" data-i18n="f.mostCombo">Most Used Combo</div></div>
+        <div class="schip"><div class="v">33.3 <span>%</span></div><div class="k" data-i18n="f.comboTime">Most Combo Time</div></div>
+        <div class="schip"><div class="v">16 <span>T</span></div><div class="k" data-i18n="f.top1">Rear Most Used #1</div></div>
+        <div class="schip"><div class="v">18 <span>T</span></div><div class="k" data-i18n="f.top2">Rear Most Used #2</div></div>
+        <div class="schip"><div class="v">14 <span>T</span></div><div class="k" data-i18n="f.top3">Rear Most Used #3</div></div>
+      </div>
+    </div>
+  </section>
+
   <section id="compat">
     <div class="wrap compat-grid">
       <div class="reveal">
-        <div class="eyebrow">Compatibility</div>
-        <h2>What you need.</h2>
-        <p style="color:var(--muted);margin:16px 0 0">Connects to a Shimano D-Fly wireless module advertising over Bluetooth LE — the native radio on your Edge, no ANT+ and no extra hardware.</p>
+        <div class="eyebrow" data-i18n="comp.eyebrow">Compatibility</div>
+        <h2 data-i18n="comp.h2">What you need</h2>
+        <p style="color:var(--muted);margin:16px 0 0" data-i18n="comp.sub">Connects to a Shimano D-Fly wireless module advertising over Bluetooth LE — the native radio on your Edge Explore 2, no ANT+ and no extra hardware.</p>
         <div class="langs">
-          <span class="lg">EN</span><span class="lg">FR</span><span class="lg">ES</span><span class="lg">RU</span><span class="lg">DE</span><span class="lg">AR</span>
+          <span class="lg" data-lang="en">EN</span><span class="lg" data-lang="fr">FR</span><span class="lg" data-lang="es">ES</span><span class="lg" data-lang="ru">RU</span><span class="lg" data-lang="de">DE</span><span class="lg" data-lang="ar">AR</span>
         </div>
       </div>
       <div class="speclist reveal">
-        <div class="row"><span>Device</span><b>Garmin Edge Explore 2</b></div>
-        <div class="row"><span>D-Fly module</span><b>EW-WU111 / SC-M9051</b></div>
-        <div class="row"><span>Link</span><b>Bluetooth Low Energy</b></div>
-        <div class="row"><span>Tested with</span><b>XT Di2 RD-M8250 · 12-sp</b></div>
-        <div class="row"><span>Price</span><b style="color:var(--acc)">Free</b></div>
+        <div class="row"><span data-i18n="comp.r1">Device</span><b>Garmin Edge Explore 2</b></div>
+        <div class="row"><span data-i18n="comp.r2">D-Fly module</span><b>EW-WU111 · SC-M9051</b></div>
+        <div class="row"><span data-i18n="comp.r3">Link</span><b>Bluetooth Low Energy</b></div>
+        <div class="row"><span data-i18n="comp.r4">Tested with</span><b>XT Di2 RD-M8250 · 12-sp</b></div>
+        <div class="row"><span data-i18n="comp.r5">Price</span><b style="color:var(--acc)" data-i18n="comp.free">Free</b></div>
       </div>
     </div>
   </section>
 
-  <!-- CTA -->
   <section style="padding-top:0">
     <div class="wrap">
       <div class="band reveal">
-        <div class="eyebrow" style="justify-content:center">Ready when you are</div>
-        <h2>Put your Di2 on the screen.</h2>
-        <p>Install from the Connect IQ Store, add it to a data field, and ride.</p>
+        <div class="eyebrow" data-i18n="cta.eyebrow">Ready when you are</div>
+        <h2 data-i18n="cta.h2">Put your Di2 on the screen</h2>
+        <p data-i18n="cta.p">Install from the Connect IQ Store, add it to a data field, and ride.</p>
         <div class="cta-row" style="justify-content:center">
-          <a class="btn btn-primary" href="STORE_URL" data-todo>Get on Connect IQ →</a>
-          <a class="btn btn-ghost" href="REPO_URL" data-todo>Source on GitHub</a>
+          <span class="store-note"><span class="si" aria-hidden="true">⌕</span> <span data-i18n="cta.btn">Search “Di2 Field” in the Connect IQ Store</span></span>
         </div>
       </div>
     </div>
@@ -387,39 +575,262 @@
   <div class="wrap foot">
     <div>
       <a class="brand" href="#top" style="margin-bottom:14px"><span class="dot"></span><b>DI2·FIELD</b></a>
-      <p class="disc">Independent, unofficial app. Not affiliated with or endorsed by Shimano or Garmin. Di2, D-Fly and Edge are trademarks of their respective owners.</p>
+      <p class="disc" data-i18n="foot.disc">Independent, unofficial app, not affiliated with Shimano Inc. or Garmin Ltd. All product names, brands and logos — including Shimano, Di2, D-Fly, Garmin and Edge — are trademarks or registered trademarks of their respective owners, used here for identification and compatibility purposes only.</p>
     </div>
-    <div>
-      <h5>Links</h5>
-      <a href="STORE_URL" data-todo>Connect IQ Store</a>
-      <a href="REPO_URL" data-todo>Source code</a>
-      <a href="REPO_URL/blob/main/CHANGELOG.md" data-todo>Changelog</a>
-    </div>
-    <div>
-      <h5>Made by</h5>
-      <a href="#">Sergey Lapshin</a>
-      <span class="mono" style="font-size:12px;color:var(--faint)">© 2026 · MIT-ish, free to use</span>
+    <div class="made">
+      <h5 data-i18n="foot.made">Made by</h5>
+      <span class="author">Sergey Lapshin</span>
+      <span class="mono" data-i18n="foot.freenote">© 2026 · Free to use</span>
     </div>
   </div>
 </footer>
 
 <script>
-  // ----- живое дата-поле: бегущая передача, кассета, точка связи, батарея -----
+  var I18N = {
+    en:{
+      "nav.features":"Features","nav.connection":"Connection","nav.compat":"Compatibility","nav.get":"Free · Connect IQ",
+      "hero.badge":"Connect IQ data field · Edge Explore 2","hero.h1a":"Your Di2 gear,","hero.h1b":"on the Edge Explore 2 screen",
+      "hero.lede":"A free, unofficial data field that reads your Shimano Di2 over Bluetooth and shows the rear gear, a live cassette graphic and D-Fly battery — no ANT+, no adapters, no paywall.",
+      "hero.cta":"Search “Di2 Field” in the Connect IQ Store","hero.freeb":"Free","hero.free":"· no subscription, no ads",
+      "strip":"<b>Bluetooth LE</b><i>///</i>D-Fly EW-WU111 / SC-M9051<i>///</i><b>cassette graphic</b><i>///</i>auto-reconnect<i>///</i><b>FIT ride summary</b><i>///</i>6 languages<i>///</i>day / night<i>///</i><b>no adapters</b>",
+      "feat.eyebrow":"What it shows","feat.h2":"Built to read at a glance, mid-ride.","feat.sub":"Everything sits in one data field — numbers, a graphic, or both. Nothing to tap, nothing to unlock.",
+      "feat.c1t":"Live cassette graphic","feat.c1d":"The rear cassette drawn as bars — biggest sprocket on the left, your current cog lit up. Read your position without parsing numbers.",
+      "feat.c2t":"D-Fly battery","feat.c2d":"Wireless-unit charge as a colour-coded icon, a percentage, or both — orange under 40%, red under 15%.",
+      "feat.c3t":"Smart auto-reconnect","feat.c3d":"Keeps its Bluetooth bond between rides and relinks on its own the moment the Di2 is awake. No re-pairing after a short break.",
+      "feat.c4t":"Configurable drivetrain","feat.c4d":"Set your chainrings (1–3) and cassette, enter the teeth of each cog — accurate gear ratios and a true cassette profile.",
+      "feat.c5t":"Records to your ride","feat.c5d":"Per-second gears, teeth, ratio and battery to the FIT file, plus a summary: avg/max ratio, shift counts, most-used combo, top sprockets.",
+      "feat.c6t":"Day / night · 6 languages","feat.c6d":"Adapts to the Edge Explore 2 colour theme. English, French, Spanish, Russian, German and Arabic out of the box.",
+      "conn.eyebrow":"Connection","conn.h2":"A colour-coded dot tells you exactly what's happening.",
+      "conn.d1":"Searching","conn.d1s":"scanning","conn.d2":"Connecting","conn.d2s":"linking up","conn.d3":"Connected","conn.d3s":"receiving","conn.d4":"Your Di2","conn.d4s":"locked on","conn.d5":"Retrying","conn.d5s":"link lost",
+      "conn.step":"STEP","conn.s1t":"Add the field","conn.s1d":"Drop Di2 Field onto a data screen on your Edge Explore 2. There's no button — it's a data field.",
+      "conn.s2t":"Wake the Di2","conn.s2d":"Tap a shifter to wake the system. The field finds the nearest Di2 and connects on its own.",
+      "conn.s3t":"Ride","conn.s3d":"It sticks to your unit and reconnects automatically every ride. Switch bikes with one “Forget” toggle.",
+      "comp.eyebrow":"Compatibility","comp.h2":"What you need.","comp.sub":"Connects to a Shimano D-Fly wireless module advertising over Bluetooth LE — the native radio on your Edge Explore 2, no ANT+ and no extra hardware.",
+      "comp.r1":"Device","comp.r2":"D-Fly module","comp.r3":"Link","comp.r4":"Tested with","comp.r5":"Price","comp.free":"Free",
+      "cta.eyebrow":"Ready when you are","cta.h2":"Put your Di2 on the screen.","cta.p":"Install from the Connect IQ Store, add it to a data field, and ride.","cta.btn":"Search “Di2 Field” in the Connect IQ Store",
+      "foot.disc":"Independent, unofficial app, not affiliated with Shimano Inc. or Garmin Ltd. All product names, brands and logos — including Shimano, Di2, D-Fly, Garmin and Edge — are trademarks or registered trademarks of their respective owners, used here for identification and compatibility purposes only.","foot.made":"Made by","foot.freenote":"© 2026 · Free to use",
+      "nav.data":"Data","rec.eyebrow":"Recorded data","rec.h2":"Every shift, written to your ride.","rec.sub":"While you ride, Di2 Field logs the whole drivetrain to the FIT activity — so Garmin Connect and any analysis tool can chart it afterwards. Field names match the app, in your language.","rec.graphs":"Per-second graphs · 6 fields","rec.summary":"End-of-ride summary · 11 values",
+      "f.rearGear":"Rear Gear","f.frontGear":"Front Gear","f.rearTeeth":"Rear Teeth","f.frontTeeth":"Front Teeth","f.ratio":"Gears Ratio","f.battery":"Di2 Battery","f.maxRear":"Max Rear Gear","f.maxRatio":"Max Ratio","f.minBat":"Min Di2 Battery","f.avgRatio":"Avg Ratio","f.frontShifts":"Front Shifts","f.rearShifts":"Rear Shifts","f.mostCombo":"Most Used Combo","f.comboTime":"Most Combo Time","f.top1":"Rear Most Used #1","f.top2":"Rear Most Used #2","f.top3":"Rear Most Used #3",
+      "seo.title":"Di2 Field — Shimano Di2 gear & D-Fly battery on Garmin Edge Explore 2","seo.desc":"Free, unofficial Connect IQ data field that shows your Shimano Di2 rear gear, a live cassette graphic and D-Fly battery on the Garmin Edge Explore 2 over Bluetooth.","seo.locale":"en_US"
+    },
+    fr:{
+      "nav.features":"Fonctions","nav.connection":"Connexion","nav.compat":"Compatibilité","nav.get":"Gratuit · Connect IQ",
+      "hero.badge":"Champ de données Connect IQ · Edge","hero.h1a":"Votre vitesse Di2,","hero.h1b":"sur l’écran Edge Explore 2",
+      "hero.lede":"Un champ de données gratuit et non officiel qui lit votre Shimano Di2 par Bluetooth et affiche le pignon arrière, une cassette graphique en direct et la batterie D-Fly — sans ANT+, sans adaptateur, sans abonnement.",
+      "hero.cta":"Cherchez « Di2 Field » dans la boutique Connect IQ","hero.freeb":"Gratuit","hero.free":"· sans abonnement, sans pub",
+      "strip":"<b>Bluetooth LE</b><i>///</i>D-Fly EW-WU111 / SC-M9051<i>///</i><b>cassette graphique</b><i>///</i>reconnexion auto<i>///</i><b>résumé FIT</b><i>///</i>6 langues<i>///</i>jour / nuit<i>///</i><b>sans adaptateur</b>",
+      "feat.eyebrow":"Ce qu’il affiche","feat.h2":"Lisible d’un coup d’œil, en plein effort.","feat.sub":"Tout tient dans un seul champ de données — chiffres, graphique, ou les deux. Rien à toucher, rien à déverrouiller.",
+      "feat.c1t":"Cassette graphique en direct","feat.c1d":"La cassette arrière dessinée en barres — le plus grand pignon à gauche, votre pignon actuel allumé. Repérez votre position sans lire les chiffres.",
+      "feat.c2t":"Batterie D-Fly","feat.c2d":"La charge du module sans fil en icône colorée, en pourcentage, ou les deux — orange sous 40 %, rouge sous 15 %.",
+      "feat.c3t":"Reconnexion automatique","feat.c3d":"Garde sa liaison Bluetooth entre les sorties et se reconnecte seul dès que le Di2 se réveille. Pas de nouvel appairage après une pause.",
+      "feat.c4t":"Transmission configurable","feat.c4d":"Réglez vos plateaux (1–3) et votre cassette, saisissez les dents de chaque pignon — rapports précis et profil de cassette fidèle.",
+      "feat.c5t":"Enregistré dans la sortie","feat.c5d":"Vitesses, dents, rapport et batterie chaque seconde dans le fichier FIT, plus un résumé : rapport moy./max, nombre de changements, combinaison favorite, pignons les plus utilisés.",
+      "feat.c6t":"Jour / nuit · 6 langues","feat.c6d":"S’adapte au thème de l’Edge Explore 2. Anglais, français, espagnol, russe, allemand et arabe d’origine.",
+      "conn.eyebrow":"Connexion","conn.h2":"Un point coloré vous dit exactement ce qui se passe.",
+      "conn.d1":"Recherche","conn.d1s":"balayage","conn.d2":"Connexion","conn.d2s":"liaison","conn.d3":"Connecté","conn.d3s":"réception","conn.d4":"Votre Di2","conn.d4s":"verrouillé","conn.d5":"Nouvel essai","conn.d5s":"liaison perdue",
+      "conn.step":"ÉTAPE","conn.s1t":"Ajoutez le champ","conn.s1d":"Placez Di2 Field sur un écran de données de votre Edge Explore 2. Pas de bouton — c’est un champ de données.",
+      "conn.s2t":"Réveillez le Di2","conn.s2d":"Actionnez une manette pour réveiller le système. Le champ trouve le Di2 le plus proche et se connecte seul.",
+      "conn.s3t":"Roulez","conn.s3d":"Il reste lié à votre unité et se reconnecte automatiquement à chaque sortie. Changez de vélo avec un seul bouton « Oublier ».",
+      "comp.eyebrow":"Compatibilité","comp.h2":"Ce qu’il vous faut.","comp.sub":"Se connecte à un module sans fil Shimano D-Fly diffusant en Bluetooth LE — la radio native de votre Edge Explore 2, sans ANT+ ni matériel supplémentaire.",
+      "comp.r1":"Appareil","comp.r2":"Module D-Fly","comp.r3":"Liaison","comp.r4":"Testé avec","comp.r5":"Prix","comp.free":"Gratuit",
+      "cta.eyebrow":"Quand vous voulez","cta.h2":"Mettez votre Di2 à l’écran.","cta.p":"Installez depuis la boutique Connect IQ, ajoutez-le à un champ de données, et roulez.","cta.btn":"Cherchez « Di2 Field » dans la boutique Connect IQ",
+      "foot.disc":"Application indépendante et non officielle, non affiliée à Shimano Inc. ou Garmin Ltd. Tous les noms de produits, marques et logos — dont Shimano, Di2, D-Fly, Garmin et Edge — sont des marques ou marques déposées de leurs propriétaires respectifs, utilisés ici à des fins d’identification et de compatibilité uniquement.","foot.made":"Créé par","foot.freenote":"© 2026 · Gratuit",
+      "nav.data":"Données","rec.eyebrow":"Enregistrement","rec.h2":"Chaque changement, écrit dans votre sortie.","rec.sub":"Pendant que vous roulez, Di2 Field enregistre toute la transmission dans l’activité FIT — Garmin Connect et tout outil d’analyse peuvent ensuite en tracer les courbes. Les noms des champs correspondent à l’application, dans votre langue.","rec.graphs":"Courbes à la seconde · 6 champs","rec.summary":"Résumé de fin de sortie · 11 valeurs",
+      "f.rearGear":"Pignon arrière","f.frontGear":"Plateau avant","f.rearTeeth":"Dents arrière","f.frontTeeth":"Dents avant","f.ratio":"Rapport","f.battery":"Batterie Di2","f.maxRear":"Pignon arr. max","f.maxRatio":"Rapport max","f.minBat":"Batterie Di2 min","f.avgRatio":"Rapport moyen","f.frontShifts":"Changements avant","f.rearShifts":"Changements arrière","f.mostCombo":"Combo le plus utilisé","f.comboTime":"Temps combo max","f.top1":"Pignon + utilisé #1","f.top2":"Pignon + utilisé #2","f.top3":"Pignon + utilisé #3",
+      "seo.title":"Di2 Field — vitesse Shimano Di2 et batterie D-Fly sur Garmin Edge Explore 2","seo.desc":"Champ de données Connect IQ gratuit et non officiel : pignon Shimano Di2, cassette graphique en direct et batterie D-Fly sur Garmin Edge Explore 2, via Bluetooth.","seo.locale":"fr_FR"
+    },
+    es:{
+      "nav.features":"Funciones","nav.connection":"Conexión","nav.compat":"Compatibilidad","nav.get":"Gratis · Connect IQ",
+      "hero.badge":"Campo de datos Connect IQ · Edge Explore 2","hero.h1a":"Tu marcha Di2,","hero.h1b":"en la pantalla del Edge Explore 2",
+      "hero.lede":"Un campo de datos gratuito y no oficial que lee tu Shimano Di2 por Bluetooth y muestra el piñón trasero, un gráfico de cassette en vivo y la batería D-Fly — sin ANT+, sin adaptadores, sin pago.",
+      "hero.cta":"Busca «Di2 Field» en la tienda Connect IQ","hero.freeb":"Gratis","hero.free":"· sin suscripción, sin anuncios",
+      "strip":"<b>Bluetooth LE</b><i>///</i>D-Fly EW-WU111 / SC-M9051<i>///</i><b>gráfico de cassette</b><i>///</i>reconexión automática<i>///</i><b>resumen FIT</b><i>///</i>6 idiomas<i>///</i>día / noche<i>///</i><b>sin adaptadores</b>",
+      "feat.eyebrow":"Qué muestra","feat.h2":"Pensado para leerse de un vistazo, en plena marcha.","feat.sub":"Todo cabe en un solo campo de datos — números, gráfico o ambos. Nada que tocar, nada que desbloquear.",
+      "feat.c1t":"Gráfico de cassette en vivo","feat.c1d":"El cassette trasero dibujado en barras — el piñón más grande a la izquierda, tu piñón actual encendido. Lee tu posición sin mirar números.",
+      "feat.c2t":"Batería D-Fly","feat.c2d":"La carga del módulo inalámbrico como icono con color, porcentaje o ambos — naranja bajo 40 %, rojo bajo 15 %.",
+      "feat.c3t":"Reconexión automática","feat.c3d":"Mantiene su vínculo Bluetooth entre salidas y se reconecta solo en cuanto el Di2 despierta. Sin volver a emparejar tras una pausa.",
+      "feat.c4t":"Transmisión configurable","feat.c4d":"Define tus platos (1–3) y tu cassette, introduce los dientes de cada piñón — relaciones precisas y un perfil de cassette real.",
+      "feat.c5t":"Se graba en tu salida","feat.c5d":"Marchas, dientes, relación y batería cada segundo en el archivo FIT, más un resumen: relación media/máx, número de cambios, combinación más usada, piñones top.",
+      "feat.c6t":"Día / noche · 6 idiomas","feat.c6d":"Se adapta al tema de color del Edge Explore 2. Inglés, francés, español, ruso, alemán y árabe de serie.",
+      "conn.eyebrow":"Conexión","conn.h2":"Un punto de color te dice exactamente qué está pasando.",
+      "conn.d1":"Buscando","conn.d1s":"escaneando","conn.d2":"Conectando","conn.d2s":"enlazando","conn.d3":"Conectado","conn.d3s":"recibiendo","conn.d4":"Tu Di2","conn.d4s":"fijado","conn.d5":"Reintentando","conn.d5s":"enlace perdido",
+      "conn.step":"PASO","conn.s1t":"Añade el campo","conn.s1d":"Coloca Di2 Field en una pantalla de datos de tu Edge Explore 2. No hay botón — es un campo de datos.",
+      "conn.s2t":"Despierta el Di2","conn.s2d":"Acciona una maneta para despertar el sistema. El campo encuentra el Di2 más cercano y se conecta solo.",
+      "conn.s3t":"Rueda","conn.s3d":"Se queda con tu unidad y se reconecta automáticamente cada salida. Cambia de bici con un solo botón «Olvidar».",
+      "comp.eyebrow":"Compatibilidad","comp.h2":"Lo que necesitas.","comp.sub":"Se conecta a un módulo inalámbrico Shimano D-Fly que emite por Bluetooth LE — la radio nativa de tu Edge Explore 2, sin ANT+ ni hardware extra.",
+      "comp.r1":"Dispositivo","comp.r2":"Módulo D-Fly","comp.r3":"Enlace","comp.r4":"Probado con","comp.r5":"Precio","comp.free":"Gratis",
+      "cta.eyebrow":"Cuando quieras","cta.h2":"Pon tu Di2 en la pantalla.","cta.p":"Instala desde la tienda Connect IQ, añádelo a un campo de datos y rueda.","cta.btn":"Busca «Di2 Field» en la tienda Connect IQ",
+      "foot.disc":"Aplicación independiente y no oficial, no afiliada a Shimano Inc. ni a Garmin Ltd. Todos los nombres de producto, marcas y logotipos — incluidos Shimano, Di2, D-Fly, Garmin y Edge — son marcas comerciales o registradas de sus respectivos propietarios, usados aquí solo con fines de identificación y compatibilidad.","foot.made":"Hecho por","foot.freenote":"© 2026 · Gratis",
+      "nav.data":"Datos","rec.eyebrow":"Registro de datos","rec.h2":"Cada cambio, escrito en tu salida.","rec.sub":"Mientras ruedas, Di2 Field registra toda la transmisión en la actividad FIT — Garmin Connect y cualquier herramienta de análisis pueden luego trazar sus gráficas. Los nombres de los campos coinciden con la app, en tu idioma.","rec.graphs":"Gráficas por segundo · 6 campos","rec.summary":"Resumen de fin de salida · 11 valores",
+      "f.rearGear":"Piñón trasero","f.frontGear":"Plato delantero","f.rearTeeth":"Dientes traseros","f.frontTeeth":"Dientes delant.","f.ratio":"Relación","f.battery":"Batería Di2","f.maxRear":"Piñón tras. máx","f.maxRatio":"Relación máx","f.minBat":"Batería Di2 mín","f.avgRatio":"Relación media","f.frontShifts":"Cambios delant.","f.rearShifts":"Cambios traseros","f.mostCombo":"Combo más usado","f.comboTime":"Tiempo combo más","f.top1":"Piñón más usado #1","f.top2":"Piñón más usado #2","f.top3":"Piñón más usado #3",
+      "seo.title":"Di2 Field — marcha Shimano Di2 y batería D-Fly en Garmin Edge Explore 2","seo.desc":"Campo de datos Connect IQ gratuito y no oficial: piñón Shimano Di2, cassette gráfico en vivo y batería D-Fly en Garmin Edge Explore 2 por Bluetooth.","seo.locale":"es_ES"
+    },
+    ru:{
+      "nav.features":"Возможности","nav.connection":"Связь","nav.compat":"Совместимость","nav.get":"Бесплатно · Connect IQ",
+      "hero.badge":"Поле данных Connect IQ · Edge Explore 2","hero.h1a":"Передача Di2","hero.h1b":"на экране Edge Explore 2",
+      "hero.lede":"Бесплатное неофициальное поле данных: читает ваш Shimano Di2 по Bluetooth и показывает заднюю передачу, живой график кассеты и заряд D-Fly — без ANT+, без адаптеров, без подписки.",
+      "hero.cta":"Найдите «Di2 Field» в магазине Connect IQ","hero.freeb":"Бесплатно","hero.free":"· без подписки и рекламы",
+      "strip":"<b>Bluetooth LE</b><i>///</i>D-Fly EW-WU111 / SC-M9051<i>///</i><b>график кассеты</b><i>///</i>автопереподключение<i>///</i><b>сводка FIT</b><i>///</i>6 языков<i>///</i>день / ночь<i>///</i><b>без адаптеров</b>",
+      "feat.eyebrow":"Что показывает","feat.h2":"Читается с одного взгляда — прямо в движении.","feat.sub":"Всё в одном поле данных — цифры, график или оба. Ничего не нажимать, ничего не разблокировать.",
+      "feat.c1t":"Живой график кассеты","feat.c1d":"Задняя кассета в виде столбиков — самая большая звезда слева, текущая подсвечена. Видно положение, не вчитываясь в цифры.",
+      "feat.c2t":"Батарея D-Fly","feat.c2d":"Заряд беспроводного модуля цветной иконкой, процентом или вместе — оранжевый ниже 40 %, красный ниже 15 %.",
+      "feat.c3t":"Умное автопереподключение","feat.c3d":"Сохраняет Bluetooth-привязку между заездами и сам восстанавливает связь, как только Di2 проснулся. Не нужно паринговать заново после паузы.",
+      "feat.c4t":"Настраиваемая трансмиссия","feat.c4d":"Задайте передние звёзды (1–3) и кассету, впишите зубья каждой звезды — точные передаточные и реальный профиль кассеты.",
+      "feat.c5t":"Пишется в ваш заезд","feat.c5d":"Передачи, зубья, передаточное и заряд каждую секунду в FIT-файл, плюс сводка: среднее/макс. передаточное, число переключений, частая комбинация, топ звёзд.",
+      "feat.c6t":"День / ночь · 6 языков","feat.c6d":"Подстраивается под цветовую тему Edge Explore 2. Английский, французский, испанский, русский, немецкий и арабский из коробки.",
+      "conn.eyebrow":"Связь","conn.h2":"Цветная точка точно говорит, что происходит.",
+      "conn.d1":"Поиск","conn.d1s":"сканирование","conn.d2":"Подключение","conn.d2s":"установка связи","conn.d3":"Подключено","conn.d3s":"приём","conn.d4":"Ваш Di2","conn.d4s":"привязан","conn.d5":"Повтор","conn.d5s":"связь потеряна",
+      "conn.step":"ШАГ","conn.s1t":"Добавьте поле","conn.s1d":"Поместите Di2 Field на экран данных вашего Edge Explore 2. Кнопки нет — это поле данных.",
+      "conn.s2t":"Разбудите Di2","conn.s2d":"Нажмите манетку, чтобы разбудить систему. Поле находит ближайший Di2 и подключается само.",
+      "conn.s3t":"Едьте","conn.s3d":"Поле держится за ваш модуль и переподключается само каждый заезд. Смена велосипеда — одним переключателем «Забыть».",
+      "comp.eyebrow":"Совместимость","comp.h2":"Что нужно.","comp.sub":"Подключается к беспроводному модулю Shimano D-Fly, вещающему по Bluetooth LE — это родная радиосвязь вашего Edge Explore 2, без ANT+ и лишнего железа.",
+      "comp.r1":"Устройство","comp.r2":"Модуль D-Fly","comp.r3":"Связь","comp.r4":"Проверено на","comp.r5":"Цена","comp.free":"Бесплатно",
+      "cta.eyebrow":"Когда будете готовы","cta.h2":"Выведите Di2 на экран.","cta.p":"Установите из магазина Connect IQ, добавьте в поле данных — и в путь.","cta.btn":"Найдите «Di2 Field» в магазине Connect IQ",
+      "foot.disc":"Независимое неофициальное приложение, не связанное с Shimano Inc. и Garmin Ltd. Все названия продуктов, бренды и логотипы — включая Shimano, Di2, D-Fly, Garmin и Edge — являются товарными знаками или зарегистрированными товарными знаками соответствующих владельцев и используются здесь исключительно для идентификации и указания совместимости.","foot.made":"Автор","foot.freenote":"© 2026 · Бесплатно",
+      "nav.data":"Данные","rec.eyebrow":"Запись в активность","rec.h2":"Каждое переключение — в ваш заезд.","rec.sub":"Во время поездки Di2 Field пишет всю трансмиссию в FIT-активность — Garmin Connect и любой анализатор потом строят по ней графики. Названия полей совпадают с приложением, на вашем языке.","rec.graphs":"Графики посекундно · 6 полей","rec.summary":"Сводка после заезда · 11 значений",
+      "f.rearGear":"Задняя передача","f.frontGear":"Передняя передача","f.rearTeeth":"Зубья задней","f.frontTeeth":"Зубья перед.","f.ratio":"Передаточное","f.battery":"Батарея Di2","f.maxRear":"Макс. задняя","f.maxRatio":"Макс. передат.","f.minBat":"Мин. заряд Di2","f.avgRatio":"Сред. передат.","f.frontShifts":"Перекл. передней","f.rearShifts":"Перекл. задней","f.mostCombo":"Частая комбинация","f.comboTime":"Время частой комб.","f.top1":"Частая задняя #1","f.top2":"Частая задняя #2","f.top3":"Частая задняя #3",
+      "seo.title":"Di2 Field — передачи Shimano Di2 и заряд D-Fly на Garmin Edge Explore 2","seo.desc":"Бесплатное неофициальное поле Connect IQ: задняя передача Shimano Di2, живой график кассеты и заряд D-Fly на Garmin Edge Explore 2 по Bluetooth.","seo.locale":"ru_RU"
+    },
+    de:{
+      "nav.features":"Funktionen","nav.connection":"Verbindung","nav.compat":"Kompatibilität","nav.get":"Kostenlos · Connect IQ",
+      "hero.badge":"Connect-IQ-Datenfeld · Edge Explore 2","hero.h1a":"Dein Di2-Gang,","hero.h1b":"auf dem Edge-Explore-2-Display",
+      "hero.lede":"Ein kostenloses, inoffizielles Datenfeld, das deine Shimano Di2 per Bluetooth ausliest und den hinteren Gang, eine Live-Kassettengrafik und den D-Fly-Akku zeigt — ohne ANT+, ohne Adapter, ohne Abo.",
+      "hero.cta":"Suche „Di2 Field“ im Connect IQ Store","hero.freeb":"Kostenlos","hero.free":"· kein Abo, keine Werbung",
+      "strip":"<b>Bluetooth LE</b><i>///</i>D-Fly EW-WU111 / SC-M9051<i>///</i><b>Kassettengrafik</b><i>///</i>Auto-Reconnect<i>///</i><b>FIT-Zusammenfassung</b><i>///</i>6 Sprachen<i>///</i>Tag / Nacht<i>///</i><b>ohne Adapter</b>",
+      "feat.eyebrow":"Was es zeigt","feat.h2":"Auf einen Blick lesbar — mitten in der Fahrt.","feat.sub":"Alles in einem Datenfeld — Zahlen, Grafik oder beides. Nichts antippen, nichts entsperren.",
+      "feat.c1t":"Live-Kassettengrafik","feat.c1d":"Die hintere Kassette als Balken — größtes Ritzel links, dein aktuelles Ritzel leuchtet. Position erkennen, ohne Zahlen zu lesen.",
+      "feat.c2t":"D-Fly-Akku","feat.c2d":"Ladezustand der Funkeinheit als farbiges Symbol, als Prozentwert oder beides — orange unter 40 %, rot unter 15 %.",
+      "feat.c3t":"Smarter Auto-Reconnect","feat.c3d":"Behält seine Bluetooth-Bindung zwischen den Fahrten und verbindet sich von selbst, sobald die Di2 wach ist. Kein erneutes Koppeln nach einer Pause.",
+      "feat.c4t":"Konfigurierbarer Antrieb","feat.c4d":"Stelle deine Kettenblätter (1–3) und die Kassette ein, trage die Zähne jedes Ritzels ein — exakte Übersetzungen und ein echtes Kassettenprofil.",
+      "feat.c5t":"Wird in der Fahrt aufgezeichnet","feat.c5d":"Gänge, Zähne, Übersetzung und Akku jede Sekunde in die FIT-Datei, dazu eine Zusammenfassung: Ø/max. Übersetzung, Schaltvorgänge, häufigste Kombination, Top-Ritzel.",
+      "feat.c6t":"Tag / Nacht · 6 Sprachen","feat.c6d":"Passt sich dem Farbschema des Edge Explore 2 an. Englisch, Französisch, Spanisch, Russisch, Deutsch und Arabisch ab Werk.",
+      "conn.eyebrow":"Verbindung","conn.h2":"Ein farbiger Punkt sagt dir genau, was gerade passiert.",
+      "conn.d1":"Suche","conn.d1s":"scannt","conn.d2":"Verbinde","conn.d2s":"koppelt","conn.d3":"Verbunden","conn.d3s":"empfängt","conn.d4":"Deine Di2","conn.d4s":"fixiert","conn.d5":"Neuer Versuch","conn.d5s":"Verbindung weg",
+      "conn.step":"SCHRITT","conn.s1t":"Feld hinzufügen","conn.s1d":"Lege Di2 Field auf eine Datenseite deines Edge Explore 2. Keine Taste — es ist ein Datenfeld.",
+      "conn.s2t":"Di2 wecken","conn.s2d":"Tippe einen Schalthebel an, um das System zu wecken. Das Feld findet die nächste Di2 und verbindet sich von selbst.",
+      "conn.s3t":"Fahren","conn.s3d":"Es bleibt an deiner Einheit und verbindet sich jede Fahrt automatisch neu. Radwechsel mit einem einzigen „Vergessen“-Schalter.",
+      "comp.eyebrow":"Kompatibilität","comp.h2":"Was du brauchst.","comp.sub":"Verbindet sich mit einem Shimano-D-Fly-Funkmodul, das per Bluetooth LE sendet — dem nativen Funk deines Edge Explore 2, ohne ANT+ und ohne Zusatzhardware.",
+      "comp.r1":"Gerät","comp.r2":"D-Fly-Modul","comp.r3":"Verbindung","comp.r4":"Getestet mit","comp.r5":"Preis","comp.free":"Kostenlos",
+      "cta.eyebrow":"Bereit, wenn du es bist","cta.h2":"Bring deine Di2 aufs Display.","cta.p":"Aus dem Connect IQ Store installieren, einem Datenfeld hinzufügen und losfahren.","cta.btn":"Suche „Di2 Field“ im Connect IQ Store",
+      "foot.disc":"Unabhängige, inoffizielle App, weder mit Shimano Inc. noch mit Garmin Ltd. verbunden. Alle Produktnamen, Marken und Logos — darunter Shimano, Di2, D-Fly, Garmin und Edge — sind Marken oder eingetragene Marken ihrer jeweiligen Eigentümer und werden hier nur zur Identifikation und zur Angabe der Kompatibilität verwendet.","foot.made":"Erstellt von","foot.freenote":"© 2026 · Kostenlos",
+      "nav.data":"Daten","rec.eyebrow":"Aufzeichnung","rec.h2":"Jede Schaltung, in deine Fahrt geschrieben.","rec.sub":"Während der Fahrt schreibt Di2 Field den gesamten Antrieb in die FIT-Aktivität — Garmin Connect und jedes Analyse-Tool können sie danach als Diagramm darstellen. Die Feldnamen entsprechen der App, in deiner Sprache.","rec.graphs":"Sekundengenaue Diagramme · 6 Felder","rec.summary":"Zusammenfassung nach der Fahrt · 11 Werte",
+      "f.rearGear":"Gang hinten","f.frontGear":"Gang vorne","f.rearTeeth":"Zähne hinten","f.frontTeeth":"Zähne vorne","f.ratio":"Übersetzung","f.battery":"Di2 Akku","f.maxRear":"Max. Gang hinten","f.maxRatio":"Max. Übersetzung","f.minBat":"Di2 Akku min","f.avgRatio":"Ø Übersetzung","f.frontShifts":"Schaltungen vorne","f.rearShifts":"Schaltungen hinten","f.mostCombo":"Häufigste Kombi","f.comboTime":"Zeit häufigste Kombi","f.top1":"Häufigstes Ritzel #1","f.top2":"Häufigstes Ritzel #2","f.top3":"Häufigstes Ritzel #3",
+      "seo.title":"Di2 Field — Shimano-Di2-Gang & D-Fly-Akku auf dem Garmin Edge Explore 2","seo.desc":"Kostenloses, inoffizielles Connect-IQ-Datenfeld: Shimano-Di2-Gang, Live-Kassettengrafik und D-Fly-Akku auf dem Garmin Edge Explore 2 per Bluetooth.","seo.locale":"de_DE"
+    },
+    ar:{
+      "nav.features":"المزايا","nav.connection":"الاتصال","nav.compat":"التوافق","nav.get":"مجاني · Connect IQ",
+      "hero.badge":"حقل بيانات Connect IQ · Edge Explore 2","hero.h1a":"تروسك Di2","hero.h1b":"على شاشة Edge Explore 2",
+      "hero.lede":"حقل بيانات مجاني وغير رسمي يقرأ نظام Shimano Di2 عبر البلوتوث ويعرض الترس الخلفي ورسمًا حيًّا للكاسيت وبطارية D-Fly — بدون ANT+ وبدون مهايئات وبدون اشتراك.",
+      "hero.cta":"ابحث عن «Di2 Field» في متجر Connect IQ","hero.freeb":"مجاني","hero.free":"· بلا اشتراك وبلا إعلانات",
+      "strip":"<b>Bluetooth LE</b><i>///</i>D-Fly EW-WU111 / SC-M9051<i>///</i><b>رسم الكاسيت</b><i>///</i>إعادة اتصال تلقائية<i>///</i><b>ملخص FIT</b><i>///</i>6 لغات<i>///</i>نهار / ليل<i>///</i><b>بدون مهايئات</b>",
+      "feat.eyebrow":"ماذا يعرض","feat.h2":"مصمم ليُقرأ بنظرة واحدة أثناء القيادة.","feat.sub":"كل شيء في حقل بيانات واحد — أرقام أو رسم أو الاثنان معًا. لا شيء تضغطه ولا شيء تفتحه.",
+      "feat.c1t":"رسم حي للكاسيت","feat.c1d":"الكاسيت الخلفي مرسومًا كأعمدة — أكبر ترس على اليسار والترس الحالي مضاء. اعرف موضعك دون قراءة الأرقام.",
+      "feat.c2t":"بطارية D-Fly","feat.c2d":"شحن الوحدة اللاسلكية كأيقونة ملوّنة أو نسبة مئوية أو الاثنين — برتقالي تحت 40٪ وأحمر تحت 15٪.",
+      "feat.c3t":"إعادة اتصال ذكية","feat.c3d":"يحتفظ بارتباط البلوتوث بين الجولات ويعيد الاتصال تلقائيًا بمجرد استيقاظ Di2. لا حاجة لإعادة الإقران بعد توقف قصير.",
+      "feat.c4t":"نظام نقل قابل للضبط","feat.c4d":"اضبط التروس الأمامية (1–3) والكاسيت، وأدخل أسنان كل ترس — نسب دقيقة وملف كاسيت حقيقي.",
+      "feat.c5t":"يُسجَّل في جولتك","feat.c5d":"التروس والأسنان والنسبة والبطارية كل ثانية في ملف FIT، مع ملخص: متوسط/أقصى نسبة، عدد التبديلات، التركيبة الأكثر استخدامًا، أبرز التروس.",
+      "feat.c6t":"نهار / ليل · 6 لغات","feat.c6d":"يتكيّف مع نسق ألوان Edge Explore 2. الإنجليزية والفرنسية والإسبانية والروسية والألمانية والعربية جاهزة.",
+      "conn.eyebrow":"الاتصال","conn.h2":"نقطة ملوّنة تخبرك تمامًا بما يحدث.",
+      "conn.d1":"بحث","conn.d1s":"مسح","conn.d2":"اتصال","conn.d2s":"ربط","conn.d3":"متصل","conn.d3s":"استقبال","conn.d4":"Di2 خاصتك","conn.d4s":"مثبّت","conn.d5":"إعادة محاولة","conn.d5s":"انقطع الاتصال",
+      "conn.step":"خطوة","conn.s1t":"أضف الحقل","conn.s1d":"ضع Di2 Field في شاشة بيانات على جهاز Edge Explore 2. لا يوجد زر — إنه حقل بيانات.",
+      "conn.s2t":"أيقظ Di2","conn.s2d":"اضغط ذراع التبديل لإيقاظ النظام. يجد الحقل أقرب Di2 ويتصل تلقائيًا.",
+      "conn.s3t":"انطلق","conn.s3d":"يبقى مرتبطًا بوحدتك ويعيد الاتصال تلقائيًا كل جولة. بدّل الدراجة بمفتاح «نسيان» واحد.",
+      "comp.eyebrow":"التوافق","comp.h2":"ما تحتاجه.","comp.sub":"يتصل بوحدة Shimano D-Fly اللاسلكية التي تبث عبر Bluetooth LE — راديو جهاز Edge Explore 2 الأصلي، بدون ANT+ وبدون عتاد إضافي.",
+      "comp.r1":"الجهاز","comp.r2":"وحدة D-Fly","comp.r3":"الاتصال","comp.r4":"اختُبر مع","comp.r5":"السعر","comp.free":"مجاني",
+      "cta.eyebrow":"جاهز متى شئت","cta.h2":"ضع Di2 على الشاشة.","cta.p":"ثبّته من متجر Connect IQ، أضِفه إلى حقل بيانات، وانطلق.","cta.btn":"ابحث عن «Di2 Field» في متجر Connect IQ",
+      "foot.disc":"تطبيق مستقل غير رسمي، غير تابع لشركة Shimano Inc. أو Garmin Ltd. جميع أسماء المنتجات والعلامات والشعارات — بما فيها Shimano و Di2 و D-Fly و Garmin و Edge — هي علامات تجارية أو علامات مسجّلة لأصحابها، وتُستخدم هنا لأغراض التعريف وبيان التوافق فقط.","foot.made":"من إعداد","foot.freenote":"© 2026 · مجاني",
+      "nav.data":"البيانات","rec.eyebrow":"تسجيل البيانات","rec.h2":"كل تبديلة تُكتب في رحلتك.","rec.sub":"أثناء القيادة يسجّل Di2 Field كامل نظام النقل في نشاط FIT — ويمكن لـ Garmin Connect وأي أداة تحليل رسمها بيانيًا لاحقًا. أسماء الحقول مطابقة للتطبيق وبلغتك.","rec.graphs":"رسوم لكل ثانية · 6 حقول","rec.summary":"ملخص نهاية الرحلة · 11 قيمة",
+      "f.rearGear":"السرعة الخلفية","f.frontGear":"السرعة الأمامية","f.rearTeeth":"أسنان خلفية","f.frontTeeth":"أسنان أمامية","f.ratio":"نسبة التروس","f.battery":"بطارية Di2","f.maxRear":"أقصى سرعة خلفية","f.maxRatio":"أقصى نسبة","f.minBat":"أدنى بطارية Di2","f.avgRatio":"متوسط النسبة","f.frontShifts":"تبديلات أمامية","f.rearShifts":"تبديلات خلفية","f.mostCombo":"أكثر تركيبة استخداماً","f.comboTime":"وقت أكثر تركيبة","f.top1":"الأكثر خلفي #1","f.top2":"الأكثر خلفي #2","f.top3":"الأكثر خلفي #3",
+      "seo.title":"Di2 Field — تروس Shimano Di2 وبطارية D-Fly على Garmin Edge Explore 2","seo.desc":"حقل بيانات Connect IQ مجاني غير رسمي: الترس الخلفي لـ Shimano Di2 ورسم حي للكاسيت وبطارية D-Fly على Garmin Edge Explore 2 عبر البلوتوث.","seo.locale":"ar_AR"
+    }
+  };
+
+  var RTL = {ar:true};
+  var SUPPORTED = ['en','fr','es','ru','de','ar'];
+
+  function applyLang(lang){
+    if(!I18N[lang]) lang='en';
+    var dict=I18N[lang];
+    document.documentElement.lang=lang;
+    document.documentElement.dir = RTL[lang] ? 'rtl' : 'ltr';
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var k=el.getAttribute('data-i18n');
+      var v=dict[k];
+      if(v!=null){
+        if(el.tagName==='H2' || k.indexOf('f.')===0){ v=v.replace(/[.。]$/,''); }
+        el.textContent=v;
+      }
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(function(el){
+      var v=dict[el.getAttribute('data-i18n-html')];
+      if(v!=null) el.innerHTML=v;
+    });
+    var sel=document.getElementById('langSel'); if(sel) sel.value=lang;
+    applySeo(dict);
+    try{localStorage.setItem('di2-lang',lang);}catch(e){}
+  }
+
+  function setMeta(selector, content){
+    if(content==null) return;
+    var m=document.head.querySelector(selector);
+    if(m) m.setAttribute('content', content);
+  }
+  function applySeo(dict){
+    var t=dict['seo.title'], d=dict['seo.desc'], loc=dict['seo.locale'];
+    if(t){ document.title=t; }
+    setMeta('meta[name="description"]', d);
+    setMeta('meta[property="og:title"]', t);
+    setMeta('meta[property="og:description"]', d);
+    setMeta('meta[property="og:locale"]', loc);
+    setMeta('meta[name="twitter:title"]', t);
+    setMeta('meta[name="twitter:description"]', d);
+  }
+
+  function detectLang(){
+    try{var s=localStorage.getItem('di2-lang'); if(s&&I18N[s]) return s;}catch(e){}
+    var navs=(navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||'en'];
+    for(var i=0;i<navs.length;i++){
+      var code=(navs[i]||'').slice(0,2).toLowerCase();
+      if(SUPPORTED.indexOf(code)>=0) return code;
+    }
+    return 'en';
+  }
+
+  function setTheme(mode){
+    if(mode==='dark'){document.documentElement.setAttribute('data-theme','dark');}
+    else{document.documentElement.removeAttribute('data-theme');}
+    try{localStorage.setItem('di2-theme',mode);}catch(e){}
+    var b=document.getElementById('themeToggle');
+    if(b){b.textContent = mode==='dark' ? '☾' : '☀';}
+  }
+
   (function(){
+    applyLang(detectLang());
+
+    var curTheme=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';
+    setTheme(curTheme);
+    document.getElementById('themeToggle').addEventListener('click',function(){
+      var now=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';
+      setTheme(now==='dark'?'light':'dark');
+    });
+
+    document.getElementById('langSel').addEventListener('change',function(){applyLang(this.value);});
+    document.querySelectorAll('.langs .lg').forEach(function(el){
+      el.addEventListener('click',function(){applyLang(el.getAttribute('data-lang'));});
+    });
+
     var N=12, teeth=[10,12,14,16,18,21,24,28,33,39,45,51];
     var cas=document.getElementById('cassette');
     var maxT=Math.max.apply(null,teeth), minT=Math.min.apply(null,teeth);
     var bars=[];
-    // строим столбики: большая звезда слева (i=N) -> малая справа (i=1)
     for(var k=N;k>=1;k--){
       var b=document.createElement('div'); b.className='bar';
       var frac=(teeth[k-1]-minT)/(maxT-minT);
-      b.style.height=(22+frac*58)+'px';
+      b.style.height=(20+frac*52)+'px';
       b.dataset.idx=k; cas.appendChild(b); bars.push(b);
     }
     var gcur=document.getElementById('gcur'), cdot=document.getElementById('cdot'),
-        batfill=document.getElementById('batfill'), batpct=document.getElementById('batpct'),
-        scap=document.getElementById('scap');
+        batfill=document.getElementById('batfill'), batpct=document.getElementById('batpct');
     var cur=5, dir=1, bat=90;
     function batColor(p){return p<15?'var(--red)':p<40?'var(--orange)':'var(--green)';}
     function render(){
@@ -429,15 +840,16 @@
       batpct.textContent=bat+'%';
     }
     render();
-    setInterval(function(){
-      cur+=dir; if(cur>=N){cur=N;dir=-1;} else if(cur<=1){cur=1;dir=1;}
-      if(Math.random()<0.12){ bat=Math.max(8, bat-1); }
-      render();
-    },900);
-    // лёгкая пульсация точки «connected»
-    setInterval(function(){ cdot.style.opacity = cdot.style.opacity==='0.45'?'1':'0.45'; },1100);
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!reduce){
+      setInterval(function(){
+        cur+=dir; if(cur>=N){cur=N;dir=-1;} else if(cur<=1){cur=1;dir=1;}
+        if(Math.random()<0.12){ bat=Math.max(8, bat-1); }
+        render();
+      },900);
+      setInterval(function(){ cdot.style.opacity = cdot.style.opacity==='0.45'?'1':'0.45'; },1100);
+    }
 
-    // ----- reveal on scroll -----
     var io=new IntersectionObserver(function(es){
       es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
     },{threshold:.12});
