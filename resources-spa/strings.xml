@@ -27,12 +27,12 @@
     <string id="SetRearCogs">Piñones traseros</string>
     <string id="SetRearTitle">Dientes traseros</string>
     <string id="SetRearPreset">Preajuste casete</string>
-    <string id="TeethPrompt">Separados por comas, un valor por marcha.</string>
-    <string id="PresetPrompt">Elige una configuración Shimano común. Anula el número y los dientes de arriba. Elige Personalizado para introducir los tuyos.</string>
+    <string id="TeethPrompt">Separados por comas, un valor por marcha. Solo se aplica si el preajuste de abajo es Personalizado.</string>
+    <string id="PresetPrompt">Elige una configuración Shimano común para ajustar con un toque. Un preajuste anula el número y los dientes de arriba. Elige Personalizado para introducirlos manualmente.</string>
     <string id="OptPresetCustom">Personalizado</string>
     <string id="SetForgetDevice">Olvidar el Di2 vinculado</string>
     <string id="ForgetPrompt">Actívalo y guarda para desvincular el Di2 actual y conectar el más cercano en el próximo escaneo. El interruptor se apaga solo.</string>
-    <string id="AboutText">Campo Di2 por Sergey Lapshin. Muestra tu marcha Shimano Di2, la relación y la batería D-Fly por Bluetooth, y registra un resumen completo de la ruta (relaciones, cambios, combinaciones) en la actividad. Ajusta tus platos, cassette y dientes abajo. Probado con Shimano XT Di2 RD-M8250-SGS (12 velocidades) en Garmin Edge Explore 2. App no oficial, sin afiliación con Shimano.</string>
+    <string id="AboutText">Campo Di2 por Sergey Lapshin. Muestra tu marcha Shimano Di2, la relación y la batería D-Fly por Bluetooth, y registra un resumen completo de la ruta (relaciones, cambios, combinaciones) en la actividad. Configuración: elige un preajuste de platos/cassette para configurar con un toque, o elige Personalizado e introduce platos, cassette y dientes manualmente. Un preajuste siempre anula los campos manuales. Probado con Shimano XT Di2 RD-M8250-SGS (12 velocidades) en Garmin Edge Explore 2. App no oficial, sin afiliación con Shimano.</string>
 
     <string id="FieldRearGear">Piñón trasero</string>
     <string id="FieldFrontGear">Plato delantero</string>
