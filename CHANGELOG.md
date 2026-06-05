@@ -4,6 +4,27 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.34
+
+### Added
+- Drivetrain presets in the field settings: pick a common Shimano chainring
+  setup (e.g. 50-34, 52-36, GRX 48-31) or cassette (10/11/12-speed, 10-51 to
+  11-48) instead of entering every tooth count. While a preset is selected it
+  sets the gearing; choose Custom to enter the count and teeth by hand.
+- Automatic Di2 model detection from the connected device, with profile
+  groundwork to support more Di2 series beyond the tested XT M8250.
+- Full-screen on-screen diagnostics mode (a setting): a colour-coded stage
+  indicator plus scan counts, signal, the detected model and the raw gear
+  packet — turn it on and send a photo to report a connection problem.
+
+### Changed
+- Clearer setup guidance: the Store description now explains how presets,
+  chainring count and teeth fields work together.
+
+### Fixed
+- A selected preset reliably drives the displayed gearing and ratios (presets
+  override the manual count/teeth fields while selected).
+
 ## 0.0.28
 
 ### Changed

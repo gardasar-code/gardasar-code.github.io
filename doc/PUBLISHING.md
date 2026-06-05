@@ -144,19 +144,25 @@ detects the model, and the diagnostics overlay helps add support for new ones.
 Independent, unofficial app — not affiliated with or endorsed by Shimano.
 ```
 
-**What's New (0.0.28):** полный список — `CHANGELOG.md`. Текст для поля стора
-покрывает всё, что появилось с последнего публичного релиза (0.0.24):
+**What's New (0.0.34):** полный список — `CHANGELOG.md`. Текст для поля стора
+покрывает всё, что появилось с последнего публичного релиза (0.0.28):
 ```
-New display options and a clearer readout. You can now show the rear gear as
-numbers, as a cassette graphic, or both: the graphic draws every sprocket as a
-bar — largest on the left, height following the cog sizes — with your current
-sprocket highlighted, so you can read your position at a glance. The D-Fly
-battery can be shown as a percentage, a colour-coded battery icon, or both; the
-icon fills with the charge and turns orange below 40% and red below 15%. The
-battery icon and cassette graphic are now on by default, and the settings option
-labels are fully translated in all six languages. Plus faster, more efficient
-Bluetooth handling under the hood.
+Faster setup and broader Di2 support.
+
+- Drivetrain presets: pick a common Shimano chainring or cassette setup
+  (e.g. 50-34, 11-34, 10-51) instead of typing every tooth count. While a
+  preset is selected it sets your gearing; choose Custom to enter values by hand.
+- Automatic Di2 model detection, with the groundwork to support more Di2
+  series beyond the tested XT M8250.
+- New full-screen diagnostics mode (a setting): shows connection state, signal,
+  the detected model and the raw data — turn it on and send a photo if a
+  connection issue comes up.
+- Clearer in-store setup guidance and reliability fixes under the hood.
 ```
+
+> Предыдущий публичный What's New (0.0.28): новые варианты показа передачи
+> (цифры / график кассеты / оба) и батареи (процент / иконка / оба), полная
+> локализация меток настроек, ускоренный BLE.
 
 ## Шаг 3 — Изображения
 - **Cover Image 500×500** (<300 КБ): `store/cover.png`
