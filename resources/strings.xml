@@ -20,8 +20,8 @@
     <string id="SetRearCogs">Rear cogs</string>
     <string id="SetRearTitle">Rear teeth</string>
     <string id="SetRearPreset">Cassette preset</string>
-    <string id="TeethPrompt">Comma-separated, one value per gear. Choosing a preset below fills this in for you.</string>
-    <string id="PresetPrompt">Pick a common Shimano setup to fill the chainring count and teeth above, then fine-tune if needed. It resets to Custom after applying.</string>
+    <string id="TeethPrompt">Comma-separated, one value per gear. When a preset is selected it shows the preset's values; choose Custom to edit them.</string>
+    <string id="PresetPrompt">Pick a common Shimano setup. It stays active and mirrors its chainring count and teeth into the fields above for reference. Choose Custom to edit them manually.</string>
     <string id="OptPresetCustom">Custom (manual)</string>
     <string id="SetForgetDevice">Forget paired Di2</string>
     <string id="SetBattery">Battery display</string>
@@ -36,7 +36,7 @@
     <string id="OptDisplayGraphic">Graphic</string>
     <string id="OptDisplayBoth">Both</string>
     <string id="ForgetPrompt">Turn on and save to release the current Di2 and connect to the nearest one on the next scan. The switch turns itself back off.</string>
-    <string id="AboutText">Di2 Field by Sergey Lapshin. Shows your Shimano Di2 gear, gear ratio and D-Fly battery over Bluetooth, and records a full ride summary (ratios, shifts, gear combos) to the activity. Setup: pick a Front/Cassette preset to fill in the chainrings, cassette and teeth automatically, then fine-tune any value by hand if needed. Tested with Shimano XT Di2 RD-M8250-SGS (12-speed) on Garmin Edge Explore 2. Unofficial app, not affiliated with Shimano.</string>
+    <string id="AboutText">Di2 Field by Sergey Lapshin. Shows your Shimano Di2 gear, gear ratio and D-Fly battery over Bluetooth, and records a full ride summary (ratios, shifts, gear combos) to the activity. Setup: pick a Front/Cassette preset to set your gearing in one tap (it mirrors the chainrings, cassette and teeth into the fields for reference), or choose Custom to enter every value by hand. Tested with Shimano XT Di2 RD-M8250-SGS (12-speed) on Garmin Edge Explore 2. Unofficial app, not affiliated with Shimano.</string>
 
     <!-- Метки FIT-полей (запись в активность) -->
     <string id="FieldRearGear">Rear Gear</string>

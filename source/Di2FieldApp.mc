@@ -64,12 +64,13 @@ class Di2FieldApp extends Application.AppBase {
         _state.displayMode = readNumberProperty("displayMode", DISP_BOTH);
         _state.diagOverlay = readBooleanProperty("diagOverlay", false);
 
-        // Пресеты-«заполнители»: если выбран пресет, записываем его раскладку в ручные
-        // поля (зубья + число звёзд) и сбрасываем селектор в Custom — значения остаются
-        // видимыми и редактируемыми, как одноразовая кнопка. Делается ДО чтения ниже,
-        // поэтому дальше работает единый ручной путь.
-        applyPreset(FRONT_PRESETS, "frontTeethPreset", "frontTeeth", "frontChainrings");
-        applyPreset(REAR_PRESETS, "rearTeethPreset", "rearTeeth", "rearCogs");
+        // Пресет (если выбран) ОСТАЁТСЯ активным и продолжает задавать раскладку. Его
+        // значения зеркалим в ручные поля (зубья + число звёзд) — только для наглядности,
+        // чтобы пользователь видел конкретные числа. Селектор пресета НЕ сбрасывается;
+        // для ручного редактирования пользователь выбирает Custom. Зеркало пишется ДО
+        // чтения ниже, поэтому дальше работает единый ручной путь.
+        mirrorPresetToFields(FRONT_PRESETS, "frontTeethPreset", "frontTeeth", "frontChainrings");
+        mirrorPresetToFields(REAR_PRESETS, "rearTeethPreset", "rearTeeth", "rearCogs");
 
         _state.frontTeeth = readTeeth("frontTeeth", _state.DEFAULT_FRONT_TEETH);
         _state.frontTotal = readNumberProperty("frontChainrings", 1);
@@ -132,12 +133,12 @@ class Di2FieldApp extends Application.AppBase {
         return (s.length() > 0) ? s : null;
     }
 
-    // Применить выбранный пресет как «заполнитель»: записать его зубья в текстовое поле
-    // (teethKey) и число звёзд в селектор (countKey), затем сбросить сам пресет в Custom
-    // (одноразовое действие, как тоггл Forget). Если пресет не выбран (0/вне диапазона) —
-    // ничего не делаем, остаётся ручной ввод. Запись настроек не критична → glotaem ошибку.
-    private function applyPreset(table as Lang.Array<Lang.String>, presetKey as Lang.String,
-                                 teethKey as Lang.String, countKey as Lang.String) as Void {
+    // Зеркалировать выбранный пресет в ручные поля для наглядности: записать его зубья
+    // в текстовое поле (teethKey) и число звёзд в селектор (countKey). Сам пресет НЕ
+    // сбрасывается — он остаётся активным и продолжает задавать раскладку. Если пресет
+    // не выбран (0/вне диапазона) — ничего не делаем. Запись настроек не критична.
+    private function mirrorPresetToFields(table as Lang.Array<Lang.String>, presetKey as Lang.String,
+                                          teethKey as Lang.String, countKey as Lang.String) as Void {
         var teeth = presetTeeth(table, readNumberProperty(presetKey, 0));
         if (teeth == null) {
             return;
@@ -146,9 +147,8 @@ class Di2FieldApp extends Application.AppBase {
         try {
             Application.Properties.setValue(teethKey, teeth);
             Application.Properties.setValue(countKey, count);
-            Application.Properties.setValue(presetKey, 0);
         } catch (e) {
-            // не смогли записать — пресет применится при следующей загрузке настроек
+            // не смогли записать зеркало — на отображение не влияет, пресет всё равно активен
         }
     }
 
