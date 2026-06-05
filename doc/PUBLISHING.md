@@ -92,12 +92,17 @@ The status dot next to "Di2" is color-coded:
 - Orange — link lost, retrying
 
 SETTING UP YOUR DRIVETRAIN
-Tell the field your gearing so the gears and ratios are correct:
-- Quick way: pick a built-in Shimano preset for the chainrings and the
-  cassette (e.g. 50-34, 11-34, 10-51) — it fills everything in one tap.
-- Manual way: set the preset to Custom, then choose the chainring count (1–3)
-  and cassette size and enter the teeth of each ring and cog.
-A preset always overrides the manual fields.
+For correct gears and ratios, tell the field your gearing — two ways:
+- Preset (easiest): pick a built-in Shimano preset for the chainrings and the
+  cassette (e.g. 50-34, 11-34, 10-51). It sets your gearing in one tap.
+- Manual: set the preset to Custom, then choose the chainring count (1–3) and
+  cassette size and enter the teeth of each ring and cog (comma-separated, one
+  value per gear, from smallest to largest).
+While a preset is selected it takes over the chainring count and teeth — the
+manual fields keep their own values and are used only when the preset is Custom.
+Note: the settings screen won't copy a preset's numbers into those fields, and
+the prompt under each setting may not show on iOS — that's a Garmin Connect
+display limitation, not a problem with your setup.
 
 SWITCHING OR FORGETTING A DI2
 Riding a different bike, or want to pair with another unit?
@@ -199,13 +204,19 @@ directement sur votre écran de données Edge.
 Il se connecte en Bluetooth Low Energy — pas besoin d'ANT+.
 
 CONFIGURER VOTRE TRANSMISSION
-Indiquez votre transmission pour des vitesses et rapports corrects :
-- Rapide : choisissez un préréglage Shimano intégré pour les plateaux et la
-  cassette (p. ex. 50-34, 11-34, 10-51) — tout est rempli en un geste.
+Pour des vitesses et rapports corrects, indiquez votre transmission — deux façons :
+- Préréglage (le plus simple) : choisissez un préréglage Shimano intégré pour les
+  plateaux et la cassette (p. ex. 50-34, 11-34, 10-51). Il règle tout en un geste.
 - Manuel : réglez le préréglage sur Personnalisé, puis choisissez le nombre de
-  plateaux (1–3) et la taille de cassette et saisissez les dents de chaque
-  plateau et pignon.
-Un préréglage remplace toujours les champs manuels.
+  plateaux (1–3) et la taille de cassette et saisissez les dents de chaque plateau
+  et pignon (séparées par des virgules, une par vitesse, de la plus petite à la
+  plus grande).
+Tant qu'un préréglage est sélectionné, il prend le dessus sur le nombre de plateaux
+et les dents — les champs manuels gardent leurs valeurs et ne servent que si le
+préréglage est sur Personnalisé. Remarque : l'écran de réglages ne recopie pas les
+valeurs d'un préréglage dans ces champs, et l'aide sous chaque réglage peut ne pas
+s'afficher sur iOS — c'est une limite d'affichage de Garmin Connect, pas un problème
+de votre configuration.
 
 FONCTIONNALITÉS
 - Vitesse arrière grande et lisible avec la taille de cassette (actuelle • totale)
@@ -247,12 +258,17 @@ directamente en tu pantalla de datos Edge.
 Se conecta por Bluetooth Low Energy — sin necesidad de ANT+.
 
 CONFIGURAR TU TRANSMISIÓN
-Indica tu transmisión para que las marchas y relaciones sean correctas:
-- Rápido: elige un preajuste Shimano integrado para los platos y el cassette
-  (p. ej. 50-34, 11-34, 10-51) — lo rellena todo con un toque.
-- Manual: pon el preajuste en Personalizado, luego elige el número de platos
-  (1–3) y el tamaño del cassette e introduce los dientes de cada plato y piñón.
-Un preajuste siempre anula los campos manuales.
+Para marchas y relaciones correctas, indica tu transmisión — dos formas:
+- Preajuste (lo más fácil): elige un preajuste Shimano integrado para los platos
+  y el cassette (p. ej. 50-34, 11-34, 10-51). Lo configura todo con un toque.
+- Manual: pon el preajuste en Personalizado, luego elige el número de platos (1–3)
+  y el tamaño del cassette e introduce los dientes de cada plato y piñón (separados
+  por comas, uno por marcha, de menor a mayor).
+Mientras hay un preajuste seleccionado, prevalece sobre el número de platos y los
+dientes — los campos manuales conservan sus valores y solo se usan si el preajuste
+está en Personalizado. Nota: la pantalla de ajustes no copia los valores de un
+preajuste en esos campos, y la ayuda bajo cada ajuste puede no mostrarse en iOS —
+es una limitación de Garmin Connect, no un problema de tu configuración.
 
 CARACTERÍSTICAS
 - Marcha trasera grande y clara con el tamaño del cassette (actual • total)
@@ -294,12 +310,17 @@ App independiente y no oficial — sin afiliación ni respaldo de Shimano.
 Подключается по Bluetooth Low Energy — ANT+ не требуется.
 
 НАСТРОЙКА ТРАНСМИССИИ
-Укажите свою трансмиссию, чтобы передачи и отношения были верными:
-- Быстро: выберите встроенный пресет Shimano для звёзд и кассеты
-  (например, 50-34, 11-34, 10-51) — всё заполнится в одно касание.
+Чтобы передачи и отношения были верными, укажите трансмиссию — два способа:
+- Пресет (проще всего): выберите встроенный пресет Shimano для звёзд и кассеты
+  (например, 50-34, 11-34, 10-51). Он задаёт всё в одно касание.
 - Вручную: поставьте пресет «Свой», затем выберите число передних звёзд (1–3)
-  и размер кассеты и введите зубья каждой звезды.
-Пресет всегда переопределяет ручные поля.
+  и размер кассеты и введите зубья каждой звезды (через запятую, по одному
+  значению на передачу, от меньшей к большей).
+Пока выбран пресет, он имеет приоритет над числом звёзд и зубьями — ручные поля
+сохраняют свои значения и используются только при пресете «Свой». Примечание:
+экран настроек не копирует значения пресета в эти поля, а подсказки под каждым
+пунктом могут не отображаться на iOS — это ограничение Garmin Connect, а не
+проблема вашей настройки.
 
 ВОЗМОЖНОСТИ
 - Крупная, читаемая задняя передача с размером кассеты (текущая • всего)
@@ -340,13 +361,17 @@ Edge-Datenbildschirm.
 Es verbindet sich per Bluetooth Low Energy — kein ANT+ nötig.
 
 ANTRIEB EINRICHTEN
-Gib deinen Antrieb an, damit Gänge und Übersetzungen korrekt sind:
-- Schnell: wähle eine integrierte Shimano-Vorlage für Kettenblätter und Kassette
-  (z. B. 50-34, 11-34, 10-51) — alles wird mit einem Tippen ausgefüllt.
+Für korrekte Gänge und Übersetzungen gib deinen Antrieb an — zwei Wege:
+- Vorlage (am einfachsten): wähle eine integrierte Shimano-Vorlage für Kettenblätter
+  und Kassette (z. B. 50-34, 11-34, 10-51). Sie stellt alles mit einem Tippen ein.
 - Manuell: stelle die Vorlage auf „Benutzerdefiniert“, dann wähle die Anzahl der
   Kettenblätter (1–3) und die Kassettengröße und gib die Zähne jedes Blatts und
-  Ritzels ein.
-Eine Vorlage überschreibt immer die manuellen Felder.
+  Ritzels ein (durch Komma getrennt, ein Wert pro Gang, vom kleinsten zum größten).
+Solange eine Vorlage gewählt ist, hat sie Vorrang vor Kettenblattanzahl und Zähnen —
+die manuellen Felder behalten ihre Werte und gelten nur bei „Benutzerdefiniert“.
+Hinweis: der Einstellungsbildschirm kopiert die Werte einer Vorlage nicht in diese
+Felder, und der Hinweistext unter jeder Einstellung wird auf iOS evtl. nicht
+angezeigt — eine Anzeigegrenze von Garmin Connect, kein Problem deiner Einrichtung.
 
 FUNKTIONEN
 - Großer, klarer Gang hinten mit Kassettengröße (aktuell • gesamt)
@@ -387,12 +412,15 @@ Unabhängige, inoffizielle App — nicht mit Shimano verbunden oder unterstützt
 يتصل عبر Bluetooth Low Energy — دون الحاجة إلى ANT+.
 
 إعداد مجموعة النقل
-حدّد مجموعة النقل لديك لتكون السرعات والنسب صحيحة:
-- سريع: اختر إعداداً مسبقاً من Shimano للنجوم الأمامية والكاسيت
-  (مثل 50-34، 11-34، 10-51) — يملأ كل شيء بلمسة واحدة.
+للحصول على سرعات ونسب صحيحة، حدّد مجموعة النقل — بطريقتين:
+- إعداد مسبق (الأسهل): اختر إعداداً مسبقاً من Shimano للنجوم الأمامية والكاسيت
+  (مثل 50-34، 11-34، 10-51). يضبط كل شيء بلمسة واحدة.
 - يدوي: اضبط الإعداد المسبق على مخصص، ثم اختر عدد النجوم الأمامية (1–3) وحجم
-  الكاسيت وأدخل أسنان كل نجمة وترس.
-الإعداد المسبق يتجاوز دائماً الحقول اليدوية.
+  الكاسيت وأدخل أسنان كل نجمة وترس (مفصولة بفواصل، قيمة لكل سرعة، من الأصغر للأكبر).
+طالما أن إعداداً مسبقاً مختار، فإنه يتجاوز عدد النجوم والأسنان — تحتفظ الحقول اليدوية
+بقيمها وتُستخدم فقط عندما يكون الإعداد المسبق مخصصاً. ملاحظة: لا تنسخ شاشة الإعدادات
+قيم الإعداد المسبق إلى تلك الحقول، وقد لا يظهر النص الإرشادي أسفل كل إعداد على iOS —
+هذا قيد عرض في Garmin Connect، وليس مشكلة في إعدادك.
 
 الميزات
 - سرعة خلفية كبيرة وواضحة مع حجم الكاسيت (الحالية • الإجمالي)
