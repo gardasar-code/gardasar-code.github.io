@@ -64,18 +64,19 @@ class Di2FieldApp extends Application.AppBase {
         _state.displayMode = readNumberProperty("displayMode", DISP_BOTH);
         _state.diagOverlay = readBooleanProperty("diagOverlay", false);
 
-        // Пресет (если выбран) ОСТАЁТСЯ активным и продолжает задавать раскладку. Его
-        // значения зеркалим в ручные поля (зубья + число звёзд) — только для наглядности,
-        // чтобы пользователь видел конкретные числа. Селектор пресета НЕ сбрасывается;
-        // для ручного редактирования пользователь выбирает Custom. Зеркало пишется ДО
-        // чтения ниже, поэтому дальше работает единый ручной путь.
-        mirrorPresetToFields(FRONT_PRESETS, "frontTeethPreset", "frontTeeth", "frontChainrings");
-        mirrorPresetToFields(REAR_PRESETS, "rearTeethPreset", "rearTeeth", "rearCogs");
+        // Зубья и число звёзд: если выбран пресет, он переопределяет ручной ввод
+        // (задаёт и зубья, и число звёзд по своей раскладке). Записать значения обратно
+        // в поля настроек телефона из кода нельзя (ограничение Connect IQ: setValue с
+        // устройства не отражается в форме настроек), поэтому пресет действует в рантайме.
+        var front = resolveTeeth(FRONT_PRESETS, "frontTeethPreset", "frontTeeth",
+                                 "frontChainrings", _state.DEFAULT_FRONT_TEETH, 1);
+        _state.frontTeeth = front[0] as Lang.Array<Lang.Number>;
+        _state.frontTotal = front[1] as Lang.Number;
 
-        _state.frontTeeth = readTeeth("frontTeeth", _state.DEFAULT_FRONT_TEETH);
-        _state.frontTotal = readNumberProperty("frontChainrings", 1);
-        _state.rearTeeth = readTeeth("rearTeeth", _state.DEFAULT_REAR_TEETH);
-        _state.rearTotal = readNumberProperty("rearCogs", 12);
+        var rear = resolveTeeth(REAR_PRESETS, "rearTeethPreset", "rearTeeth",
+                                "rearCogs", _state.DEFAULT_REAR_TEETH, 12);
+        _state.rearTeeth = rear[0] as Lang.Array<Lang.Number>;
+        _state.rearTotal = rear[1] as Lang.Number;
 
         // Текущую переднюю позицию из пакета не вычислить; для 1x она всегда 1,
         // для 2x/3x — неизвестна (покажем "-/N").
@@ -133,23 +134,18 @@ class Di2FieldApp extends Application.AppBase {
         return (s.length() > 0) ? s : null;
     }
 
-    // Зеркалировать выбранный пресет в ручные поля для наглядности: записать его зубья
-    // в текстовое поле (teethKey) и число звёзд в селектор (countKey). Сам пресет НЕ
-    // сбрасывается — он остаётся активным и продолжает задавать раскладку. Если пресет
-    // не выбран (0/вне диапазона) — ничего не делаем. Запись настроек не критична.
-    private function mirrorPresetToFields(table as Lang.Array<Lang.String>, presetKey as Lang.String,
-                                          teethKey as Lang.String, countKey as Lang.String) as Void {
-        var teeth = presetTeeth(table, readNumberProperty(presetKey, 0));
-        if (teeth == null) {
-            return;
+    // Разрешить зубья + число звёзд: выбранный пресет переопределяет ручной ввод.
+    // Возвращает [teeth as Array<Number>, total as Number]. Общая логика для front/rear.
+    private function resolveTeeth(table as Lang.Array<Lang.String>, presetKey as Lang.String,
+                                  teethKey as Lang.String, countKey as Lang.String,
+                                  defaultTeeth as Lang.Array<Lang.Number>,
+                                  defaultCount as Lang.Number) as Lang.Array {
+        var preset = presetTeeth(table, readNumberProperty(presetKey, 0));
+        if (preset != null) {
+            var teeth = parseTeethString(preset, defaultTeeth);
+            return [teeth, teeth.size()];
         }
-        var count = parseTeethString(teeth, []).size();   // число звёзд = кол-во значений
-        try {
-            Application.Properties.setValue(teethKey, teeth);
-            Application.Properties.setValue(countKey, count);
-        } catch (e) {
-            // не смогли записать зеркало — на отображение не влияет, пресет всё равно активен
-        }
+        return [readTeeth(teethKey, defaultTeeth), readNumberProperty(countKey, defaultCount)];
     }
 
     // Прочитать строковое свойство и распарсить в список чисел (зубья).

@@ -94,10 +94,10 @@ The status dot next to "Di2" is color-coded:
 SETTING UP YOUR DRIVETRAIN
 Tell the field your gearing so the gears and ratios are correct:
 - Quick way: pick a built-in Shimano preset for the chainrings and the
-  cassette (e.g. 50-34, 11-34, 10-51). It stays active and mirrors its
-  values into the count and teeth fields for reference.
-- Manual way: choose Custom, then set the chainring count and cassette size
-  and enter the teeth of each ring and cog by hand.
+  cassette (e.g. 50-34, 11-34, 10-51) — it fills everything in one tap.
+- Manual way: set the preset to Custom, then choose the chainring count (1–3)
+  and cassette size and enter the teeth of each ring and cog.
+A preset always overrides the manual fields.
 
 SWITCHING OR FORGETTING A DI2
 Riding a different bike, or want to pair with another unit?
@@ -201,10 +201,11 @@ Il se connecte en Bluetooth Low Energy — pas besoin d'ANT+.
 CONFIGURER VOTRE TRANSMISSION
 Indiquez votre transmission pour des vitesses et rapports corrects :
 - Rapide : choisissez un préréglage Shimano intégré pour les plateaux et la
-  cassette (p. ex. 50-34, 11-34, 10-51). Il reste actif et recopie ses valeurs
-  dans les champs nombre et dents, pour information.
-- Manuel : choisissez Personnalisé, puis réglez le nombre de plateaux et la
-  taille de cassette et saisissez les dents de chaque plateau et pignon à la main.
+  cassette (p. ex. 50-34, 11-34, 10-51) — tout est rempli en un geste.
+- Manuel : réglez le préréglage sur Personnalisé, puis choisissez le nombre de
+  plateaux (1–3) et la taille de cassette et saisissez les dents de chaque
+  plateau et pignon.
+Un préréglage remplace toujours les champs manuels.
 
 FONCTIONNALITÉS
 - Vitesse arrière grande et lisible avec la taille de cassette (actuelle • totale)
@@ -248,10 +249,10 @@ Se conecta por Bluetooth Low Energy — sin necesidad de ANT+.
 CONFIGURAR TU TRANSMISIÓN
 Indica tu transmisión para que las marchas y relaciones sean correctas:
 - Rápido: elige un preajuste Shimano integrado para los platos y el cassette
-  (p. ej. 50-34, 11-34, 10-51). Permanece activo y refleja sus valores en los
-  campos de número y dientes, a título informativo.
-- Manual: elige Personalizado, luego ajusta el número de platos y el tamaño del
-  cassette e introduce los dientes de cada plato y piñón a mano.
+  (p. ej. 50-34, 11-34, 10-51) — lo rellena todo con un toque.
+- Manual: pon el preajuste en Personalizado, luego elige el número de platos
+  (1–3) y el tamaño del cassette e introduce los dientes de cada plato y piñón.
+Un preajuste siempre anula los campos manuales.
 
 CARACTERÍSTICAS
 - Marcha trasera grande y clara con el tamaño del cassette (actual • total)
@@ -295,10 +296,10 @@ App independiente y no oficial — sin afiliación ni respaldo de Shimano.
 НАСТРОЙКА ТРАНСМИССИИ
 Укажите свою трансмиссию, чтобы передачи и отношения были верными:
 - Быстро: выберите встроенный пресет Shimano для звёзд и кассеты
-  (например, 50-34, 11-34, 10-51). Он остаётся активным и для справки дублирует
-  свои значения в поля числа звёзд и зубьев.
-- Вручную: выберите «Свой», затем задайте число звёзд и размер кассеты и введите
-  зубья каждой звезды самостоятельно.
+  (например, 50-34, 11-34, 10-51) — всё заполнится в одно касание.
+- Вручную: поставьте пресет «Свой», затем выберите число передних звёзд (1–3)
+  и размер кассеты и введите зубья каждой звезды.
+Пресет всегда переопределяет ручные поля.
 
 ВОЗМОЖНОСТИ
 - Крупная, читаемая задняя передача с размером кассеты (текущая • всего)
@@ -341,10 +342,11 @@ Es verbindet sich per Bluetooth Low Energy — kein ANT+ nötig.
 ANTRIEB EINRICHTEN
 Gib deinen Antrieb an, damit Gänge und Übersetzungen korrekt sind:
 - Schnell: wähle eine integrierte Shimano-Vorlage für Kettenblätter und Kassette
-  (z. B. 50-34, 11-34, 10-51). Sie bleibt aktiv und spiegelt ihre Werte zur Info
-  in die Felder für Anzahl und Zähne.
-- Manuell: wähle „Benutzerdefiniert“, dann lege die Kettenblattanzahl und die
-  Kassettengröße fest und gib die Zähne jedes Blatts und Ritzels von Hand ein.
+  (z. B. 50-34, 11-34, 10-51) — alles wird mit einem Tippen ausgefüllt.
+- Manuell: stelle die Vorlage auf „Benutzerdefiniert“, dann wähle die Anzahl der
+  Kettenblätter (1–3) und die Kassettengröße und gib die Zähne jedes Blatts und
+  Ritzels ein.
+Eine Vorlage überschreibt immer die manuellen Felder.
 
 FUNKTIONEN
 - Großer, klarer Gang hinten mit Kassettengröße (aktuell • gesamt)
@@ -387,8 +389,10 @@ Unabhängige, inoffizielle App — nicht mit Shimano verbunden oder unterstützt
 إعداد مجموعة النقل
 حدّد مجموعة النقل لديك لتكون السرعات والنسب صحيحة:
 - سريع: اختر إعداداً مسبقاً من Shimano للنجوم الأمامية والكاسيت
-  (مثل 50-34، 11-34، 10-51). يبقى فعّالاً ويعكس قيمه في حقول العدد والأسنان للعلم.
-- يدوي: اختر مخصص، ثم اضبط عدد النجوم وحجم الكاسيت وأدخل أسنان كل نجمة وترس يدوياً.
+  (مثل 50-34، 11-34، 10-51) — يملأ كل شيء بلمسة واحدة.
+- يدوي: اضبط الإعداد المسبق على مخصص، ثم اختر عدد النجوم الأمامية (1–3) وحجم
+  الكاسيت وأدخل أسنان كل نجمة وترس.
+الإعداد المسبق يتجاوز دائماً الحقول اليدوية.
 
 الميزات
 - سرعة خلفية كبيرة وواضحة مع حجم الكاسيت (الحالية • الإجمالي)

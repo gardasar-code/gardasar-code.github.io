@@ -27,12 +27,12 @@
     <string id="SetRearCogs">Pignons arrière</string>
     <string id="SetRearTitle">Dents arrière</string>
     <string id="SetRearPreset">Préréglage cassette</string>
-    <string id="TeethPrompt">Séparés par des virgules, une valeur par vitesse. Si un préréglage est choisi, ses valeurs s'affichent ; choisir Personnalisé pour les modifier.</string>
-    <string id="PresetPrompt">Choisir une configuration Shimano courante. Elle reste active et recopie le nombre de plateaux et les dents dans les champs ci-dessus, pour information. Choisir Personnalisé pour les saisir manuellement.</string>
+    <string id="TeethPrompt">Séparés par des virgules, une valeur par vitesse. Pris en compte uniquement si le préréglage ci-dessous est Personnalisé.</string>
+    <string id="PresetPrompt">Choisir une configuration Shimano courante pour un réglage en un geste. Un préréglage remplace le nombre et les dents ci-dessus. Choisir Personnalisé pour les saisir manuellement.</string>
     <string id="OptPresetCustom">Personnalisé</string>
     <string id="SetForgetDevice">Oublier le Di2 associé</string>
     <string id="ForgetPrompt">Activez et enregistrez pour dissocier le Di2 actuel et connecter le plus proche au prochain scan. L’interrupteur se désactive tout seul.</string>
-    <string id="AboutText">Champ Di2 par Sergey Lapshin. Affiche votre vitesse Shimano Di2, le rapport et la batterie D-Fly via Bluetooth, et enregistre un résumé complet de la sortie (rapports, changements, combinaisons) dans l'activité. Configuration : choisissez un préréglage plateaux/cassette pour régler votre transmission en un geste (il recopie plateaux, cassette et dents dans les champs, pour information), ou choisissez Personnalisé pour saisir chaque valeur à la main. Testé avec Shimano XT Di2 RD-M8250-SGS (12 vitesses) sur Garmin Edge Explore 2. Application non officielle, sans lien avec Shimano.</string>
+    <string id="AboutText">Champ Di2 par Sergey Lapshin. Affiche votre vitesse Shimano Di2, le rapport et la batterie D-Fly via Bluetooth, et enregistre un résumé complet de la sortie (rapports, changements, combinaisons) dans l'activité. Configuration : choisissez un préréglage plateaux/cassette pour un réglage en un geste, ou choisissez Personnalisé et saisissez plateaux, cassette et dents manuellement. Un préréglage remplace toujours les champs manuels. Testé avec Shimano XT Di2 RD-M8250-SGS (12 vitesses) sur Garmin Edge Explore 2. Application non officielle, sans lien avec Shimano.</string>
 
     <string id="FieldRearGear">Pignon arrière</string>
     <string id="FieldFrontGear">Plateau avant</string>
