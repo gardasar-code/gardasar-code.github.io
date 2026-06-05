@@ -63,11 +63,10 @@ git checkout main
 
 **Description (EN):**
 ```
-Di2 Field shows your current Shimano Di2 rear gear (e.g. 5•12) and the D-Fly
-wireless unit battery level right on your Edge data screen.
+Di2 Field shows your current Di2 (tested with RD-M8250-SGS 12-speed) rear gear
+(e.g. 5•12) and the wireless unit battery level right on your Edge data screen.
 
-It connects over Bluetooth Low Energy to a Shimano D-Fly module
-(EW-WU111 / SC-M9051) — no ANT+ needed.
+It connects over Bluetooth Low Energy — no ANT+ needed.
 
 GETTING CONNECTED
 There is no button to press — it's a data field. Connection is automatic:
@@ -92,6 +91,14 @@ The status dot next to "Di2" is color-coded:
 - Dark blue — connected to your paired Di2 (the one it locked onto)
 - Orange — link lost, retrying
 
+SETTING UP YOUR DRIVETRAIN
+Tell the field your gearing so the gears and ratios are correct:
+- Quick way: pick a built-in Shimano preset for the chainrings and the
+  cassette (e.g. 50-34, 11-34, 10-51) — it fills everything in one tap.
+- Manual way: set the preset to Custom, then choose the chainring count (1–3)
+  and cassette size and enter the teeth of each ring and cog.
+A preset always overrides the manual fields.
+
 SWITCHING OR FORGETTING A DI2
 Riding a different bike, or want to pair with another unit?
 1. Open the field settings in Garmin Connect Mobile.
@@ -105,24 +112,29 @@ one that's awake.
 FEATURES
 - Large, clear rear gear with cassette size (current • total)
 - Front chainring indicator
-- Configurable drivetrain: pick front chainrings (1–3) and cassette size,
-  then enter the teeth of each ring/cog for accurate gear ratios
-- D-Fly battery percentage
+- Rear gear as numbers, a cassette graphic, or both
+- Built-in Shimano presets for popular chainrings and cassettes
+  (10/11/12-speed), or enter your own teeth for any drivetrain
+- Battery percentage or a color-coded battery icon
 - Color-coded connection status dot with auto-reconnect
+- Automatic Di2 model detection
+- On-screen diagnostics overlay to help troubleshoot connection
 - Day / night color theme
 - Six languages: English, French, Spanish, Russian, German, Arabic
 
 RECORDS TO YOUR ACTIVITY (Connect IQ data in Garmin Connect)
-- Per-second: rear & front gear, rear & front teeth, gear ratio, D-Fly battery
+- Per-second: rear & front gear, rear & front teeth, gear ratio, battery
 - Ride summary: average & maximum gear ratio, front & rear shift counts,
   most-used gear combo with time share, top-3 most-used rear sprockets,
-  highest rear gear used, lowest D-Fly battery
+  highest rear gear used, lowest battery
 - Viewable in the Connect IQ section of the activity and any FIT-aware service
 
 REQUIREMENTS
-- Shimano Di2 with a D-Fly module (EW-WU111 or SC-M9051) advertising over BLE.
+- Shimano Di2 advertising over BLE.
 
-Tested with Shimano XT Di2 RD-M8250-SGS (12-speed) on Garmin Edge Explore 2.
+Confirmed on Shimano XT Di2 RD-M8250-SGS (12-speed) with Garmin Edge Explore 2.
+Other Di2 series that broadcast the same BLE data may also work — the field
+detects the model, and the diagnostics overlay helps add support for new ones.
 
 Independent, unofficial app — not affiliated with or endorsed by Shimano.
 ```
