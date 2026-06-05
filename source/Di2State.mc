@@ -53,9 +53,32 @@ class Di2State {
     public var frontTeeth as Lang.Array<Lang.Number> = DEFAULT_FRONT_TEETH;
     public var rearTeeth as Lang.Array<Lang.Number> = DEFAULT_REAR_TEETH;
 
-    // Отладка калибровки: hex последнего gear-пакета + его длина.
-    // Показывается на экране при DEBUG_OVERLAY, чтобы вручную найти байт передней.
+    // ── Диагностика на экране (diagOverlay) ───────────────────────────────────
+    // Включается настройкой diagOverlay. Работает в обычной store-сборке (это
+    // рисование в onUpdate, а не System.println, который в release не пишет файл),
+    // поэтому любой пользователь может прислать ФОТО экрана для разбора проблем
+    // подключения на неподдержанном устройстве. См. doc/LOGGING.md.
+    public var diagOverlay as Lang.Boolean = false;
+
+    // Сводка последнего скана (discovery эфира): сколько устройств видит BLE-стек
+    // всего и сколько из них с Shimano-маркером (ADV_SERVICE_UUID), лучший RSSI.
+    // dev>0 & shi=0 → в эфире есть BLE, но Di2 не под нашим маркером (другая серия).
+    public var dbgScanTotal as Lang.Number = 0;
+    public var dbgScanShimano as Lang.Number = 0;
+    public var dbgBestRssi as Lang.Number = -999;   // -999 = нет shimano-кандидатов
+
+    // Сырой последний notify-пакет: hex и длина. Заполняется при diagOverlay для
+    // ЛЮБОЙ длины (не только PKT_GEAR_LEN) — чтобы увидеть формат чужой серии Di2.
     public var dbgGear as Lang.String = "";
+    public var dbgGearLen as Lang.Number = 0;
+
+    // GATT-имя подключённого устройства (напр. "RDM8250S2A8"). В эфире скана имя
+    // недоступно (null) — приходит только после подключения по GATT. Это единственный
+    // идентификатор модели переключателя: по нему авто-детектится профиль (см.
+    // Di2BleDelegate.PROFILES) и краудсорсятся новые серии Di2 по ФОТО оверлея.
+    public var dbgDeviceName as Lang.String = "";
+    // Метка активного профиля парсинга (модель/серия Di2), определённого по имени.
+    public var dbgModel as Lang.String = "";
 
     function initialize() {
     }

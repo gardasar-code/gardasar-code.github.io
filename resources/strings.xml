@@ -16,12 +16,18 @@
     <!-- Настройки -->
     <string id="SetFrontChainrings">Front chainrings</string>
     <string id="SetFrontTitle">Front teeth</string>
+    <string id="SetFrontPreset">Front preset</string>
     <string id="SetRearCogs">Rear cogs</string>
     <string id="SetRearTitle">Rear teeth</string>
-    <string id="TeethPrompt">Comma-separated, one value per gear.</string>
+    <string id="SetRearPreset">Cassette preset</string>
+    <string id="TeethPrompt">Comma-separated, one value per gear. Used only when the preset below is Custom.</string>
+    <string id="PresetPrompt">Pick a common Shimano setup for one-tap config. A preset overrides the count and teeth above. Choose Custom to enter them manually.</string>
+    <string id="OptPresetCustom">Custom (manual)</string>
     <string id="SetForgetDevice">Forget paired Di2</string>
     <string id="SetBattery">Battery display</string>
     <string id="SetDisplay">Gear display</string>
+    <string id="SetDiagOverlay">Diagnostics overlay</string>
+    <string id="DiagOverlayPrompt">Show BLE diagnostics on screen (scan counts, signal, raw gear packet) to troubleshoot connection on unsupported devices. Send a photo of the screen to the developer. Turn off for normal use.</string>
     <!-- Опции селекторов показа батареи/передачи (метки списков в настройках) -->
     <string id="OptBatteryPercent">Percent</string>
     <string id="OptBatteryIcon">Icon</string>
@@ -30,7 +36,7 @@
     <string id="OptDisplayGraphic">Graphic</string>
     <string id="OptDisplayBoth">Both</string>
     <string id="ForgetPrompt">Turn on and save to release the current Di2 and connect to the nearest one on the next scan. The switch turns itself back off.</string>
-    <string id="AboutText">Di2 Field by Sergey Lapshin. Shows your Shimano Di2 gear, gear ratio and D-Fly battery over Bluetooth, and records a full ride summary (ratios, shifts, gear combos) to the activity. Set your chainrings, cassette and teeth below. Tested with Shimano XT Di2 RD-M8250-SGS (12-speed) on Garmin Edge Explore 2. Unofficial app, not affiliated with Shimano.</string>
+    <string id="AboutText">Di2 Field by Sergey Lapshin. Shows your Shimano Di2 gear, gear ratio and D-Fly battery over Bluetooth, and records a full ride summary (ratios, shifts, gear combos) to the activity. Setup: pick a Front/Cassette preset for a one-tap config, or choose Custom and enter the chainrings, cassette and teeth manually. A preset always overrides the manual fields. Tested with Shimano XT Di2 RD-M8250-SGS (12-speed) on Garmin Edge Explore 2. Unofficial app, not affiliated with Shimano.</string>
 
     <!-- Метки FIT-полей (запись в активность) -->
     <string id="FieldRearGear">Rear Gear</string>

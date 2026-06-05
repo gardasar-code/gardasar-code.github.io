@@ -25,14 +25,43 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private const BATT_SERVICE_UUID = "0000180f-0000-1000-8000-00805f9b34fb";
     private const BATT_CHAR_UUID    = "00002a19-0000-1000-8000-00805f9b34fb";
 
-    // ── Смещения байтов в notify-пакете 0x2ac1 (подтверждены на реальном Di2) ──
-    // Пакет 17 байт; пример: 00 00 03 FF FF 0A 0C 80 80 80 FF EE 12 FF FF 15 00
-    //   байт 5 = текущая задняя передача (0x0A=10). Байт 6 ранее принимали за число
-    //   задних звёзд, но теперь оно задаётся пользователем в настройках (надёжнее).
-    private const PKT_GEAR_LEN = 17;
-    private const PKT_REAR_IDX = 5;   // текущая задняя передача
-    // Байт передней передачи не выявлен; число звёзд (front/rear) приходит из
-    // настроек (frontGears/rearGears) и хранится в Di2State.
+    // ── Профили серий Di2: авто-детект по GATT-имени ──────────────────────────
+    // Раскладка notify-пакета 0x2ac1 зависит от серии переключателя. Вместо хардкода
+    // смещения вынесены в ТАБЛИЦУ профилей: при подключении читаем GATT-имя устройства
+    // и выбираем первый профиль, чей :prefix совпал с началом имени. Новая серия
+    // добавляется ОДНОЙ строкой в PROFILES — логика парсинга не меняется.
+    //
+    // Поля профиля:
+    //   :prefix — префикс GATT-имени модели (как приходит по getName());
+    //   :label  — человекочитаемая метка (для diag-оверлея и краудсорса);
+    //   :len    — длина пакета передач (байт);
+    //   :rear   — индекс байта текущей ЗАДНЕЙ передачи;
+    //   :front  — индекс байта текущей ПЕРЕДНЕЙ передачи (-1 = не выявлен).
+    //
+    // ПОДТВЕРЖДЕНО на железе: только XT M8250 (len 17, rear=байт5; front не выявлен,
+    // тест 1x). Дорожные/гравийные серии — ГИПОТЕЗА: один и тот же шлюз D-Fly (EW-WU)
+    // вещает тот же канал, поэтому раскладка предположительно совпадает. Подтверждение —
+    // по фото diag-оверлея от пользователей (имя + сырой пакет). См. doc/NOTES.md.
+    private const PROFILES = [
+        { :prefix => "RDM8250", :label => "XT Di2 M8250",   :len => 17, :rear => 5, :front => -1 },
+        // ── ниже: гипотеза, требует подтверждения по фото оверлея ──
+        { :prefix => "RDM9250", :label => "XTR Di2 M9250",  :len => 17, :rear => 5, :front => -1 },
+        { :prefix => "RDR9250", :label => "DURA-ACE R9250", :len => 17, :rear => 5, :front => -1 },
+        { :prefix => "RDR8150", :label => "Ultegra R8150",  :len => 17, :rear => 5, :front => -1 },
+        { :prefix => "RDR7150", :label => "105 R7150",      :len => 17, :rear => 5, :front => -1 },
+        { :prefix => "RDRX825", :label => "GRX RX825",      :len => 17, :rear => 5, :front => -1 }
+    ] as Lang.Array<Lang.Dictionary>;
+
+    // Дефолтный профиль (XT M8250) — пока имя устройства неизвестно или не совпало
+    // ни с одним префиксом. Соответствует прежним хардкод-константам PKT_*.
+    private const DEFAULT_PKT_LEN  = 17;
+    private const DEFAULT_REAR_IDX = 5;
+    private const DEFAULT_FRONT_IDX = -1;
+
+    // Активная раскладка пакета (из выбранного профиля). Меняется в selectProfile().
+    private var _pktLen as Lang.Number = DEFAULT_PKT_LEN;
+    private var _rearIdx as Lang.Number = DEFAULT_REAR_IDX;
+    private var _frontIdx as Lang.Number = DEFAULT_FRONT_IDX;
 
     // ── Тайминги/лимиты ───────────────────────────────────────────────────────
     // Периодику гоним от onTick() (вызывается из View.compute() ~раз в секунду).
@@ -185,6 +214,57 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
     }
 
+    // Снять идентичность подключённого устройства: GATT-имя в state (для diag-оверлея
+    // и краудсорса моделей) + авто-детект профиля раскладки пакета по имени. Имя
+    // доступно только после подключения; в эфире скана его нет.
+    private function captureIdentity(device as Ble.Device) as Void {
+        var nm = null;
+        try {
+            nm = device.getName();
+        } catch (e) {
+            // имя недоступно — оставляем пустым
+        }
+        _state.dbgDeviceName = (nm != null) ? nm : "";
+        selectProfile(nm);
+    }
+
+    // Выбрать профиль раскладки пакета по GATT-имени: первый профиль, чей :prefix
+    // совпал с началом имени. Имя null/без совпадения → дефолт (XT M8250). Применяется
+    // к смещениям парсинга (_pktLen/_rearIdx/_frontIdx) и метке модели в state.
+    private function selectProfile(name as Lang.String?) as Void {
+        // Старт с дефолта (XT M8250): подходит и как fallback для нераспознанной модели —
+        // пробуем самую вероятную раскладку, а сырой пакет всё равно виден в diag.
+        _pktLen   = DEFAULT_PKT_LEN;
+        _rearIdx  = DEFAULT_REAR_IDX;
+        _frontIdx = DEFAULT_FRONT_IDX;
+
+        var p = matchProfile(name);
+        if (p != null) {
+            _pktLen   = p[:len] as Lang.Number;
+            _rearIdx  = p[:rear] as Lang.Number;
+            _frontIdx = p[:front] as Lang.Number;
+            _state.dbgModel = p[:label] as Lang.String;
+        } else {
+            // Имя есть, но не распознано — метим "?" (по фото оверлея добавим профиль).
+            _state.dbgModel = (name != null && name.length() > 0) ? "?" : "";
+        }
+    }
+
+    // Найти профиль по префиксу GATT-имени (name.find(prefix)==0 → имя начинается с него).
+    private function matchProfile(name as Lang.String?) as Lang.Dictionary? {
+        if (name == null || name.length() == 0) {
+            return null;
+        }
+        for (var i = 0; i < PROFILES.size(); i++) {
+            var p = PROFILES[i] as Lang.Dictionary;
+            var prefix = p[:prefix] as Lang.String;
+            if (name.find(prefix) == 0) {
+                return p;
+            }
+        }
+        return null;
+    }
+
     // Прочитать сохранённое имя «своего» Di2 (null, если привязки нет).
     private function loadLockedName() as Lang.String? {
         var v = Application.Storage.getValue(STORAGE_LOCK);
@@ -259,9 +339,11 @@ class Di2BleDelegate extends Ble.BleDelegate {
         var matched = null;          // устройство с именем == _lockedName (сильнейшее)
         var matchedRssi = -999;
         var shimanoCount = 0;
+        var totalCount = 0;          // всего устройств в эфире (для diag-discovery)
 
         for (var r = scanResults.next(); r != null; r = scanResults.next()) {
             var sr = r as Ble.ScanResult;
+            totalCount += 1;
             if (iterContains(sr.getServiceUuids(), advUuid)) {
                 shimanoCount += 1;
                 var rssi = sr.getRssi();
@@ -290,6 +372,15 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 _lastScanShimano = shimanoCount;
                 _lastScanLogMs = nowMs;
             }
+        }
+
+        // Diag-discovery эфира на экран: сводка последнего скана в state (см. Di2State).
+        // Безусловной записи избегаем — только при включённом оверлее, чтобы в обычном
+        // релизе не трогать state из горячего колбэка. Лучший RSSI берём среди shimano.
+        if (_state.diagOverlay) {
+            _state.dbgScanTotal = totalCount;
+            _state.dbgScanShimano = shimanoCount;
+            _state.dbgBestRssi = (shimanoCount > 0) ? bestRssi : -999;
         }
 
         // Выбор цели. ВАЖНО (подтверждено логом DI2DIAG): на этом устройстве scan-
@@ -355,6 +446,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _attemptReachedLive = true;    // соединение установлено: разрыв отсюда — «обычный»
         _state.connected = true;
         _state.phase = CONN_LIVE;
+        captureIdentity(device);       // GATT-имя + авто-детект профиля модели (для diag/парсинга)
         saveLock(device);              // «прилипаем» к этому устройству по имени (только первый раз)
         enableNotifications(device);
         readBattery();                 // одно чтение сразу; далее — по тикам в onTick()
@@ -388,13 +480,19 @@ class Di2BleDelegate extends Ble.BleDelegate {
             // Троттлинг: notify сыпется ~десятки раз в секунду и забивает 5 КБ-лог
             // одинаковыми пакетами, вытесняя события связи. Логируем пакет только при
             // СМЕНЕ передачи (байт[5]) либо хартбитом раз в SCAN_LOG_HB_MS.
-            var gear = (value.size() > PKT_REAR_IDX) ? value[PKT_REAR_IDX] : -1;
+            var gear = (value.size() > _rearIdx) ? value[_rearIdx] : -1;
             var nowMs = System.getTimer();
             if (gear != _lastLoggedGear || (nowMs - _lastNotifyLogMs) >= SCAN_LOG_HB_MS) {
                 logBytes(characteristic, value);
                 _lastLoggedGear = gear;
                 _lastNotifyLogMs = nowMs;
             }
+        }
+        // Diag-overlay: сырой пакет ЛЮБОЙ длины на экран (для разбора формата чужой
+        // серии Di2, у которой длина/смещения могут отличаться от PKT_GEAR_LEN).
+        if (_state.diagOverlay) {
+            _state.dbgGear = toHex(value);
+            _state.dbgGearLen = value.size();
         }
         parseGearPacket(value);
     }
@@ -412,17 +510,18 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // ── Парсинг ───────────────────────────────────────────────────────────────
 
     private function parseGearPacket(value as Lang.ByteArray) as Void {
-        if (value.size() == PKT_GEAR_LEN) {
-            if (PKT_REAR_IDX < value.size()) {
-                _state.rear = value[PKT_REAR_IDX].toNumber();
+        if (value.size() == _pktLen) {
+            if (_rearIdx >= 0 && _rearIdx < value.size()) {
+                _state.rear = value[_rearIdx].toNumber();
             }
-            // front/frontTotal/rearTotal задаются настройками (см. Di2FieldApp).
-            // Калибровочный дамп gear-пакета на экран (для будущей настройки 2x) —
-            // только в диагностической сборке, чтобы в release не собирать hex
-            // каждый пакет (десятки в секунду) и не таскать DEBUG_OVERLAY-данные.
-            if (DEBUG) {
-                _state.dbgGear = toHex(value);
+            // Передняя передача: только если профиль выявил её байт (_frontIdx>=0).
+            // Иначе front остаётся из настроек (1x → 1; 2x/3x → "-/N", см. Di2FieldApp).
+            if (_frontIdx >= 0 && _frontIdx < value.size()) {
+                _state.front = value[_frontIdx].toNumber();
             }
+            // frontTotal/rearTotal (число звёзд) задаются настройками (см. Di2FieldApp).
+            // Сырой дамп пакета для diag-overlay снимается в onCharacteristicChanged
+            // (любой длины), здесь не дублируем.
         }
     }
 

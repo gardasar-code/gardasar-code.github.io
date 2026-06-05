@@ -12,6 +12,8 @@
     <string id="StatusHintPair">Di2-Taste halten</string>
     <string id="SetBattery">Batterieanzeige</string>
     <string id="SetDisplay">Ganganzeige</string>
+    <string id="SetDiagOverlay">Diagnose-Overlay</string>
+    <string id="DiagOverlayPrompt">Zeigt BLE-Diagnose auf dem Bildschirm (Scan-Zähler, Signal, Roh-Schaltpaket), um Verbindungsprobleme auf nicht unterstützten Geräten zu beheben. Sende ein Foto des Bildschirms an den Entwickler. Für den normalen Betrieb ausschalten.</string>
     <string id="OptBatteryPercent">Prozent</string>
     <string id="OptBatteryIcon">Symbol</string>
     <string id="OptBatteryBoth">Symbol + %</string>
@@ -21,12 +23,16 @@
 
     <string id="SetFrontChainrings">Kettenblätter vorne</string>
     <string id="SetFrontTitle">Zähne vorne</string>
+    <string id="SetFrontPreset">Vorlage vorne</string>
     <string id="SetRearCogs">Ritzel hinten</string>
     <string id="SetRearTitle">Zähne hinten</string>
-    <string id="TeethPrompt">Durch Komma getrennt, ein Wert pro Gang.</string>
+    <string id="SetRearPreset">Kassetten-Vorlage</string>
+    <string id="TeethPrompt">Durch Komma getrennt, ein Wert pro Gang. Nur wirksam, wenn die Vorlage unten „Benutzerdefiniert“ ist.</string>
+    <string id="PresetPrompt">Gängige Shimano-Konfiguration für die Einrichtung mit einem Tippen wählen. Eine Vorlage überschreibt Anzahl und Zähne oben. Für manuelle Eingabe „Benutzerdefiniert“ wählen.</string>
+    <string id="OptPresetCustom">Benutzerdefiniert</string>
     <string id="SetForgetDevice">Gekoppeltes Di2 vergessen</string>
     <string id="ForgetPrompt">Einschalten und speichern, um das aktuelle Di2 zu trennen und beim nächsten Scan das nächstgelegene zu verbinden. Der Schalter schaltet sich selbst wieder aus.</string>
-    <string id="AboutText">Di2 Feld von Sergey Lapshin. Zeigt deinen Shimano Di2 Gang, die Übersetzung und den D-Fly Akku über Bluetooth und zeichnet eine vollständige Fahrt-Zusammenfassung (Übersetzungen, Schaltvorgänge, Kombinationen) in der Aktivität auf. Lege Kettenblätter, Kassette und Zähne unten fest. Getestet mit Shimano XT Di2 RD-M8250-SGS (12-fach) auf Garmin Edge Explore 2. Inoffizielle App, nicht mit Shimano verbunden.</string>
+    <string id="AboutText">Di2 Feld von Sergey Lapshin. Zeigt deinen Shimano Di2 Gang, die Übersetzung und den D-Fly Akku über Bluetooth und zeichnet eine vollständige Fahrt-Zusammenfassung (Übersetzungen, Schaltvorgänge, Kombinationen) in der Aktivität auf. Einrichtung: wähle eine Vorlage für Kettenblätter/Kassette für die Konfiguration mit einem Tippen, oder wähle „Benutzerdefiniert“ und gib Kettenblätter, Kassette und Zähne manuell ein. Eine Vorlage überschreibt immer die manuellen Felder. Getestet mit Shimano XT Di2 RD-M8250-SGS (12-fach) auf Garmin Edge Explore 2. Inoffizielle App, nicht mit Shimano verbunden.</string>
 
     <string id="FieldRearGear">Gang hinten</string>
     <string id="FieldFrontGear">Gang vorne</string>

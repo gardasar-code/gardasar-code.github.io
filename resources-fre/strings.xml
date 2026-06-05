@@ -12,6 +12,8 @@
     <string id="StatusHintPair">Maintenez le bouton Di2</string>
     <string id="SetBattery">Affichage batterie</string>
     <string id="SetDisplay">Affichage vitesse</string>
+    <string id="SetDiagOverlay">Diagnostic à l'écran</string>
+    <string id="DiagOverlayPrompt">Affiche les diagnostics BLE à l'écran (compteurs de scan, signal, paquet de vitesse brut) pour résoudre les problèmes de connexion sur les appareils non pris en charge. Envoyez une photo de l'écran au développeur. Désactivez pour un usage normal.</string>
     <string id="OptBatteryPercent">Pourcentage</string>
     <string id="OptBatteryIcon">Icône</string>
     <string id="OptBatteryBoth">Icône + %</string>
@@ -21,12 +23,16 @@
 
     <string id="SetFrontChainrings">Plateaux avant</string>
     <string id="SetFrontTitle">Dents avant</string>
+    <string id="SetFrontPreset">Préréglage avant</string>
     <string id="SetRearCogs">Pignons arrière</string>
     <string id="SetRearTitle">Dents arrière</string>
-    <string id="TeethPrompt">Séparés par des virgules, une valeur par vitesse.</string>
+    <string id="SetRearPreset">Préréglage cassette</string>
+    <string id="TeethPrompt">Séparés par des virgules, une valeur par vitesse. Pris en compte uniquement si le préréglage ci-dessous est Personnalisé.</string>
+    <string id="PresetPrompt">Choisir une configuration Shimano courante pour un réglage en un geste. Un préréglage remplace le nombre et les dents ci-dessus. Choisir Personnalisé pour les saisir manuellement.</string>
+    <string id="OptPresetCustom">Personnalisé</string>
     <string id="SetForgetDevice">Oublier le Di2 associé</string>
     <string id="ForgetPrompt">Activez et enregistrez pour dissocier le Di2 actuel et connecter le plus proche au prochain scan. L’interrupteur se désactive tout seul.</string>
-    <string id="AboutText">Champ Di2 par Sergey Lapshin. Affiche votre vitesse Shimano Di2, le rapport et la batterie D-Fly via Bluetooth, et enregistre un résumé complet de la sortie (rapports, changements, combinaisons) dans l'activité. Réglez vos plateaux, cassette et dents ci-dessous. Testé avec Shimano XT Di2 RD-M8250-SGS (12 vitesses) sur Garmin Edge Explore 2. Application non officielle, sans lien avec Shimano.</string>
+    <string id="AboutText">Champ Di2 par Sergey Lapshin. Affiche votre vitesse Shimano Di2, le rapport et la batterie D-Fly via Bluetooth, et enregistre un résumé complet de la sortie (rapports, changements, combinaisons) dans l'activité. Configuration : choisissez un préréglage plateaux/cassette pour un réglage en un geste, ou choisissez Personnalisé et saisissez plateaux, cassette et dents manuellement. Un préréglage remplace toujours les champs manuels. Testé avec Shimano XT Di2 RD-M8250-SGS (12 vitesses) sur Garmin Edge Explore 2. Application non officielle, sans lien avec Shimano.</string>
 
     <string id="FieldRearGear">Pignon arrière</string>
     <string id="FieldFrontGear">Plateau avant</string>

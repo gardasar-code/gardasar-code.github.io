@@ -22,6 +22,24 @@
         <settingConfig type="alphaNumeric" maxLength="40"/>
     </setting>
 
+    <!-- Пресет передних звёзд: популярные конфигурации Shimano. Значение = индекс в
+         таблице FRONT_PRESETS (Di2FieldApp); 0 = Custom (ручной ввод выше). -->
+    <setting propertyKey="@Properties.frontTeethPreset"
+             title="@Strings.SetFrontPreset"
+             prompt="@Strings.PresetPrompt">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.OptPresetCustom</listEntry>
+            <listEntry value="1">50-34 (Compact)</listEntry>
+            <listEntry value="2">52-36 (Semi-compact)</listEntry>
+            <listEntry value="3">53-39 (Standard)</listEntry>
+            <listEntry value="4">54-40</listEntry>
+            <listEntry value="5">48-31 (GRX)</listEntry>
+            <listEntry value="6">46-30 (GRX)</listEntry>
+            <listEntry value="7">38-28 (MTB 2x)</listEntry>
+            <listEntry value="8">40-30-22 (3x)</listEntry>
+        </settingConfig>
+    </setting>
+
     <!-- Число задних звёзд (кассета). -->
     <setting propertyKey="@Properties.rearCogs"
              title="@Strings.SetRearCogs">
@@ -38,6 +56,28 @@
              title="@Strings.SetRearTitle"
              prompt="@Strings.TeethPrompt">
         <settingConfig type="alphaNumeric" maxLength="80"/>
+    </setting>
+
+    <!-- Пресет кассеты: популярные конфигурации Shimano 10/11/12-sp. Значение = индекс
+         в таблице REAR_PRESETS (Di2FieldApp); 0 = Custom. Раскладки сверены по ki2. -->
+    <setting propertyKey="@Properties.rearTeethPreset"
+             title="@Strings.SetRearPreset"
+             prompt="@Strings.PresetPrompt">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.OptPresetCustom</listEntry>
+            <listEntry value="1">12sp 10-51</listEntry>
+            <listEntry value="2">12sp 11-34</listEntry>
+            <listEntry value="3">12sp 11-30</listEntry>
+            <listEntry value="4">12sp 11-36</listEntry>
+            <listEntry value="5">12sp 11-28</listEntry>
+            <listEntry value="6">11sp 11-34</listEntry>
+            <listEntry value="7">11sp 11-32</listEntry>
+            <listEntry value="8">11sp 11-46</listEntry>
+            <listEntry value="9">11sp 11-28</listEntry>
+            <listEntry value="10">11sp 11-40</listEntry>
+            <listEntry value="11">10sp 11-43</listEntry>
+            <listEntry value="12">10sp 11-48</listEntry>
+        </settingConfig>
     </setting>
 
     <!-- Forget: одноразовый тоггл сброса привязки. Включи и сохрани — поле забудет
@@ -67,6 +107,14 @@
             <listEntry value="1">@Strings.OptDisplayGraphic</listEntry>
             <listEntry value="2">@Strings.OptDisplayBoth</listEntry>
         </settingConfig>
+    </setting>
+
+    <!-- Диагностический оверлей: для разбора проблем подключения на новых устройствах.
+         Включи → на экране появится BLE-диагностика → пришли фото разработчику. -->
+    <setting propertyKey="@Properties.diagOverlay"
+             title="@Strings.SetDiagOverlay"
+             prompt="@Strings.DiagOverlayPrompt">
+        <settingConfig type="boolean"/>
     </setting>
 
 </settings>

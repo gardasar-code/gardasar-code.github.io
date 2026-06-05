@@ -9,8 +9,10 @@ using Toybox.Application;
 // Нет данных -> "---". Точка подключения: зелёная (connected) / серая (нет).
 class Di2FieldView extends WatchUi.DataField {
 
-    // Калибровка: показывать сырые байты gear-пакета двумя строками снизу.
-    // true только для настройки смещений (напр. поиск байта передней для 2x).
+    // Принудительный диаг-оверлей для симулятора/калибровки (где настройки не подать).
+    // В обычной работе оверлей включается настройкой diagOverlay (Di2State.diagOverlay),
+    // которая работает в любой store-сборке. Здесь true — чтобы форсировать оверлей в
+    // debug-сборке. В коммите всегда false.
     private const DEBUG_OVERLAY = false;
 
     private var _state as Di2State?;
@@ -168,6 +170,16 @@ class Di2FieldView extends WatchUi.DataField {
         dc.setColor(bg, bg);
         dc.clear();
 
+        // ── Диагностический режим (настройка diagOverlay или DEBUG_OVERLAY) ──────
+        // Занимает ВЕСЬ экран: основной макет (крупные передачи/батарея) не нужен при
+        // разборе подключения — вместо него максимум диагностики + компактный световой
+        // индикатор этапа сверху. Работает в обычной store-сборке (это рисование, не
+        // println) → пользователь присылает ФОТО для разбора. См. doc/LOGGING.md.
+        if ((DEBUG_OVERLAY || (_state != null && _state.diagOverlay)) && _state != null) {
+            drawDiagScreen(dc, w, h, fg, bg, fade);
+            return;
+        }
+
         var connected = (_state != null) && _state.connected;
 
         // ── Верхняя строка ────────────────────────────────────────────────────
@@ -208,17 +220,97 @@ class Di2FieldView extends WatchUi.DataField {
         var rearY = (headerBottom + h) / 2;          // центр оставшейся высоты
         var maxHeight = ((h - headerBottom) * 0.9).toNumber();  // запас по высоте
         drawRearZone(dc, w / 2, rearY, maxWidth, maxHeight, connected, fg, fade);
+    }
 
-        // ── Отладочный дамп gear-пакета (калибровка байта передней) ────────────
-        if (DEBUG_OVERLAY && _state != null && _state.dbgGear.length() > 0) {
-            dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
-            var bytes = toTokens(_state.dbgGear);
-            var half = (bytes.size() + 1) / 2;
-            var line1 = joinRange(bytes, 0, half);          // байты 0..half-1
-            var line2 = joinRange(bytes, half, bytes.size()); // остальные
-            dc.drawText(w / 2, (h * 0.78).toNumber(), Graphics.FONT_XTINY, line1, Graphics.TEXT_JUSTIFY_CENTER);
-            dc.drawText(w / 2, (h * 0.88).toNumber(), Graphics.FONT_XTINY, line2, Graphics.TEXT_JUSTIFY_CENTER);
+    // ── Диагностический экран (полноэкранный) ───────────────────────────────────
+
+    // Полноэкранная BLE-диагностика для разбора подключения по ФОТО. Вместо основного
+    // макета: сверху компактный СВЕТОВОЙ индикатор этапа (цветной кружок фазы + слово),
+    // ниже — максимум технических данных мелким шрифтом, выровненных по левому краю:
+    //   dev/shi/RSSI   — discovery эфира (виден ли Shimano-маркер)
+    //   lk/bat         — sticky-lock и заряд
+    //   id=<GATT-имя>  — модель переключателя (для краудсорса серий)
+    //   mdl=<профиль>  — распознанный профиль (или "?" для неизвестной модели)
+    //   R=/F=/ratio    — распарсенные передачи и передаточное
+    //   len + hex      — длина и сырой notify-пакет (несколько строк)
+    // Технические подписи — английские литералы (диагностика, не локализуется).
+    private function drawDiagScreen(dc as Graphics.Dc, w as Lang.Number, h as Lang.Number,
+                                    fg as Graphics.ColorType, bg as Graphics.ColorType,
+                                    fade as Graphics.ColorType) as Void {
+        var s = _state;
+        if (s == null) {
+            return;
         }
+        var fh = dc.getFontHeight(Graphics.FONT_XTINY);
+        var vc = Graphics.TEXT_JUSTIFY_VCENTER;
+        var x = 3;
+
+        // Световой индикатор этапа: цветной кружок (цвет = фаза) + слово-подпись.
+        var r = (fh * 0.30).toNumber();
+        if (r < 3) { r = 3; }
+        var rowY = 1 + fh / 2;
+        dc.setColor(phaseColor(s.connected), Graphics.COLOR_TRANSPARENT);
+        dc.fillCircle(x + r, rowY, r);
+        dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(x + 2 * r + 5, rowY, Graphics.FONT_XTINY, phaseWord(), Graphics.TEXT_JUSTIFY_LEFT | vc);
+
+        // Технические строки (левое выравнивание, мелкий шрифт).
+        var lines = [
+            "dev=" + s.dbgScanTotal + " shi=" + s.dbgScanShimano
+                + " r=" + (s.dbgBestRssi > -999 ? s.dbgBestRssi.toString() : "--"),
+            "lk=" + (s.locked ? "1" : "0")
+                + " bat=" + (s.battery >= 0 ? s.battery.toString() + "%" : "--")
+        ] as Lang.Array<Lang.String>;
+        if (s.dbgDeviceName.length() > 0) {
+            lines.add("id=" + s.dbgDeviceName);
+        }
+        if (s.dbgModel.length() > 0) {
+            lines.add("mdl=" + s.dbgModel);
+        }
+        // Распарсенные передачи + передаточное отношение.
+        var ratio = s.gearRatio();
+        lines.add("R=" + numOrDash(s.rear) + "/" + numOrDash(s.rearTotal)
+            + " F=" + numOrDash(s.front) + "/" + numOrDash(s.frontTotal)
+            + (ratio > 0.0 ? " " + ratio.format("%.2f") : ""));
+        lines.add("len=" + s.dbgGearLen);
+
+        // Рисуем технические строки под индикатором (с защитой от выхода за экран).
+        var y = fh + 1;
+        dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+        for (var i = 0; i < lines.size() && y + fh <= h; i++) {
+            dc.drawText(x, y, Graphics.FONT_XTINY, lines[i], Graphics.TEXT_JUSTIFY_LEFT);
+            y += fh;
+        }
+
+        // Сырой notify-пакет: hex по строкам (по DIAG_HEX_PER_ROW байт), приглушённо.
+        if (s.dbgGear.length() > 0) {
+            var bytes = toTokens(s.dbgGear);
+            dc.setColor(fade, Graphics.COLOR_TRANSPARENT);
+            for (var from = 0; from < bytes.size() && y + fh <= h; from += DIAG_HEX_PER_ROW) {
+                var to = from + DIAG_HEX_PER_ROW;
+                dc.drawText(x, y, Graphics.FONT_XTINY, joinRange(bytes, from, to), Graphics.TEXT_JUSTIFY_LEFT);
+                y += fh;
+            }
+        }
+    }
+
+    // Сколько hex-байт в одной строке дампа на diag-экране.
+    private const DIAG_HEX_PER_ROW = 8;
+
+    // Число для diag: значение или "-" при отсутствии данных (<0).
+    private function numOrDash(v as Lang.Number) as Lang.String {
+        return (v < 0) ? "-" : v.toString();
+    }
+
+    // Слово-подпись этапа для светового индикатора diag-экрана.
+    private function phaseWord() as Lang.String {
+        if (_state != null && _state.connected) {
+            return "Live";
+        }
+        var p = (_state != null) ? _state.phase : CONN_SCANNING;
+        if (p == CONN_CONNECTING) { return "Connecting"; }
+        if (p == CONN_RETRY)      { return "Retry"; }
+        return "Scanning";
     }
 
     // ── Отладочные утилиты ──────────────────────────────────────────────────────
