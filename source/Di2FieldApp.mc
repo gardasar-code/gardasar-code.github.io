@@ -64,17 +64,17 @@ class Di2FieldApp extends Application.AppBase {
         _state.displayMode = readNumberProperty("displayMode", DISP_BOTH);
         _state.diagOverlay = readBooleanProperty("diagOverlay", false);
 
-        // Зубья и число звёзд: пресет (популярная конфигурация Shimano) имеет приоритет
-        // над ручным вводом. Непустой пресет задаёт и зубья, и число звёзд (по длине).
-        var front = resolveTeeth(FRONT_PRESETS, "frontTeethPreset", "frontTeeth",
-                                 "frontChainrings", _state.DEFAULT_FRONT_TEETH, 1);
-        _state.frontTeeth = front[0] as Lang.Array<Lang.Number>;
-        _state.frontTotal = front[1] as Lang.Number;
+        // Пресеты-«заполнители»: если выбран пресет, записываем его раскладку в ручные
+        // поля (зубья + число звёзд) и сбрасываем селектор в Custom — значения остаются
+        // видимыми и редактируемыми, как одноразовая кнопка. Делается ДО чтения ниже,
+        // поэтому дальше работает единый ручной путь.
+        applyPreset(FRONT_PRESETS, "frontTeethPreset", "frontTeeth", "frontChainrings");
+        applyPreset(REAR_PRESETS, "rearTeethPreset", "rearTeeth", "rearCogs");
 
-        var rear = resolveTeeth(REAR_PRESETS, "rearTeethPreset", "rearTeeth",
-                                "rearCogs", _state.DEFAULT_REAR_TEETH, 12);
-        _state.rearTeeth = rear[0] as Lang.Array<Lang.Number>;
-        _state.rearTotal = rear[1] as Lang.Number;
+        _state.frontTeeth = readTeeth("frontTeeth", _state.DEFAULT_FRONT_TEETH);
+        _state.frontTotal = readNumberProperty("frontChainrings", 1);
+        _state.rearTeeth = readTeeth("rearTeeth", _state.DEFAULT_REAR_TEETH);
+        _state.rearTotal = readNumberProperty("rearCogs", 12);
 
         // Текущую переднюю позицию из пакета не вычислить; для 1x она всегда 1,
         // для 2x/3x — неизвестна (покажем "-/N").
@@ -132,18 +132,24 @@ class Di2FieldApp extends Application.AppBase {
         return (s.length() > 0) ? s : null;
     }
 
-    // Разрешить зубья + число звёзд: выбранный пресет имеет приоритет над ручным вводом.
-    // Возвращает [teeth as Array<Number>, total as Number]. Общая логика для front/rear.
-    private function resolveTeeth(table as Lang.Array<Lang.String>, presetKey as Lang.String,
-                                  teethKey as Lang.String, countKey as Lang.String,
-                                  defaultTeeth as Lang.Array<Lang.Number>,
-                                  defaultCount as Lang.Number) as Lang.Array {
-        var preset = presetTeeth(table, readNumberProperty(presetKey, 0));
-        if (preset != null) {
-            var teeth = parseTeethString(preset, defaultTeeth);
-            return [teeth, teeth.size()];
+    // Применить выбранный пресет как «заполнитель»: записать его зубья в текстовое поле
+    // (teethKey) и число звёзд в селектор (countKey), затем сбросить сам пресет в Custom
+    // (одноразовое действие, как тоггл Forget). Если пресет не выбран (0/вне диапазона) —
+    // ничего не делаем, остаётся ручной ввод. Запись настроек не критична → glotaem ошибку.
+    private function applyPreset(table as Lang.Array<Lang.String>, presetKey as Lang.String,
+                                 teethKey as Lang.String, countKey as Lang.String) as Void {
+        var teeth = presetTeeth(table, readNumberProperty(presetKey, 0));
+        if (teeth == null) {
+            return;
         }
-        return [readTeeth(teethKey, defaultTeeth), readNumberProperty(countKey, defaultCount)];
+        var count = parseTeethString(teeth, []).size();   // число звёзд = кол-во значений
+        try {
+            Application.Properties.setValue(teethKey, teeth);
+            Application.Properties.setValue(countKey, count);
+            Application.Properties.setValue(presetKey, 0);
+        } catch (e) {
+            // не смогли записать — пресет применится при следующей загрузке настроек
+        }
     }
 
     // Прочитать строковое свойство и распарсить в список чисел (зубья).
