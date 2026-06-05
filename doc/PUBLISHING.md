@@ -179,7 +179,7 @@ Bluetooth handling under the hood.
 
 **Bluetooth permission justification:**
 ```
-Connects to the Shimano D-Fly module to read gear position and battery level.
+Connects to your Shimano Di2 to read gear position and battery level.
 ```
 
 ## На что обратить внимание при ревью
@@ -192,166 +192,233 @@ Connects to the Shimano D-Fly module to read gear position and battery level.
 
 ### 🇫🇷 Français — Title: `Champ Di2`
 ```
-Champ Di2 affiche votre vitesse arrière Shimano Di2 actuelle (p. ex. 5•12) et le
-niveau de batterie du module sans fil D-Fly directement sur votre écran de données Edge.
+Champ Di2 affiche votre vitesse arrière Di2 actuelle (testé avec RD-M8250-SGS
+12 vitesses, p. ex. 5•12) et le niveau de batterie du module sans fil
+directement sur votre écran de données Edge.
 
-Il se connecte en Bluetooth Low Energy à un module Shimano D-Fly
-(EW-WU111 / SC-M9051) — pas besoin d'ANT+.
+Il se connecte en Bluetooth Low Energy — pas besoin d'ANT+.
+
+CONFIGURER VOTRE TRANSMISSION
+Indiquez votre transmission pour des vitesses et rapports corrects :
+- Rapide : choisissez un préréglage Shimano intégré pour les plateaux et la
+  cassette (p. ex. 50-34, 11-34, 10-51) — tout est rempli en un geste.
+- Manuel : réglez le préréglage sur Personnalisé, puis choisissez le nombre de
+  plateaux (1–3) et la taille de cassette et saisissez les dents de chaque
+  plateau et pignon.
+Un préréglage remplace toujours les champs manuels.
 
 FONCTIONNALITÉS
 - Vitesse arrière grande et lisible avec la taille de cassette (actuelle • totale)
 - Indicateur de plateau avant
-- Transmission configurable : choisissez les plateaux avant (1–3) et la taille de
-  cassette, puis saisissez le nombre de dents de chaque plateau/pignon pour des
-  rapports précis
-- Pourcentage de batterie D-Fly
+- Vitesse arrière en chiffres, en graphique de cassette, ou les deux
+- Préréglages Shimano intégrés pour plateaux et cassettes courants
+  (10/11/12 vitesses), ou saisissez vos propres dents pour toute transmission
+- Pourcentage de batterie ou icône de batterie colorée
 - Indicateur de connexion avec reconnexion automatique
+- Détection automatique du modèle Di2
+- Superposition de diagnostic à l'écran pour résoudre les problèmes de connexion
 - Thème de couleur jour / nuit
 - Six langues : anglais, français, espagnol, russe, allemand, arabe
 
 ENREGISTREMENT DANS L'ACTIVITÉ (données Connect IQ dans Garmin Connect)
-- Par seconde : vitesse avant et arrière, dents avant et arrière, rapport, batterie D-Fly
+- Par seconde : vitesse avant et arrière, dents avant et arrière, rapport, batterie
 - Résumé de sortie : rapport moyen et maximal, nombre de changements avant et arrière,
   combinaison la plus utilisée avec part de temps, top-3 des pignons arrière les plus
-  utilisés, plus grande vitesse arrière, batterie D-Fly minimale
+  utilisés, plus grande vitesse arrière, batterie minimale
 - Visible dans la section Connect IQ de l'activité et tout service compatible FIT
 
 PRÉREQUIS
-- Shimano Di2 avec un module D-Fly (EW-WU111 ou SC-M9051) diffusant en BLE.
+- Shimano Di2 diffusant en BLE.
 
-Testé avec Shimano XT Di2 RD-M8250-SGS (12 vitesses) sur Garmin Edge Explore 2.
+Confirmé avec Shimano XT Di2 RD-M8250-SGS (12 vitesses) sur Garmin Edge Explore 2.
+D'autres séries Di2 diffusant les mêmes données BLE peuvent aussi fonctionner — le
+champ détecte le modèle, et la superposition de diagnostic aide à prendre en charge
+de nouveaux modèles.
 
 Application indépendante et non officielle — sans lien ni approbation de Shimano.
 ```
 
 ### 🇪🇸 Español — Title: `Campo Di2`
 ```
-Campo Di2 muestra tu marcha trasera Shimano Di2 actual (p. ej. 5•12) y el nivel
-de batería del módulo inalámbrico D-Fly directamente en tu pantalla de datos Edge.
+Campo Di2 muestra tu marcha trasera Di2 actual (probado con RD-M8250-SGS
+12 velocidades, p. ej. 5•12) y el nivel de batería del módulo inalámbrico
+directamente en tu pantalla de datos Edge.
 
-Se conecta por Bluetooth Low Energy a un módulo Shimano D-Fly
-(EW-WU111 / SC-M9051) — sin necesidad de ANT+.
+Se conecta por Bluetooth Low Energy — sin necesidad de ANT+.
+
+CONFIGURAR TU TRANSMISIÓN
+Indica tu transmisión para que las marchas y relaciones sean correctas:
+- Rápido: elige un preajuste Shimano integrado para los platos y el cassette
+  (p. ej. 50-34, 11-34, 10-51) — lo rellena todo con un toque.
+- Manual: pon el preajuste en Personalizado, luego elige el número de platos
+  (1–3) y el tamaño del cassette e introduce los dientes de cada plato y piñón.
+Un preajuste siempre anula los campos manuales.
 
 CARACTERÍSTICAS
 - Marcha trasera grande y clara con el tamaño del cassette (actual • total)
 - Indicador de plato delantero
-- Transmisión configurable: elige los platos delanteros (1–3) y el tamaño del
-  cassette, luego introduce los dientes de cada plato/piñón para relaciones precisas
-- Porcentaje de batería D-Fly
+- Marcha trasera en números, en gráfico de cassette, o ambos
+- Preajustes Shimano integrados para platos y cassettes comunes
+  (10/11/12 velocidades), o introduce tus propios dientes para cualquier transmisión
+- Porcentaje de batería o icono de batería con color
 - Indicador de conexión con reconexión automática
+- Detección automática del modelo Di2
+- Superposición de diagnóstico en pantalla para resolver problemas de conexión
 - Tema de color día / noche
 - Seis idiomas: inglés, francés, español, ruso, alemán, árabe
 
 REGISTRO EN LA ACTIVIDAD (datos Connect IQ en Garmin Connect)
-- Por segundo: marcha delantera y trasera, dientes delanteros y traseros, relación, batería D-Fly
+- Por segundo: marcha delantera y trasera, dientes delanteros y traseros, relación, batería
 - Resumen de la ruta: relación media y máxima, número de cambios delanteros y traseros,
   combinación más usada con porcentaje de tiempo, top-3 de piñones traseros más usados,
-  marcha trasera más alta, batería D-Fly mínima
+  marcha trasera más alta, batería mínima
 - Visible en la sección Connect IQ de la actividad y cualquier servicio compatible con FIT
 
 REQUISITOS
-- Shimano Di2 con un módulo D-Fly (EW-WU111 o SC-M9051) emitiendo por BLE.
+- Shimano Di2 emitiendo por BLE.
 
-Probado con Shimano XT Di2 RD-M8250-SGS (12 velocidades) en Garmin Edge Explore 2.
+Confirmado con Shimano XT Di2 RD-M8250-SGS (12 velocidades) en Garmin Edge Explore 2.
+Otras series Di2 que emitan los mismos datos BLE también pueden funcionar — el campo
+detecta el modelo, y la superposición de diagnóstico ayuda a añadir compatibilidad
+con nuevos modelos.
 
 App independiente y no oficial — sin afiliación ni respaldo de Shimano.
 ```
 
 ### 🇷🇺 Русский — Title: `Поле Di2`
 ```
-Поле Di2 показывает текущую заднюю передачу Shimano Di2 (например, 5•12) и заряд
-беспроводного модуля D-Fly прямо на экране данных вашего Edge.
+Поле Di2 показывает текущую заднюю передачу Di2 (протестировано на RD-M8250-SGS
+12 скоростей, например 5•12) и заряд беспроводного модуля прямо на экране данных
+вашего Edge.
 
-Подключается по Bluetooth Low Energy к модулю Shimano D-Fly
-(EW-WU111 / SC-M9051) — ANT+ не требуется.
+Подключается по Bluetooth Low Energy — ANT+ не требуется.
+
+НАСТРОЙКА ТРАНСМИССИИ
+Укажите свою трансмиссию, чтобы передачи и отношения были верными:
+- Быстро: выберите встроенный пресет Shimano для звёзд и кассеты
+  (например, 50-34, 11-34, 10-51) — всё заполнится в одно касание.
+- Вручную: поставьте пресет «Свой», затем выберите число передних звёзд (1–3)
+  и размер кассеты и введите зубья каждой звезды.
+Пресет всегда переопределяет ручные поля.
 
 ВОЗМОЖНОСТИ
 - Крупная, читаемая задняя передача с размером кассеты (текущая • всего)
 - Индикатор передней звезды
-- Настраиваемая трансмиссия: выберите число передних звёзд (1–3) и размер кассеты,
-  затем введите зубья каждой звезды для точных передаточных отношений
-- Процент заряда D-Fly
+- Задняя передача цифрами, графиком кассеты или вместе
+- Встроенные пресеты Shimano для популярных звёзд и кассет
+  (10/11/12 скоростей) или ввод своих зубьев для любой трансмиссии
+- Процент заряда или цветная иконка батареи
 - Индикатор соединения с автопереподключением
+- Автоматическое распознавание модели Di2
+- Экранный диагностический оверлей для разбора проблем подключения
 - Дневная / ночная цветовая тема
 - Шесть языков: английский, французский, испанский, русский, немецкий, арабский
 
 ЗАПИСЬ В АКТИВНОСТЬ (данные Connect IQ в Garmin Connect)
-- Посекундно: передняя и задняя передача, зубья спереди и сзади, передаточное, заряд D-Fly
+- Посекундно: передняя и задняя передача, зубья спереди и сзади, передаточное, заряд
 - Сводка за заезд: среднее и максимальное передаточное, число переключений спереди и сзади,
   самая используемая комбинация с долей времени, топ-3 самых используемых задних звёзд,
-  наибольшая задняя передача, минимальный заряд D-Fly
+  наибольшая задняя передача, минимальный заряд
 - Видно в разделе Connect IQ активности и в любом сервисе, читающем FIT
 
 ТРЕБОВАНИЯ
-- Shimano Di2 с модулем D-Fly (EW-WU111 или SC-M9051), вещающим по BLE.
+- Shimano Di2, вещающий по BLE.
 
-Протестировано на Shimano XT Di2 RD-M8250-SGS (12 скоростей) на Garmin Edge Explore 2.
+Подтверждено на Shimano XT Di2 RD-M8250-SGS (12 скоростей) с Garmin Edge Explore 2.
+Другие серии Di2, вещающие те же BLE-данные, тоже могут работать — поле распознаёт
+модель, а диагностический оверлей помогает добавить поддержку новых.
 
 Независимое неофициальное приложение — не связано с Shimano и не одобрено ею.
 ```
 
 ### 🇩🇪 Deutsch — Title: `Di2 Feld`
 ```
-Di2 Feld zeigt deinen aktuellen Shimano Di2 Gang hinten (z. B. 5•12) und den
-Akkustand des kabellosen D-Fly Moduls direkt auf deinem Edge-Datenbildschirm.
+Di2 Feld zeigt deinen aktuellen Di2 Gang hinten (getestet mit RD-M8250-SGS
+12-fach, z. B. 5•12) und den Akkustand des kabellosen Moduls direkt auf deinem
+Edge-Datenbildschirm.
 
-Es verbindet sich per Bluetooth Low Energy mit einem Shimano D-Fly Modul
-(EW-WU111 / SC-M9051) — kein ANT+ nötig.
+Es verbindet sich per Bluetooth Low Energy — kein ANT+ nötig.
+
+ANTRIEB EINRICHTEN
+Gib deinen Antrieb an, damit Gänge und Übersetzungen korrekt sind:
+- Schnell: wähle eine integrierte Shimano-Vorlage für Kettenblätter und Kassette
+  (z. B. 50-34, 11-34, 10-51) — alles wird mit einem Tippen ausgefüllt.
+- Manuell: stelle die Vorlage auf „Benutzerdefiniert“, dann wähle die Anzahl der
+  Kettenblätter (1–3) und die Kassettengröße und gib die Zähne jedes Blatts und
+  Ritzels ein.
+Eine Vorlage überschreibt immer die manuellen Felder.
 
 FUNKTIONEN
 - Großer, klarer Gang hinten mit Kassettengröße (aktuell • gesamt)
 - Anzeige des vorderen Kettenblatts
-- Konfigurierbarer Antrieb: wähle die vorderen Kettenblätter (1–3) und die
-  Kassettengröße, dann gib die Zähnezahl jedes Blatts/Ritzels für genaue
-  Übersetzungen ein
-- D-Fly Akkustand in Prozent
+- Gang hinten als Zahlen, als Kassettengrafik oder beides
+- Integrierte Shimano-Vorlagen für gängige Kettenblätter und Kassetten
+  (10/11/12-fach), oder gib eigene Zähne für jeden Antrieb ein
+- Akkustand in Prozent oder farbcodiertes Akkusymbol
 - Verbindungsanzeige mit automatischer Wiederverbindung
+- Automatische Erkennung des Di2 Modells
+- Diagnose-Overlay auf dem Bildschirm zur Behebung von Verbindungsproblemen
 - Tag-/Nacht-Farbschema
 - Sechs Sprachen: Englisch, Französisch, Spanisch, Russisch, Deutsch, Arabisch
 
 AUFZEICHNUNG IN DER AKTIVITÄT (Connect IQ Daten in Garmin Connect)
-- Pro Sekunde: Gang vorne und hinten, Zähne vorne und hinten, Übersetzung, D-Fly Akku
+- Pro Sekunde: Gang vorne und hinten, Zähne vorne und hinten, Übersetzung, Akku
 - Fahrt-Zusammenfassung: durchschnittliche und maximale Übersetzung, Anzahl der
   Schaltvorgänge vorne und hinten, häufigste Kombination mit Zeitanteil, Top-3 der
-  meistgenutzten hinteren Ritzel, höchster Gang hinten, niedrigster D-Fly Akku
+  meistgenutzten hinteren Ritzel, höchster Gang hinten, niedrigster Akku
 - Sichtbar im Connect IQ Bereich der Aktivität und in jedem FIT-fähigen Dienst
 
 VORAUSSETZUNGEN
-- Shimano Di2 mit einem D-Fly Modul (EW-WU111 oder SC-M9051), das über BLE sendet.
+- Shimano Di2, das über BLE sendet.
 
-Getestet mit Shimano XT Di2 RD-M8250-SGS (12-fach) auf Garmin Edge Explore 2.
+Bestätigt mit Shimano XT Di2 RD-M8250-SGS (12-fach) auf Garmin Edge Explore 2.
+Andere Di2 Serien, die dieselben BLE-Daten senden, können ebenfalls funktionieren —
+das Feld erkennt das Modell, und das Diagnose-Overlay hilft, neue Modelle zu
+unterstützen.
 
 Unabhängige, inoffizielle App — nicht mit Shimano verbunden oder unterstützt.
 ```
 
 ### 🇸🇦 العربية — Title: `حقل Di2`
 ```
-يعرض حقل Di2 سرعتك الخلفية الحالية من Shimano Di2 (مثل 5•12) ومستوى بطارية وحدة
-D-Fly اللاسلكية مباشرة على شاشة بيانات جهاز Edge.
+يعرض حقل Di2 سرعتك الخلفية الحالية من Di2 (تم اختباره مع RD-M8250-SGS بـ 12 سرعة،
+مثل 5•12) ومستوى بطارية الوحدة اللاسلكية مباشرة على شاشة بيانات جهاز Edge.
 
-يتصل عبر Bluetooth Low Energy بوحدة Shimano D-Fly
-(EW-WU111 / SC-M9051) — دون الحاجة إلى ANT+.
+يتصل عبر Bluetooth Low Energy — دون الحاجة إلى ANT+.
+
+إعداد مجموعة النقل
+حدّد مجموعة النقل لديك لتكون السرعات والنسب صحيحة:
+- سريع: اختر إعداداً مسبقاً من Shimano للنجوم الأمامية والكاسيت
+  (مثل 50-34، 11-34، 10-51) — يملأ كل شيء بلمسة واحدة.
+- يدوي: اضبط الإعداد المسبق على مخصص، ثم اختر عدد النجوم الأمامية (1–3) وحجم
+  الكاسيت وأدخل أسنان كل نجمة وترس.
+الإعداد المسبق يتجاوز دائماً الحقول اليدوية.
 
 الميزات
 - سرعة خلفية كبيرة وواضحة مع حجم الكاسيت (الحالية • الإجمالي)
 - مؤشر النجمة الأمامية
-- مجموعة نقل قابلة للضبط: اختر النجوم الأمامية (1–3) وحجم الكاسيت، ثم أدخل عدد
-  أسنان كل نجمة/ترس للحصول على نسب دقيقة
-- نسبة بطارية D-Fly
+- السرعة الخلفية بالأرقام، أو كرسم للكاسيت، أو كليهما
+- إعدادات Shimano المسبقة للنجوم والكاسيتات الشائعة
+  (10/11/12 سرعة)، أو أدخل أسنانك الخاصة لأي مجموعة نقل
+- نسبة البطارية أو أيقونة بطارية ملونة
 - مؤشر الاتصال مع إعادة اتصال تلقائية
+- كشف تلقائي لطراز Di2
+- طبقة تشخيص على الشاشة للمساعدة في حل مشكلات الاتصال
 - سمة ألوان نهارية / ليلية
 - ست لغات: الإنجليزية، الفرنسية، الإسبانية، الروسية، الألمانية، العربية
 
 التسجيل في النشاط (بيانات Connect IQ في Garmin Connect)
-- كل ثانية: السرعة الأمامية والخلفية، الأسنان الأمامية والخلفية، النسبة، بطارية D-Fly
+- كل ثانية: السرعة الأمامية والخلفية، الأسنان الأمامية والخلفية، النسبة، البطارية
 - ملخص الرحلة: متوسط وأقصى نسبة، عدد التبديلات الأمامية والخلفية، أكثر تركيبة استخداماً
-  مع نسبة الوقت، أفضل 3 تروس خلفية استخداماً، أعلى سرعة خلفية، أدنى بطارية D-Fly
+  مع نسبة الوقت، أفضل 3 تروس خلفية استخداماً، أعلى سرعة خلفية، أدنى بطارية
 - يظهر في قسم Connect IQ للنشاط وفي أي خدمة تدعم FIT
 
 المتطلبات
-- نظام Shimano Di2 مع وحدة D-Fly (EW-WU111 أو SC-M9051) تبث عبر BLE.
+- نظام Shimano Di2 يبث عبر BLE.
 
-تم اختباره مع Shimano XT Di2 RD-M8250-SGS (12 سرعة) على Garmin Edge Explore 2.
+تم التأكيد مع Shimano XT Di2 RD-M8250-SGS (12 سرعة) على Garmin Edge Explore 2.
+قد تعمل أيضاً سلاسل Di2 أخرى تبث نفس بيانات BLE — يكتشف الحقل الطراز، وتساعد طبقة
+التشخيص في إضافة دعم لطُرز جديدة.
 
 تطبيق مستقل غير رسمي — غير مرتبط بشركة Shimano أو معتمد منها.
 ```
