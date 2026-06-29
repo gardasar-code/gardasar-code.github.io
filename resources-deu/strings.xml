@@ -4,7 +4,6 @@
     <string id="AppName">Di2 Feld Beta</string>
     <string id="LabelDi2">Di2</string>
     <string id="LabelNoData">---</string>
-    <string id="LabelFront">V:</string>
 
     <string id="StatusSearching">Suche</string>
     <string id="StatusConnecting">Verbinde</string>

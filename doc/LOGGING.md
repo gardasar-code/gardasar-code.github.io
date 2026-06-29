@@ -104,3 +104,65 @@ Connect IQ-приложение **не может создавать произ�
 `DEBUG` в `Di2BleDelegate.mc` вернуть в `false` (release-логи не нужны, экономия
 кода/ресурсов). Диагностический билд (`build-diag.sh`) и `DI2DIAG.*` в стор не
 идут — это только сайдлоад.
+
+## Шаблон ответа пользователю (просьба о дампе новой системы)
+
+Готовый ответ на отзывы/письма вида «добавьте поддержку моей трансмиссии» или
+«сделайте бары по передним звёздам». Цель — попросить владельца снять
+`diagOverlay` (фото/видео экрана с hex), чтобы расшифровать неизвестный байт
+(особенно **передней** звезды для 2x/3x — см. `doc/NOTES.md`).
+
+Отвечаем по-английски (стор), русский держим как эталон. Контакт для отправки
+фото/видео **подставить свой** (`sp.lapshin@gmail.com` или ссылку на трекер).
+
+### 🇬🇧 English
+
+> Hi there,
+>
+> Thank you for the kind words and the suggestion — front-chainring bars are on my list!
+>
+> So far I've only been able to test the app on my own system, and for exactly these situations I built in a **diagnostic mode** so riders can help me support more setups. The Di2 BLE format isn't documented anywhere, so adding new drivetrains really depends on a bit of help from people who own them. Here's how you can help:
+>
+> **1) Tell me your drivetrain:**
+> - Rear derailleur model (e.g. RD-R8150) and number of rear sprockets (e.g. 12)
+> - Front: number of chainrings (1× / 2× / 3×) and tooth counts if you know them (e.g. 50/34)
+>
+> **2) Turn on the diagnostic mode and capture your shifts:**
+> - In Garmin Connect → IQ app settings for Di2 Field, turn on **"Diagnostics overlay"**. The screen will then show raw hex data that helps me decode the gears.
+> - Add the field to a data screen and **start recording an activity** (the field only runs while recording).
+> - With the bike on a stand, shift through all the gears — front and rear, one click at a time with a short pause on each.
+> - Send me either a **photo of the screen at every shift**, or a **video** of the screen while you shift through everything.
+> - Turn the overlay back off afterwards for normal use.
+>
+> With your gear counts plus that hex data I can map it out and add the front display — bar chart included. Thanks for helping make the app better for everyone!
+>
+> Best regards,
+> Sergey Lapshin
+> Developer, Di2 Field
+> sp.lapshin@gmail.com
+
+### 🇷🇺 Русский (эталон)
+
+> Здравствуйте,
+>
+> Спасибо за тёплые слова и идею — бары по передним звёздам у меня в планах!
+>
+> Пока я тестировал приложение только на своей системе, и как раз для таких ситуаций добавил **режим диагностики** — чтобы люди могли помочь с поддержкой других трансмиссий. Формат BLE у Di2 нигде не документирован, поэтому добавление новых систем реально зависит от небольшой помощи их владельцев. Вот как можно помочь:
+>
+> **1) Сообщите свою трансмиссию:**
+> - Модель заднего переключателя (например, RD-R8150) и число задних звёзд (например, 12)
+> - Перёд: число звёзд (1× / 2× / 3×) и количество зубьев, если знаете (например, 50/34)
+>
+> **2) Включите режим диагностики и снимите переключения:**
+> - В Garmin Connect → настройки IQ-приложения Di2 Field включите тоггл **«Diagnostics overlay»**. После этого на экране появятся сырые hex-данные, которые помогают мне расшифровать передачи.
+> - Добавьте поле на экран данных и **начните запись активности** (поле работает только во время записи).
+> - На станке прогоните все передачи — и перёд, и зад, по одному клику с короткой паузой на каждом.
+> - Пришлите мне либо **фото экрана на каждом переключении**, либо **видео** экрана, пока переключаете всё подряд.
+> - После этого выключите оверлей для обычного использования.
+>
+> С вашими числами звёзд и этими hex-данными я всё сопоставлю и добавлю отображение переда — с баром в том числе. Спасибо, что помогаете сделать приложение лучше для всех!
+>
+> С уважением,
+> Сергей Лапшин
+> Разработчик Di2 Field
+> sp.lapshin@gmail.com

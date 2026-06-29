@@ -4,7 +4,6 @@
     <string id="AppName">حقل Di2 Beta</string>
     <string id="LabelDi2">Di2</string>
     <string id="LabelNoData">---</string>
-    <string id="LabelFront">أمام:</string>
 
     <string id="StatusSearching">جارٍ البحث</string>
     <string id="StatusConnecting">جارٍ الاتصال</string>

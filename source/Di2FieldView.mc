@@ -3,10 +3,18 @@ using Toybox.Graphics;
 using Toybox.Lang;
 using Toybox.Application;
 
-// Рендеринг Data Field (светлая тема). Макет:
-//   [Di2] •      F:{front}/{frontTotal}      {bat}%      ← FONT_XTINY
-//                    {rear}/{rearTotal}                  ← крупнейший шрифт
-// Нет данных -> "---". Точка подключения: зелёная (connected) / серая (нет).
+// Рендеринг Data Field (светлая тема). Структура экрана:
+//   ROOT (внутр. отступ)
+//   ├── HEADER ── Di2 + индикатор фазы | батарея
+//   └── BODY
+//       ├── LEFT  (перёд, только при frontTotal > 1)
+//       │   ├── GRAF (столбики передних звёзд)
+//       │   └── NUM  (цифра текущей передней)
+//       └── RIGHT (зад, всегда)
+//           ├── GRAF (кассета)
+//           └── NUM  (текущая · всего)
+// GRAF/NUM присутствуют по displayMode (цифры/график/оба). Нет связи — статус-экран.
+// Точка-индикатор в HEADER: цвет = фаза (зелёная connected / синяя поиск / …).
 class Di2FieldView extends WatchUi.DataField {
 
     // Принудительный диаг-оверлей для симулятора/калибровки (где настройки не подать).
@@ -25,7 +33,6 @@ class Di2FieldView extends WatchUi.DataField {
     // Кэш строк из ресурсов (грузим один раз, с учётом языка устройства).
     private var _lblDi2 as Lang.String = "Di2";
     private var _noData as Lang.String = "---";
-    private var _lblFront as Lang.String = "F:";
     private var _statSearching as Lang.String = "Searching";
     private var _statConnecting as Lang.String = "Connecting";
     private var _statHint as Lang.String = "Wake the Di2";
@@ -41,7 +48,6 @@ class Di2FieldView extends WatchUi.DataField {
         _delegate = delegate;
         _lblDi2 = WatchUi.loadResource(Rez.Strings.LabelDi2) as Lang.String;
         _noData = WatchUi.loadResource(Rez.Strings.LabelNoData) as Lang.String;
-        _lblFront = WatchUi.loadResource(Rez.Strings.LabelFront) as Lang.String;
         _statSearching = WatchUi.loadResource(Rez.Strings.StatusSearching) as Lang.String;
         _statConnecting = WatchUi.loadResource(Rez.Strings.StatusConnecting) as Lang.String;
         _statHint = WatchUi.loadResource(Rez.Strings.StatusHint) as Lang.String;
@@ -74,18 +80,24 @@ class Di2FieldView extends WatchUi.DataField {
     // Полный цикл сцен (0..8) — прогоняет фазы связи И варианты показа батареи/передачи:
     //   0 Searching   — синяя пульсирующая точка, статус-экран поиска
     //   1 Connecting  — жёлтая точка, статус-экран подключения
-    //   2 Live        — цифры + батарея %, передача 5/12, 80 %
-    //   3 Live        — цифры + батарея ИКОНКОЙ, 8/12, 45 %
-    //   4 Live+lock   — цифры + батарея иконка+% (низкий заряд), 11/12, 12 %
-    //   5 Live        — ГРАФИК кассеты + батарея %, 3/12, 60 %
-    //   6 Live+lock   — ГРАФИК кассеты + батарея иконкой, 9/12, 30 %
-    //   7 Live+lock   — ОБА (график+цифры) + батарея иконка+%, 12/12, 90 %
+    //   2 Live        — цифры + батарея %, 1x, передача 5/12, 80 %
+    //   3 Live        — цифры + батарея ИКОНКОЙ, 1x, 8/12, 45 %
+    //   4 Live+lock   — цифры + иконка+% (низкий заряд), 2x (цифра передней), 11/12, 12 %
+    //   5 Live        — ГРАФИК кассеты + %, 2x (бар передней, текущая неизв.), 3/12, 60 %
+    //   6 Live+lock   — ГРАФИК кассеты + иконка, 3x (бар передней активный), 9/12, 30 %
+    //   7 Live+lock   — ОБА (график+цифры) + иконка+%, 2x (бар+цифра), 12/12, 90 %
     //   8 Retry       — оранжевая точка, статус-экран (привязка ещё активна)
+    //   9 Diag        — диагностический экран (BLE-разбор по фото): discovery, GATT-имя,
+    //                   профиль, передачи, сырой notify-пакет
     //
-    // Зафиксировать ОДИН вид (для скриншота): «File → Edit Persistent Storage» в
-    // симуляторе → ключ debugScene (число 0..5). Удали ключ — снова пойдёт цикл.
+    // Зафиксировать ОДИН вид (для скриншота) двумя способами:
+    //   • в коде — константа DEMO_SCENE ниже: -1 = цикл по всем сценам (как сейчас),
+    //     0..8 = всегда показывать эту сцену (быстро менять прямо в исходнике);
+    //   • в рантайме — «File → Edit Persistent Storage» в симуляторе → ключ debugScene.
+    // Приоритет: DEMO_SCENE (если >=0) → debugScene → цикл по тикам.
+    (:debug) const DEMO_SCENE = -1;        // -1 = цикл; 0..9 = зафиксировать сцену в коде
     (:debug) const DEMO_SCENE_TICKS = 5;
-    (:debug) const DEMO_SCENE_COUNT = 9;   // число сцен в демо-цикле (0..8)
+    (:debug) const DEMO_SCENE_COUNT = 10;  // число сцен в демо-цикле (0..9)
 
     (:debug)
     function applyDebugData() as Void {
@@ -95,40 +107,50 @@ class Di2FieldView extends WatchUi.DataField {
         _demoTick += 1;
         _state.anim = _demoTick;   // анимация точки и многоточия
 
-        var forced = Application.Storage.getValue("debugScene");
-        var scene = (forced != null)
-            ? ((forced as Lang.Number) % DEMO_SCENE_COUNT)
-            : ((_demoTick / DEMO_SCENE_TICKS) % DEMO_SCENE_COUNT);
+        var scene;
+        if (DEMO_SCENE >= 0) {
+            scene = DEMO_SCENE % DEMO_SCENE_COUNT;            // зафиксировано в коде
+        } else {
+            var forced = Application.Storage.getValue("debugScene");
+            scene = (forced != null)
+                ? ((forced as Lang.Number) % DEMO_SCENE_COUNT)   // зафиксировано в storage
+                : ((_demoTick / DEMO_SCENE_TICKS) % DEMO_SCENE_COUNT);  // цикл
+        }
 
         // Параметры setDemo: connected, phase, locked, rear, rearTotal, battery,
-        //                    batMode(0 проц/1 иконка/2 оба), dispMode(0 цифры/1 график/2 оба).
+        //                    batMode(0 проц/1 иконка/2 оба), dispMode(0 цифры/1 график/2 оба),
+        //                    front(текущая передняя, <0 = неизвестна), frontTotal(1/2/3).
         switch (scene) {
             case 0:   // поиск
-                setDemo(false, CONN_SCANNING,  false, -1, -1, -1, 0, 0);
+                setDemo(false, CONN_SCANNING,  false, -1, -1, -1, 0, 0, 1, 1);
                 break;
             case 1:   // подключение
-                setDemo(false, CONN_CONNECTING, false, -1, -1, -1, 0, 0);
+                setDemo(false, CONN_CONNECTING, false, -1, -1, -1, 0, 0, 1, 1);
                 break;
-            case 2:   // цифры + батарея %
-                setDemo(true,  CONN_LIVE, false, 5, 12, 80, 0, 0);
+            case 2:   // цифры + батарея %, 1x (передней нет)
+                setDemo(true,  CONN_LIVE, false, 5, 12, 80, 0, 0, 1, 1);
                 break;
-            case 3:   // цифры + батарея иконкой
-                setDemo(true,  CONN_LIVE, false, 8, 12, 45, 1, 0);
+            case 3:   // цифры + батарея иконкой, 1x
+                setDemo(true,  CONN_LIVE, false, 8, 12, 45, 1, 0, 1, 1);
                 break;
-            case 4:   // цифры + батарея иконка+% (низкий заряд)
-                setDemo(true,  CONN_LIVE, true, 11, 12, 12, 2, 0);
+            case 4:   // цифры + батарея иконка+%, 2x (цифра передней слева)
+                setDemo(true,  CONN_LIVE, true, 11, 12, 12, 2, 0, 2, 2);
                 break;
-            case 5:   // ГРАФИК кассеты + батарея %
-                setDemo(true,  CONN_LIVE, false, 3, 12, 60, 0, 1);
+            case 5:   // ГРАФИК кассеты + %, 2x (бар передней, текущая неизвестна)
+                setDemo(true,  CONN_LIVE, false, 3, 12, 60, 0, 1, -1, 2);
                 break;
-            case 6:   // ГРАФИК кассеты + батарея иконкой
-                setDemo(true,  CONN_LIVE, true, 9, 12, 30, 1, 1);
+            case 6:   // ГРАФИК кассеты + иконка, 3x (бар передней, активная подсвечена)
+                setDemo(true,  CONN_LIVE, true, 9, 12, 30, 1, 1, 2, 3);
                 break;
-            case 7:   // ОБА (график+цифры) + батарея иконка+%
-                setDemo(true,  CONN_LIVE, true, 12, 12, 90, 2, 2);
+            case 7:   // ОБА (график+цифры) + иконка+%, 2x (бар у кассеты + цифра у цифр)
+                setDemo(true,  CONN_LIVE, true, -1, 12, 90, 2, 2, 2, 2);
                 break;
-            default:  // потеря связи / реконнект
-                setDemo(false, CONN_RETRY, true, -1, -1, -1, 0, 0);
+            case 8:   // потеря связи / реконнект
+                setDemo(false, CONN_RETRY, true, -1, -1, -1, 0, 0, 1, 1);
+                break;
+            default:  // диагностический экран (BLE-разбор по фото)
+                setDemo(true, CONN_LIVE, true, 5, 12, 80, 0, 0, 2, 2);
+                setDemoDiag();
                 break;
         }
     }
@@ -136,20 +158,42 @@ class Di2FieldView extends WatchUi.DataField {
     // Применить одну демо-сцену к состоянию (только debug). battery<0 не трогаем.
     // batMode/dispMode прокидываем в state, чтобы в превью прогонять новые варианты
     // показа батареи (процент/иконка/оба) и передачи (цифры/график/оба).
+    // front/frontTotal — для превью переднего индикатора (1x скрыт; 2x/3x — бар/цифра;
+    // front<0 имитирует «текущая неизвестна», как на реальном 2x/3x).
     (:debug)
     function setDemo(connected as Lang.Boolean, phase as Lang.Number, locked as Lang.Boolean,
                      rear as Lang.Number, rearTotal as Lang.Number, battery as Lang.Number,
-                     batMode as Lang.Number, dispMode as Lang.Number) as Void {
+                     batMode as Lang.Number, dispMode as Lang.Number,
+                     front as Lang.Number, frontTotal as Lang.Number) as Void {
         _state.connected = connected;
         _state.phase = phase;
         _state.locked = locked;
         _state.rear = rear;
         _state.rearTotal = rearTotal;
-        _state.front = 1;        // дефолтный привод: одна передняя звезда
-        _state.frontTotal = 1;
+        _state.front = front;
+        _state.frontTotal = frontTotal;
+        // Зубья передних звёзд под выбранное число (для высот бар-столбиков).
+        _state.frontTeeth = (frontTotal == 3) ? ([40, 30, 22] as Lang.Array<Lang.Number>)
+                          : (frontTotal == 2) ? ([50, 34] as Lang.Array<Lang.Number>)
+                          : ([32] as Lang.Array<Lang.Number>);
         _state.battery = battery;
         _state.batteryMode = batMode;
         _state.displayMode = dispMode;
+        _state.diagOverlay = false;   // обычные сцены — основной макет (не diag-экран)
+    }
+
+    // Демо-данные для диагностического экрана: включаем diagOverlay и заполняем dbg-поля
+    // правдоподобными значениями (discovery, GATT-имя, профиль, сырой пакет передач).
+    (:debug)
+    function setDemoDiag() as Void {
+        _state.diagOverlay = true;
+        _state.dbgScanTotal = 7;
+        _state.dbgScanShimano = 1;
+        _state.dbgBestRssi = -68;
+        _state.dbgDeviceName = "RDM8250S2A8";
+        _state.dbgModel = "XT M8250 12s";
+        _state.dbgGearLen = 17;
+        _state.dbgGear = "03 00 00 00 00 05 0C 00 00 00 00 00 00 00 00 00 00";
     }
 
     (:release)
@@ -182,44 +226,46 @@ class Di2FieldView extends WatchUi.DataField {
 
         var connected = (_state != null) && _state.connected;
 
-        // ── Верхняя строка ────────────────────────────────────────────────────
-        dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
-        var topY = (h * 0.08).toNumber();
-        var topFontH = dc.getFontHeight(Graphics.FONT_XTINY);
-        // Единая центр-линия верхней строки: и текст, и кружок выравниваются по
-        // ней через VCENTER, поэтому совпадают по вертикали на любой раскладке
-        // (раньше текст был top-aligned, а кружок — по центру шрифта → расхождение).
-        var topVC = Graphics.TEXT_JUSTIFY_VCENTER;
-        var centerY = topY + topFontH / 2;
+        // ── Раскладка: ROOT с внутренним отступом → HEADER (сверху) + BODY (снизу) ──
+        var padX = (w * PAD_X_FRAC).toNumber();
+        if (padX < 2) { padX = 2; }
+        var padTop = (h * PAD_TOP_FRAC).toNumber();
+        var padBot = (h * PAD_BOT_FRAC).toNumber();
+        var headerH = dc.getFontHeight(Graphics.FONT_XTINY);
 
-        // Слева: метка Di2 + индикатор подключения (кружок по центру высоты текста).
-        // Цвет кодирует фазу связи; пока не подключены — кружок пульсирует (1 Гц),
-        // чтобы было видно: поле живо и активно ищет, а не зависло.
-        dc.drawText(2, centerY, Graphics.FONT_XTINY, _lblDi2, Graphics.TEXT_JUSTIFY_LEFT | topVC);
+        // HEADER: слева Di2 + индикатор фазы, справа батарея.
+        drawHeader(dc, padX, padTop, w - 2 * padX, headerH, connected, fg);
+
+        // BODY: графики и цифры передач под шапкой.
+        var bodyY = padTop + headerH + (h * HEADER_GAP_FRAC).toNumber();
+        var bodyX = padX;
+        var bodyW = w - 2 * padX;
+        var bodyH = h - bodyY - padBot;
+        drawBody(dc, bodyX, bodyY, bodyW, bodyH, connected, fg, fade);
+    }
+
+    // HEADER: слева метка Di2 + кружок-индикатор фазы (по центру высоты текста),
+    // справа — батарея (процент/иконка/оба). Центр-линия строки = y + h/2.
+    private function drawHeader(dc as Graphics.Dc, x as Lang.Number, y as Lang.Number,
+                               w as Lang.Number, h as Lang.Number,
+                               connected as Lang.Boolean, fg as Graphics.ColorType) as Void {
+        var vc = Graphics.TEXT_JUSTIFY_VCENTER;
+        var centerY = y + h / 2;
+
+        // Слева: метка Di2 + кружок фазы. Цвет кодирует фазу; пока не подключены —
+        // пульсирует (видно, что поле живо и ищет, а не зависло).
+        dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(x, centerY, Graphics.FONT_XTINY, _lblDi2, Graphics.TEXT_JUSTIFY_LEFT | vc);
         var di2Width = dc.getTextWidthInPixels(_lblDi2, Graphics.FONT_XTINY);
-        var dotX = 2 + di2Width + 8;
-        // VCENTER центрирует текст по font-box, но в «Di2» нет свисающих глифов,
-        // поэтому видимые буквы сидят выше centerY на ~descent/2. Поднимаем точку
-        // на ту же величину, чтобы она встала по оптическому центру букв (заметно
-        // в фазе поиска, где точка крупнее). Шрифт фиксирован → поправка одна на все раскладки.
+        var dotX = x + di2Width + 8;
+        // VCENTER центрирует по font-box; в «Di2» нет свисающих глифов, поэтому
+        // поднимаем точку на descent/2 к оптическому центру букв (заметно в поиске).
         var dotY = centerY - Graphics.getFontDescent(Graphics.FONT_XTINY) / 2;
         dc.setColor(phaseColor(connected), Graphics.COLOR_TRANSPARENT);
         dc.fillCircle(dotX, dotY, dotRadius(connected));
 
-        // По центру: передняя передача F:{front}/{frontTotal}. Пока нет связи — "---".
-        dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
-        var frontStr = _lblFront + (connected ? pair(frontVal(), frontTotalVal()) : _noData);
-        dc.drawText(w / 2, centerY, Graphics.FONT_XTINY, frontStr, Graphics.TEXT_JUSTIFY_CENTER | topVC);
-
-        // Справа: батарея — процент / иконка / иконка+процент (по настройке).
-        drawBattery(dc, w - 2, centerY, topFontH, fg);
-
-        // ── Задняя передача (крупно): центр свободной зоны ПОД шапкой ──────────
-        var maxWidth = (w * 0.84).toNumber();        // ~8% поля с каждой стороны
-        var headerBottom = topY + topFontH;          // низ верхней строки
-        var rearY = (headerBottom + h) / 2;          // центр оставшейся высоты
-        var maxHeight = ((h - headerBottom) * 0.9).toNumber();  // запас по высоте
-        drawRearZone(dc, w / 2, rearY, maxWidth, maxHeight, connected, fg, fade);
+        // Справа: батарея у правого края HEADER.
+        drawBattery(dc, x + w, centerY, h, fg);
     }
 
     // ── Диагностический экран (полноэкранный) ───────────────────────────────────
@@ -342,25 +388,6 @@ class Di2FieldView extends WatchUi.DataField {
 
     // ── Форматирование ────────────────────────────────────────────────────────
 
-    // Форматирование пары «передача/всего» с деградацией:
-    //   оба известны        -> "a/b"
-    //   известна только текущая -> "a"
-    //   известно только всего   -> "-/b"  (напр. 2x: число звёзд из настроек есть,
-    //                                       текущую переднюю прочитать нельзя)
-    //   ничего нет           -> "---"
-    private function pair(a as Lang.Number, b as Lang.Number) as Lang.String {
-        if (a < 0 && b < 0) {
-            return _noData;
-        }
-        if (a < 0) {
-            return "-/" + b.toString();
-        }
-        if (b < 0) {
-            return a.toString();
-        }
-        return a.toString() + "/" + b.toString();
-    }
-
     private function batteryStr() as Lang.String {
         var b = (_state != null) ? _state.battery : -1;
         if (b < 0) {
@@ -435,6 +462,31 @@ class Di2FieldView extends WatchUi.DataField {
     // Смещение кружка вниз (доля высоты шрифта): у числовых шрифтов визуальный центр
     // цифр ниже центра строки, поэтому опускаем точку, чтобы она смотрелась посередине.
     private const REAR_DOT_Y_FRAC = 0.06;
+
+    // ── Раскладка: ROOT(внутр. отступ) → HEADER + BODY → LEFT/RIGHT → GRAF/NUM ──
+    // LEFT (перёд) есть только при 2x/3x; RIGHT (зад) — всегда. Каждая колонка делится
+    // на GRAF (сверху) и NUM (снизу) по displayMode.
+    private const PAD_X_FRAC = 0.04;        // боковой внутренний отступ корня
+    private const PAD_TOP_FRAC = 0.06;      // верхний отступ (над HEADER)
+    private const PAD_BOT_FRAC = 0.05;      // нижний отступ (под BODY)
+    private const HEADER_GAP_FRAC = 0.02;   // зазор между HEADER и BODY
+    private const COL_GAP_FRAC = 0.05;      // зазор LEFT|RIGHT в режиме «только график»
+    private const BOTH_VPAD_FRAC = 0.08;    // верх/низ-отступ BODY в режиме «оба»
+    private const BOTH_GRAF_FRAC = 0.52;    // доля рабочей высоты под GRAF («оба») на больших полях
+    private const BOTH_GRAF_MIN_FRAC = 0.30; // пол высоты GRAF: ниже не ужимаем даже на малых
+    private const BOTH_VGAP_FRAC = 0.12;    // зазор между GRAF и NUM («оба»)
+    private const GRAPH_H_FRAC = 0.88;      // доля высоты BODY под GRAF («только график»)
+    private const BAR_GAP_RATIO = 0.4;      // зазор = BAR_GAP_RATIO * толщина столбика
+                                            // (столбики+зазоры заполняют ширину GRAF целиком)
+    // Доля видимого глифа в ячейке числового шрифта (getFontHeight включает «воздух»
+    // сверху/снизу). Подбор шрифта разрешает ячейке быть выше блока в 1/NUM_VFILL раз —
+    // видимые цифры заполняют блок, пустой «воздух» уходит в отступы ROOT. Меньше →
+    // крупнее цифры (но больше риск задеть край при асимметричном глифе).
+    private const NUM_VFILL = 0.68;
+    // Режим «только цифры»: LEFT NUM прижата к левому краю, RIGHT NUM — к правому.
+    // Резерв на средний зазор при подборе шрифта = 0 (нет внутренних отступов у цифр),
+    // плюс убраны зазоры вокруг точки-разделителя — цифры пакуются максимально плотно.
+    private const NUM_EDGE_GAP_RATIO = 0.0;
 
     // ── Индикация фазы связи ────────────────────────────────────────────────────
 
@@ -513,65 +565,160 @@ class Di2FieldView extends WatchUi.DataField {
         return Graphics.FONT_XTINY;
     }
 
-    // Диспетчер центральной зоны по режиму показа (_state.displayMode):
-    //   0 — цифры (drawRear); 1 — график (кассета); 2 — оба (кассета сверху, цифры снизу).
-    // Нет связи — во всех режимах статус-экран.
-    private function drawRearZone(dc as Graphics.Dc, cx as Lang.Number, cy as Lang.Number,
-                                 maxWidth as Lang.Number, maxHeight as Lang.Number,
-                                 connected as Lang.Boolean, fg as Graphics.ColorType,
-                                 fade as Graphics.ColorType) as Void {
+    // BODY: блок графиков и цифр. Делится на колонки LEFT (перёд, только 2x/3x) и
+    // RIGHT (зад, всегда); каждая колонка — на GRAF (сверху) и NUM (снизу) по режиму
+    // displayMode. Нет связи — статус-экран на всю зону. Ширина колонок «по контенту»:
+    // LEFT ровно под цифру передней (тем же шрифтом, что задняя), RIGHT — остальное.
+    private function drawBody(dc as Graphics.Dc, bx as Lang.Number, by as Lang.Number,
+                             bw as Lang.Number, bh as Lang.Number, connected as Lang.Boolean,
+                             fg as Graphics.ColorType, fade as Graphics.ColorType) as Void {
         if (!connected) {
-            drawStatus(dc, cx, cy, maxWidth, fg, fade);
+            drawStatus(dc, bx + bw / 2, by + bh / 2, bw, fg, fade);
             return;
         }
+
         var mode = (_state != null) ? _state.displayMode : DISP_NUM;
-        if (mode == DISP_GRAPH) {
-            // Только график: ужимаем высоту до 0.78 зоны → появляются отступы
-            // сверху/снизу, чтобы на малых полях кассета не сливалась с соседями.
-            drawCassette(dc, cx, cy, maxWidth, (maxHeight * 0.78).toNumber(), fg, fade);
-        } else if (mode == DISP_BOTH) {
-            // Оба: pad сверху/снизу + ЗАЗОР между кассетой и цифрами. Цифрам отдаём
-            // меньшую долю (шрифт мельче) → появляется воздух между графиком и числами,
-            // и на малых полях ничего не сливается с границей.
-            var pad = (maxHeight * 0.10).toNumber();
-            var top = cy - maxHeight / 2 + pad;        // верх рабочей области
-            var bot = cy + maxHeight / 2 - pad;        // низ рабочей области
+        var n = rearTotalVal();
+        if (mode == DISP_GRAPH && n <= 0) {
+            mode = DISP_NUM;   // нет конфигурации кассеты — показать хотя бы цифры
+        }
+        var fn = frontTotalVal();
+        var showFront = fn >= 2;
+        // Зазор вокруг точки-разделителя в блоке задней: «только цифры» — 0 (плотно),
+        // иначе обычный REAR_GAP_FRAC. Используется и в подборе шрифта, и в отрисовке NUM.
+        var numGapFrac = (mode == DISP_NUM) ? 0.0 : REAR_GAP_FRAC;
+
+        // ── Вертикальные полосы GRAF/NUM (общие для обеих колонок) ──
+        var grafTop = by;
+        var grafH = 0;
+        var numCY = by + bh / 2;
+        var numH = bh;
+        if (mode == DISP_BOTH) {
+            var vpad = (bh * BOTH_VPAD_FRAC).toNumber();
+            var top = by + vpad;
+            var bot = by + bh - vpad;
             var work = bot - top;
-            var casH = (work * 0.52).toNumber();       // кассета
-            var gap = (work * 0.12).toNumber();        // воздух между графиком и цифрами
-            var numTop = top + casH + gap;
-            drawCassette(dc, cx, top + casH / 2, maxWidth, casH, fg, fade);
-            drawRear(dc, cx, (numTop + bot) / 2, maxWidth, bot - numTop, true, fg, fade);
+            var vgap = (work * BOTH_VGAP_FRAC).toNumber();
+            grafH = (work * BOTH_GRAF_FRAC).toNumber();
+            // На малых полях график уступает высоту цифрам: если под NUM остаётся меньше,
+            // чем нужно для самого мелкого числового шрифта, ужимаем GRAF (но не ниже пола).
+            var numWant = (dc.getFontHeight(Graphics.FONT_NUMBER_MILD) * NUM_VFILL).toNumber();
+            if (work - grafH - vgap < numWant) {
+                grafH = work - vgap - numWant;
+                var grafFloor = (work * BOTH_GRAF_MIN_FRAC).toNumber();
+                if (grafH < grafFloor) { grafH = grafFloor; }
+            }
+            grafTop = top;
+            var numTop = top + grafH + vgap;
+            numH = bot - numTop;
+            numCY = (numTop + bot) / 2;
+        } else if (mode == DISP_GRAPH) {
+            grafH = (bh * GRAPH_H_FRAC).toNumber();
+            grafTop = by + (bh - grafH) / 2;
+            numH = 0;
+        }
+
+        // ── Горизонтальное деление BODY на колонки LEFT | RIGHT ──
+        var numFont = Graphics.FONT_NUMBER_MILD;
+        var leftW = 0;
+        var colGap = 0;
+        var rightW = bw;
+        var leftX = bx;
+        var rightX = bx;
+        if (mode == DISP_GRAPH) {
+            // Только график — ширины пропорционально числу звёзд (единый слот → одинаковая
+            // толщина столбиков у переда и зада).
+            colGap = showFront ? (bw * COL_GAP_FRAC).toNumber() : 0;
+            var usable = bw - colGap;
+            var slots = n + (showFront ? fn : 0);
+            leftW = showFront ? (usable * fn / slots) : 0;
+            rightW = usable - leftW;
+            rightX = bx + leftW + colGap;
         } else {
-            drawRear(dc, cx, cy, maxWidth, maxHeight, true, fg, fade);
+            // Ширина LEFT «по контенту»: ровно под цифру передней тем же шрифтом, что задняя.
+            var rcur = (rearVal() < 0) ? "--" : rearVal().toString();      // неизв. задняя → "--"
+            var rtot = (rearTotalVal() < 0) ? "--" : rearTotalVal().toString();
+            var fstr = (frontVal() < 0) ? "--" : frontVal().toString();   // неизв. передняя → "--"
+            // Резерв на средний зазор при подборе шрифта: «только цифры» — 0 (цифры к краям,
+            // без внутренних отступов); «оба» — 0.5 ширины цифры передней.
+            var gapRatio = (mode == DISP_NUM) ? NUM_EDGE_GAP_RATIO : 0.5;
+            numFont = fitNumFont(dc, rcur, rtot, fstr, showFront, gapRatio, numGapFrac, bw, numH);
+            leftW = showFront ? paddedWidth(dc, fstr, numFont) : 0;
+            if (mode == DISP_NUM) {
+                // Только цифры: LEFT NUM прижата к ЛЕВОМУ краю, RIGHT NUM (блок задней) —
+                // к ПРАВОМУ; разрыв уходит в середину. Шрифт максимизирован под границы ROOT.
+                var fhN = dc.getFontHeight(numFont);
+                var innerN = (fhN * REAR_DOT_FRAC + fhN * numGapFrac).toNumber();
+                var sideN = paddedWidth(dc, rcur, numFont);
+                var rtotW = paddedWidth(dc, rtot, numFont);
+                if (rtotW > sideN) { sideN = rtotW; }
+                rightW = 2 * (innerN + sideN);                  // ширина блока задних цифр
+                if (showFront) {
+                    leftX = bx;                                 // LEFT NUM — к левому краю
+                    rightX = bx + bw - rightW;                  // RIGHT NUM — к правому краю
+                } else {
+                    rightX = bx + (bw - rightW) / 2;            // 1x: задняя по центру BODY
+                }
+            } else {
+                // Оба: задний блок заполняет широкую колонку под кассетой (выровнен с ней),
+                // цифры центрируются в колонке. Зазор = половина ширины цифры передней.
+                colGap = showFront ? (leftW / 2) : 0;
+                rightW = bw - leftW - colGap;
+                rightX = bx + leftW + colGap;
+            }
+        }
+
+        // ── Толщина столбиков: высчитываем так, чтобы n задних столбиков с зазорами
+        // (gap = BAR_GAP_RATIO * bar) заполнили ширину RIGHT.GRAF целиком. Передние
+        // берут ту же толщину (единая толщина у переда и зада) и заполняют свою колонку
+        // собственным зазором — расчёт заполнения в drawRearGraf/drawFrontGraf.
+        var barW = 0;
+        if (mode != DISP_NUM && n > 0) {
+            barW = (rightW.toFloat() / (n + (n - 1) * BAR_GAP_RATIO)).toNumber();
+            if (barW < 1) { barW = 1; }
+        }
+
+        // ── Рисуем блоки колонок ──
+        if (mode != DISP_NUM) {                         // GRAF
+            drawRearGraf(dc, rightX, rightW, grafTop, grafH, barW, fg, fade);
+            if (showFront) {
+                drawFrontGraf(dc, leftX, leftW, grafTop, grafH, barW, fg, fade);
+            }
+        }
+        if (mode != DISP_GRAPH) {                        // NUM
+            drawRearNum(dc, rightX, rightW, numCY, numFont, numGapFrac, fg, fade);
+            if (showFront) {
+                drawFrontNum(dc, leftX, leftW, numCY, numFont, fg, fade);
+            }
         }
     }
 
-    // Визуальная задняя кассета: N столбиков (по числу звёзд). Бóльшая звезда —
-    // СЛЕВА (высокий столбик), меньшая — справа; высота растёт с числом зубьев
-    // (или линейно, если зубья не заданы). Текущая передача — ярким цветом (fg),
-    // остальные — приглушённым (fade). Столбики выровнены по нижней линии зоны.
-    private function drawCassette(dc as Graphics.Dc, cx as Lang.Number, cy as Lang.Number,
-                                 maxWidth as Lang.Number, maxHeight as Lang.Number,
+    // RIGHT.GRAF — задняя кассета: n столбиков заполняют колонку [colX, colX+colW].
+    // Бóльшая звезда — СЛЕВА (высокий столбик), меньшая — справа; высота ∝ зубьям
+    // (или линейно). Толщина barW едина с передними столбиками (приходит из drawBody).
+    // Текущая передача — ярко (fg), прочие — приглушённо (fade).
+    private function drawRearGraf(dc as Graphics.Dc, colX as Lang.Number, colW as Lang.Number,
+                                 grafTop as Lang.Number, grafH as Lang.Number, barW as Lang.Number,
                                  fg as Graphics.ColorType, fade as Graphics.ColorType) as Void {
         var n = rearTotalVal();
-        var cur = rearVal();
         if (n <= 0) {
-            drawRear(dc, cx, cy, maxWidth, maxHeight, true, fg, fade);  // нет конфигурации — цифры
             return;
         }
+        var cur = rearVal();
+        var baseline = grafTop + grafH;
 
-        var slot = maxWidth.toFloat() / n;
-        var barW = (slot * 0.72).toNumber();   // чуть толще
-        if (barW < 1) { barW = 1; }
-        var baseline = cy + maxHeight / 2;
-        var x0 = cx - maxWidth / 2;
+        // Заполнение ширины: n столбиков толщиной bw + (n-1) зазоров заполняют colW
+        // целиком (крайние столбики флешем к краям). bw приходит из drawBody (единая
+        // толщина); если не влезает — локально ужимаем.
+        var bw = barW;
+        var gap = (n > 1) ? (colW - n * bw).toFloat() / (n - 1) : 0.0;
+        if (gap < 0) {
+            bw = (colW.toFloat() / (n + (n - 1) * BAR_GAP_RATIO)).toNumber();
+            if (bw < 1) { bw = 1; }
+            gap = (n > 1) ? (colW - n * bw).toFloat() / (n - 1) : 0.0;
+        }
 
-        // Неактивные столбики — тем же светлым цветом, что и кружок-разделитель
-        // между цифрами передач (fade: LT_GRAY днём / DK_GRAY ночью): мягкий контраст
-        // с активной (fg).
-
-        // Профиль высот по зубьям, если список задан и совпадает по длине.
+        // Профиль высот по зубьям, если список задан и звёзды различны.
         var teeth = (_state != null) ? _state.rearTeeth : null;
         var useTeeth = (teeth != null) && (teeth.size() == n) && (n > 1);
         var minT = 0;
@@ -595,43 +742,131 @@ class Di2FieldView extends WatchUi.DataField {
             } else {
                 frac = (i - 1).toFloat() / (n - 1);
             }
-            var bh = (maxHeight * (0.3 + 0.7 * frac)).toNumber();
+            var bh = (grafH * (0.3 + 0.7 * frac)).toNumber();
             if (bh < 2) { bh = 2; }
-            // Зеркалим по X: бóльшая звезда (i=n, самый высокий столбик) — СЛЕВА,
-            // меньшая (i=1) — справа. Слот меняем на (n - i + 0.5).
-            var bx = (x0 + slot * (n - i + 0.5)).toNumber() - barW / 2;
+            // Бóльшая звезда (i=n) — СЛЕВА: позиция p = n - i (p=0 — левый край).
+            var p = n - i;
+            var barX = (colX + p * (bw + gap)).toNumber();
             dc.setColor((i == cur) ? fg : fade, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(bx, baseline - bh, barW, bh);
+            dc.fillRectangle(barX, baseline - bh, bw, bh);
         }
     }
 
-    // Отрисовка задней передачи тремя зонами с кружком-разделителем по центру (cx):
-    //   • кружок      — по центру cx;
-    //   • текущая     — правым краем к кружку (с зазором), растёт влево;
-    //   • всего       — левым краем к кружку (с зазором), растёт вправо.
-    // Одиночные цифры дополняются лидирующим "0" приглушённым цветом (стабильная ширина).
-    // Кружок не двигается при смене числа цифр/шрифта. Нет связи — статус через drawStatus.
-    private function drawRear(dc as Graphics.Dc, cx as Lang.Number, cy as Lang.Number,
-                             maxWidth as Lang.Number, maxHeight as Lang.Number,
-                             connected as Lang.Boolean, fg as Graphics.ColorType,
-                             fade as Graphics.ColorType) as Void {
-        if (!connected) {
-            drawStatus(dc, cx, cy, maxWidth, fg, fade);
+    // LEFT.GRAF — передние звёзды: fn столбиков заполняют колонку [colX, colX+colW].
+    // Слева→направо по ВОЗРАСТАНИЮ зубьев (меньшая звезда слева, бóльшая справа —
+    // примыкает к высокому краю задней кассеты). Высота ∝ зубьям (или линейно).
+    // Толщина barW едина с задней кассетой (из drawBody). Текущая — ярко (fg), прочие —
+    // приглушённо. Для 2x/3x текущая пока не читается из BLE (front<0) → подсветки нет:
+    // каркас готов к данным (см. doc/NOTES.md).
+    private function drawFrontGraf(dc as Graphics.Dc, colX as Lang.Number, colW as Lang.Number,
+                                  grafTop as Lang.Number, grafH as Lang.Number, barW as Lang.Number,
+                                  fg as Graphics.ColorType, fade as Graphics.ColorType) as Void {
+        var n = frontTotalVal();
+        if (n < 2) {
             return;
         }
-        var left = (rearVal() < 0) ? "-" : rearVal().toString();
-        var right = (rearTotalVal() < 0) ? "-" : rearTotalVal().toString();
-        var font = fitRearFont(dc, left, right, maxWidth, maxHeight);
+        var cur = frontVal();
+        var baseline = grafTop + grafH;
+
+        // Толщина bw — единая с задней; зазор — обычный (как у кассеты, BAR_GAP_RATIO),
+        // а ГРУППА столбиков ЦЕНТРИРУЕТСЯ в колонке (а не растягивается на всю ширину),
+        // чтобы при 2 звёздах не было огромного пустого промежутка между столбиками.
+        var bw = barW;
+        var gap = bw * BAR_GAP_RATIO;
+        var groupW = n * bw + (n - 1) * gap;
+        if (groupW > colW) {                 // не влезает — ужимаем под колонку
+            bw = (colW.toFloat() / (n + (n - 1) * BAR_GAP_RATIO)).toNumber();
+            if (bw < 1) { bw = 1; }
+            gap = bw * BAR_GAP_RATIO;
+            groupW = n * bw + (n - 1) * gap;
+        }
+        var startX = colX + (colW - groupW) / 2.0;   // центр группы в колонке
+
+        // Профиль высот по зубьям передних звёзд, если список задан и звёзды различны.
+        var teeth = (_state != null) ? _state.frontTeeth : null;
+        var useTeeth = (teeth != null) && (teeth.size() == n);
+        var minT = 0;
+        var maxT = 0;
+        if (useTeeth) {
+            minT = teeth[0];
+            maxT = teeth[0];
+            for (var i = 0; i < n; i++) {
+                if (teeth[i] < minT) { minT = teeth[i]; }
+                if (teeth[i] > maxT) { maxT = teeth[i]; }
+            }
+            if (maxT == minT) { useTeeth = false; }
+        }
+
+        // Порядок слотов слева→направо: по возрастанию зубьев (меньшая звезда — слева).
+        // order[pos] = 0-based индекс звезды для позиции pos. Без зубьев — натуральный.
+        var order = new [n];
+        for (var i = 0; i < n; i++) { order[i] = i; }
+        if (useTeeth) {
+            for (var a = 1; a < n; a++) {        // insertion sort по teeth asc
+                var key = order[a];
+                var b = a - 1;
+                while (b >= 0 && teeth[order[b]] > teeth[key]) {
+                    order[b + 1] = order[b];
+                    b -= 1;
+                }
+                order[b + 1] = key;
+            }
+        }
+
+        for (var pos = 0; pos < n; pos++) {
+            var idx = order[pos];
+            var frac = useTeeth
+                ? (teeth[idx] - minT).toFloat() / (maxT - minT)
+                : pos.toFloat() / (n - 1);
+            var bh = (grafH * (0.3 + 0.7 * frac)).toNumber();
+            if (bh < 2) { bh = 2; }
+            var barX = (startX + pos * (bw + gap)).toNumber();
+            dc.setColor((idx + 1 == cur) ? fg : fade, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(barX, baseline - bh, bw, bh);
+        }
+    }
+
+    // RIGHT.NUM — задние цифры «текущая · всего» с кружком-разделителем, центрированы
+    // в колонке [colX, colX+colW] (кружок = центр колонки):
+    //   • текущая — правым краем к кружку (с зазором), растёт влево;
+    //   • всего   — левым краем к кружку (с зазором), растёт вправо.
+    // Одиночные цифры дополняются лидирующим "0" приглушённым цветом (стабильная ширина).
+    private function drawRearNum(dc as Graphics.Dc, colX as Lang.Number, colW as Lang.Number,
+                               cy as Lang.Number, font as Graphics.FontDefinition, gapFrac as Lang.Float,
+                               fg as Graphics.ColorType, fade as Graphics.ColorType) as Void {
+        var left = (rearVal() < 0) ? "--" : rearVal().toString();        // неизв. задняя → "--"
+        var right = (rearTotalVal() < 0) ? "--" : rearTotalVal().toString();
         var fh = dc.getFontHeight(font);
         var rDot = (fh * REAR_DOT_FRAC).toNumber();
-        var gap = (fh * REAR_GAP_FRAC).toNumber();
+        var gap = (fh * gapFrac).toNumber();   // 0 в режиме «только цифры» (цифры вплотную к точке)
         var inner = rDot + gap;   // отступ от центра до края цифры
 
+        var dotX = colX + colW / 2;
         var dotY = cy + (fh * REAR_DOT_Y_FRAC).toNumber();   // опускаем к центру цифр
         dc.setColor(fade, Graphics.COLOR_TRANSPARENT);
-        dc.fillCircle(cx, dotY, rDot);
-        drawPadded(dc, cx - inner, cy, font, left, true, fg, fade);    // текущая: правым краем
-        drawPadded(dc, cx + inner, cy, font, right, false, fg, fade);  // всего: левым краем
+        dc.fillCircle(dotX, dotY, rDot);
+        drawPadded(dc, dotX - inner, cy, font, left, true, fg, fade);    // текущая: правым краем
+        drawPadded(dc, dotX + inner, cy, font, right, false, fg, fade);  // всего: левым краем
+    }
+
+    // LEFT.NUM — цифра текущей передней звезды, тем же шрифтом, что задние, со светлым
+    // лидирующим нулём; центрирована в колонке [colX, colX+colW]. Текущая неизвестна
+    // (2x/3x ещё не парсится, front<0) → приглушённый двойной прочерк "--".
+    private function drawFrontNum(dc as Graphics.Dc, colX as Lang.Number, colW as Lang.Number,
+                                cy as Lang.Number, font as Graphics.FontDefinition,
+                                fg as Graphics.ColorType, fade as Graphics.ColorType) as Void {
+        var cx = colX + colW / 2;
+        var f = frontVal();
+        if (f < 0) {
+            dc.setColor(fade, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, cy, font, "--",
+                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            return;
+        }
+        var s = f.toString();
+        // Центрируем падед-пару "0X": её ширина = paddedWidth, левый край = cx - w/2.
+        var pw = paddedWidth(dc, s, font);
+        drawPadded(dc, cx - pw / 2, cy, font, s, false, fg, fade);
     }
 
     // Число с лидирующим "0" приглушённого цвета, если оно однозначное (не "-").
@@ -671,28 +906,64 @@ class Di2FieldView extends WatchUi.DataField {
         return dc.getTextWidthInPixels(s, font);
     }
 
-    // Самый крупный числовой шрифт, при котором запись с кружком-разделителем
-    // влезает по ширине (учитывая бóльшую из сторон + кружок + зазор) и по высоте.
-    private function fitRearFont(dc as Graphics.Dc, left as Lang.String, right as Lang.String,
-                                maxWidth as Lang.Number, maxHeight as Lang.Number) as Graphics.FontDefinition {
-        var fonts = [
+    // Подбор шрифта для цифр. ПРИОРИТЕТ — числовые шрифты (крупный глиф в ячейке):
+    // берём самый крупный числовой, влезающий И по высоте, И по ширине. Только если ни
+    // один числовой не влез (очень низкий блок) — откатываемся на обычные шрифты как
+    // меньший запас. Это важно: обычные шрифты имеют высокую ячейку при мелкой видимой
+    // цифре, и при выборе «по максимальной высоте ячейки» могли бы выиграть у числового,
+    // дав визуально МЕЛЬЧЕ. По высоте сверяем видимый глиф (≈ fh*NUM_VFILL). Ширина =
+    // блок задних цифр (две стороны + кружок + зазоры) плюс, при 2x/3x, цифра передней +
+    // зазор (gapRatio·её ширины).
+    private function fitNumFont(dc as Graphics.Dc, left as Lang.String, right as Lang.String,
+                              frontStr as Lang.String, showFront as Lang.Boolean, gapRatio as Lang.Float,
+                              gapFrac as Lang.Float, maxWidth as Lang.Number, maxHeight as Lang.Number) as Graphics.FontDefinition {
+        // Числовые — по убыванию размера: первый влезающий и есть самый крупный.
+        var numFonts = [
             Graphics.FONT_NUMBER_THAI_HOT,
             Graphics.FONT_NUMBER_HOT,
             Graphics.FONT_NUMBER_MEDIUM,
             Graphics.FONT_NUMBER_MILD
         ];
-        for (var i = 0; i < fonts.size(); i++) {
-            var f = fonts[i];
-            var fh = dc.getFontHeight(f);
-            var inner = fh * REAR_DOT_FRAC + fh * REAR_GAP_FRAC;
-            var lw = paddedWidth(dc, left, f);
-            var rw = paddedWidth(dc, right, f);
-            var maxSide = (lw > rw) ? lw : rw;
-            // Каждая сторона = inner + maxSide должна влезать в maxWidth/2; плюс высота.
-            if (2 * (inner + maxSide) <= maxWidth && fh <= maxHeight) {
-                return f;
+        for (var i = 0; i < numFonts.size(); i++) {
+            if (numFits(dc, numFonts[i], left, right, frontStr, showFront, gapRatio, gapFrac, maxWidth, maxHeight)) {
+                return numFonts[i];
             }
         }
-        return Graphics.FONT_NUMBER_MILD;
+        // Запас: обычные шрифты (по убыванию) — первый влезающий.
+        var regFonts = [
+            Graphics.FONT_LARGE,
+            Graphics.FONT_MEDIUM,
+            Graphics.FONT_SMALL,
+            Graphics.FONT_TINY,
+            Graphics.FONT_XTINY
+        ];
+        for (var i = 0; i < regFonts.size(); i++) {
+            if (numFits(dc, regFonts[i], left, right, frontStr, showFront, gapRatio, gapFrac, maxWidth, maxHeight)) {
+                return regFonts[i];
+            }
+        }
+        return Graphics.FONT_XTINY;
+    }
+
+    // Влезает ли шрифт f под цифры по высоте (видимый глиф ≈ fh*NUM_VFILL ≤ maxHeight)
+    // и по ширине (блок задних цифр + при 2x/3x цифра передней с зазором ≤ maxWidth).
+    // gapFrac — зазор вокруг точки-разделителя (0 в режиме «только цифры»).
+    private function numFits(dc as Graphics.Dc, f as Graphics.FontDefinition,
+                            left as Lang.String, right as Lang.String, frontStr as Lang.String,
+                            showFront as Lang.Boolean, gapRatio as Lang.Float, gapFrac as Lang.Float,
+                            maxWidth as Lang.Number, maxHeight as Lang.Number) as Lang.Boolean {
+        var fh = dc.getFontHeight(f);
+        if (fh * NUM_VFILL > maxHeight) {
+            return false;
+        }
+        var inner = fh * REAR_DOT_FRAC + fh * gapFrac;
+        var lw = paddedWidth(dc, left, f);
+        var rw = paddedWidth(dc, right, f);
+        var maxSide = (lw > rw) ? lw : rw;
+        var total = 2 * (inner + maxSide);            // блок задних цифр
+        if (showFront) {
+            total += paddedWidth(dc, frontStr, f) * (1.0 + gapRatio);  // цифра передней + зазор
+        }
+        return total <= maxWidth;
     }
 }

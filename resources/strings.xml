@@ -4,7 +4,6 @@
     <string id="AppName">Di2 Field Beta</string>
     <string id="LabelDi2">Di2</string>
     <string id="LabelNoData">---</string>
-    <string id="LabelFront">F:</string>
 
     <!-- Статусы установления BLE-связи (центральная зона, пока нет данных) -->
     <string id="StatusSearching">Searching</string>

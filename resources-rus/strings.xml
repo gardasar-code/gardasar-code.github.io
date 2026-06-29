@@ -4,7 +4,6 @@
     <string id="AppName">Поле Di2 Beta</string>
     <string id="LabelDi2">Di2</string>
     <string id="LabelNoData">---</string>
-    <string id="LabelFront">Пер:</string>
 
     <string id="StatusSearching">Поиск</string>
     <string id="StatusConnecting">Подключение</string>

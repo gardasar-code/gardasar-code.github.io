@@ -4,6 +4,18 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.35
+
+### Added
+- Front chainring display for 2x/3x drivetrains: a bar graph of the chainrings
+  (and a current-ring digit) shown alongside the rear cassette/gear. The active
+  front ring lights up once it can be read; until then it shows as a dash.
+
+### Changed
+- Reworked the on-screen layout into a header (Di2 status + battery) and a body
+  split into front/rear columns with graph and number blocks, so the gears use
+  the available space more consistently across display modes.
+
 ## 0.0.34
 
 ### Added
