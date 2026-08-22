@@ -105,6 +105,39 @@ reg=18EF:e2 180F:ok
 undocumented `status = 2` on profile registration was reported for VivoActive 4
 and fixed in FW 5.63, so this may be the same defect resurfacing on Edge.
 
+### Minimal reproduction project
+
+A stand-alone data field that only registers the profile and draws the result is
+attached (`repro/`, SDK 9.2.0, ~60 lines). No peripheral is needed — the crash
+happens during registration, before any scan or connection.
+
+```monkeyc
+const SERVICE_UUID = "000018ef-5348-494d-414e-4f5f424c4500";
+const CHAR_UUID    = "00002ac1-5348-494d-414e-4f5f424c4500";
+const WITH_CCCD    = true;   // false crashes as well
+
+function onStart(state) {
+    var d = new ReproDelegate();
+    Ble.setDelegate(d);
+
+    var chr = WITH_CCCD
+        ? { :uuid => Ble.stringToUuid(CHAR_UUID), :descriptors => [Ble.cccdUuid()] }
+        : { :uuid => Ble.stringToUuid(CHAR_UUID) };
+    try {
+        // FW 31.33: the application dies here. No exception is delivered.
+        Ble.registerProfile({
+            :uuid => Ble.stringToUuid(SERVICE_UUID),
+            :characteristics => [chr]
+        });
+    } catch (e) {
+        d.status = "exception";   // never reached
+    }
+}
+```
+
+On FW 30.23 the field draws `registered`; on FW 31.33 it is replaced by the
+Connect IQ error icon.
+
 ### Steps to reproduce
 
 1. Build a data field with the `BluetoothLowEnergy` permission.
@@ -162,5 +195,10 @@ Garmin принимает баг-репорты Connect IQ **только на �
 |---|---|
 | `CIQ_LOG.YML` / `CIQ_LOG.BAK` | `GARMIN/APPS/LOGS/` на устройстве |
 | `DIDIAG.TXT` | лог диаг-сборки: видно `18EF:skip`, `180F:ok`, `services n=1` |
+| `doc/repro/` | минимальный проект-репро (исходник + jungle + manifest) |
+| `bin/repro.prg` | собранный репро для быстрой проверки на устройстве |
+
+Репро-проект удобнее приложить архивом папки `doc/repro` — Garmin обычно просит
+исходники, а не только `.prg`.
 
 Оба файла уже есть в `bin/` после последнего снятия.
