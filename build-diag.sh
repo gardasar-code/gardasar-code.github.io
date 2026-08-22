@@ -47,6 +47,12 @@ sed -i '' 's#^    function applyDebugData() as Void {$#    function applyDebugDa
 sed -i '' 's#private const DEBUG = false;#private const DEBUG = true;   // DIAG#' \
   "$SRC_TMP/Di2BleDelegate.mc"
 
+# Патч 4: форсируем diag-оверлей. В диаг-сборке экран нужен ровно один — технический,
+# и полагаться на тоггл diagOverlay в настройках Connect не стоит: забытый тоггл даёт
+# бесполезное фото обычного макета вместо счётчиков notify/подписки.
+sed -i '' 's#    private const DEBUG_OVERLAY = false;#    private const DEBUG_OVERLAY = true;   // DIAG#' \
+  "$SRC_TMP/Di2FieldView.mc"
+
 # Временный jungle с источниками из копии.
 cat > "$JUNGLE_TMP" <<EOF
 project.manifest = manifest.xml
