@@ -369,21 +369,26 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // шанс занять слот, когда его освободит тот, кто держал.
     private function registerModeProfile() as Void {
         _regAttempts += 1;
+        // Чередуем две формы описания профиля. Прошивка Edge Explore 2 отклоняет наш
+        // профиль недокументированным status=2 даже когда он единственный, тогда как
+        // батарейный (без :descriptors) принимается — поэтому на нечётных попытках
+        // пробуем форму БЕЗ явного CCCD: дескриптор всё равно доступен через
+        // getDescriptor() после подключения, если стек его отдаст.
+        var withCccd = (_regAttempts % 2 == 1);
         try {
+            var chr = withCccd
+                ? { :uuid => _modeCharUuid, :descriptors => [Ble.cccdUuid()] }
+                : { :uuid => _modeCharUuid };
             Ble.registerProfile({
                 :uuid => _modeSvcUuid,
-                :characteristics => [
-                    {
-                        :uuid => _modeCharUuid,
-                        :descriptors => [Ble.cccdUuid()]
-                    }
-                ]
+                :characteristics => [chr]
             });
         } catch (e) {
             _state.dbgReg = "18EF:ex";
             log("register mode profile failed: " + e.getErrorMessage());
         }
         _state.dbgRegAttempts = _regAttempts;
+        _state.dbgRegForm = withCccd ? "d" : "n";   // d = с CCCD, n = без
     }
 
     private function startScan() as Void {
@@ -751,6 +756,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // Heartbeat дата-филда: гоним отложенный реконнект и периодический опрос батареи.
     function onTick() as Void {
+        onIdleTick();   // фоновая часть (повтор регистрации профиля) — общая для обоих тиков
         // Кадровый счётчик для пульсации индикатора в View (одна анимация на 1 c тик).
         _state.anim += 1;
 
@@ -781,16 +787,6 @@ class Di2BleDelegate extends Ble.BleDelegate {
             }
         }
 
-        // Ретрай регистрации профиля передач, пока стек его не примет. Без принятого
-        // профиля бессмысленны и скан, и подписка — сервис просто не будет найден.
-        if (!_modeProfileOk) {
-            _regRetryCounter += 1;
-            if (_regRetryCounter >= REG_RETRY_TICKS) {
-                _regRetryCounter = 0;
-                registerModeProfile();
-            }
-        }
-
         // Ретрай подписки на notify. КРИТИЧНО: onConnected может быть вызван из
         // connectTo синхронно, сразу после pairDevice — до того, как BLE-стек завершил
         // GATT-дискавери. Тогда getService(18ef) отдаёт null (sub=no-svc), а единственная
@@ -814,6 +810,21 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 _batteryTickCounter = 0;
                 readBattery();
             }
+        }
+    }
+
+    // Тик, не зависящий от записи активности: его гонит View.onUpdate (см. там же).
+    // Здесь только то, что должно работать ДО старта таймера, — повтор регистрации
+    // профиля передач. Без принятого профиля бессмысленны и скан, и подписка: стек
+    // ищет на устройстве лишь те сервисы, чей профиль он принял.
+    function onIdleTick() as Void {
+        if (_modeProfileOk) {
+            return;
+        }
+        _regRetryCounter += 1;
+        if (_regRetryCounter >= REG_RETRY_TICKS) {
+            _regRetryCounter = 0;
+            registerModeProfile();
         }
     }
 

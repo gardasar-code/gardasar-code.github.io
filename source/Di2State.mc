@@ -121,6 +121,10 @@ class Di2State {
     // не примет) — видно, что попытки идут, а не залипли на первой.
     public var dbgRegAttempts as Lang.Number = 0;
 
+    // Какая форма описания профиля пробовалась последней: "d" — с явным CCCD,
+    // "n" — без него (см. Di2BleDelegate.registerModeProfile).
+    public var dbgRegForm as Lang.String = "";
+
     // Какие сервисы стек реально видит на устройстве (короткие UUID через пробел).
     public var dbgSvcList as Lang.String = "";
 

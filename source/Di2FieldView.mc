@@ -30,6 +30,8 @@ class Di2FieldView extends WatchUi.DataField {
 
     // DEBUG (симулятор): монотонный счётчик тиков для демо-цикла состояний.
     (:debug) private var _demoTick as Lang.Number = 0;
+    // Отметка последнего UI-тика (System.getTimer), см. onUpdate.
+    private var _lastUiTickMs as Lang.Number = 0;
 
     // Кэш строк из ресурсов (грузим один раз, с учётом языка устройства).
     private var _lblDi2 as Lang.String = "Di2";
@@ -214,6 +216,18 @@ class Di2FieldView extends WatchUi.DataField {
     }
 
     function onUpdate(dc as Graphics.Dc) as Void {
+        // Второй источник heartbeat: compute() вызывается системой только когда запись
+        // активности идёт, а до старта таймера поле живёт лишь перерисовками. Раньше это
+        // означало, что до начала записи не работали ни реконнект, ни повторы регистрации
+        // профиля и подписки. Троттлим до ~1 c, чтобы частота кадров не ускоряла таймеры.
+        if (_delegate != null) {
+            var nowMs = System.getTimer();
+            if (nowMs - _lastUiTickMs >= 1000) {
+                _lastUiTickMs = nowMs;
+                _delegate.onIdleTick();
+            }
+        }
+
         var w = dc.getWidth();
         var h = dc.getHeight();
 
@@ -350,7 +364,7 @@ class Di2FieldView extends WatchUi.DataField {
         // Результат регистрации профилей: без неё стек не ищет сервис на устройстве,
         // поэтому "18EF:e<N>" здесь — прямая причина "sub=no-svc" выше.
         if (s.dbgReg.length() > 0) {
-            lines.add("reg=" + s.dbgReg + " n=" + s.dbgRegAttempts);
+            lines.add("reg=" + s.dbgReg + " n=" + s.dbgRegAttempts + s.dbgRegForm);
         }
         // Список сервисов, реально видимых стеком (короткие UUID).
         if (s.dbgSvcList.length() > 0) {
