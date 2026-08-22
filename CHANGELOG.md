@@ -4,6 +4,22 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.43
+
+### Fixed
+- The field could crash on start (Connect IQ error icon) on recent device
+  firmware: it created more FIT fields than the device allows. The FIT set is
+  now within the limit, and if a device rejects it anyway the field keeps
+  working without FIT recording instead of crashing.
+- A Bluetooth error could crash the field inside its own error handler.
+
+### Changed
+- Fewer FIT summary fields are recorded: the most-used gear combination, its
+  share of the ride, the top three rear sprockets and the average ratio are no
+  longer written to the activity file. Per-second gear, teeth, ratio and
+  battery recording is unchanged, as are max gear, max ratio, minimum battery
+  and the shift counters.
+
 ## 0.0.42
 
 ### Fixed
