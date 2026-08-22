@@ -26,9 +26,17 @@ VERSION="$(sed -n 's/.* version="\([0-9.]*\)".*/\1/p' manifest.xml | tail -1)"
 OUT="bin/DI2DIAG.prg"
 
 SRC_TMP=".diag-src"
+RES_TMP=".diag-res"
+MANIFEST_TMP=".diag-manifest.xml"
 JUNGLE_TMP="monkey-diag.jungle"
 
-cleanup() { rm -rf "$SRC_TMP" "$JUNGLE_TMP"; }
+# Отдельный app id для диаг-сборки. Со «своим» id устройство держит её как отдельное
+# поле рядом со store-версией (свои настройки, свой Storage) и, главное, не путает их
+# в списке полей. Значение фиксированное, а не случайное, — иначе настройки диаг-поля
+# сбрасывались бы при каждой пересборке.
+DIAG_APP_ID="d1a92026aa5f4c1b9e3d70f2c48b6d10"
+
+cleanup() { rm -rf "$SRC_TMP" "$RES_TMP" "$MANIFEST_TMP" "$JUNGLE_TMP"; }
 trap cleanup EXIT
 
 mkdir -p bin
@@ -53,11 +61,30 @@ sed -i '' 's#private const DEBUG = false;#private const DEBUG = true;   // DIAG#
 sed -i '' 's#    private const DEBUG_OVERLAY = false;#    private const DEBUG_OVERLAY = true;   // DIAG#' \
   "$SRC_TMP/Di2FieldView.mc"
 
-# Временный jungle с источниками из копии.
+# Патч 5: имя поля с суффиксом « Diag» во ВСЕХ локалях. Иначе store-бета и диаг-сборка
+# выглядят в списке полей Edge одинаково, и легко воткнуть на экран не ту (а лог пишет
+# только диаг-сборка). Ресурсы патчим в копии — рабочее дерево не трогаем.
+rm -rf "$RES_TMP"
+mkdir -p "$RES_TMP"
+cp -R resources "$RES_TMP/resources"
+for loc in ara deu fre rus spa; do
+  cp -R "resources-$loc" "$RES_TMP/resources-$loc"
+done
+# AppName: суффикс " Beta" ЗАМЕНЯЕМ на " Diag" (а не дописываем) — «Di2 Field Beta Diag»
+# не влезает в список полей Edge и обрезается ровно по различающей части.
+find "$RES_TMP" -name strings.xml -exec \
+  sed -i '' -e 's#\(<string id="AppName">[^<]*\) Beta</string>#\1</string>#' \
+            -e 's#\(<string id="AppName">[^<]*\)</string>#\1 Diag</string>#' {} \;
+
+# Патч 6: свой app id (см. DIAG_APP_ID) — копия манифеста, оригинал не трогаем.
+sed 's#id="[0-9a-f]\{32\}"#id="'"$DIAG_APP_ID"'"#' manifest.xml > "$MANIFEST_TMP"
+
+# Временный jungle с источниками и ресурсами из копий. Локали (resources-<lang>)
+# компилятор подхватывает сам — они лежат рядом с базовой папкой, как в рабочем дереве.
 cat > "$JUNGLE_TMP" <<EOF
-project.manifest = manifest.xml
+project.manifest = $MANIFEST_TMP
 base.sourcePath = $SRC_TMP
-base.resourcePath = resources
+base.resourcePath = $RES_TMP/resources
 EOF
 
 echo "▶ diag .prg (устройство, BLE on + файловый лог), version $VERSION"
