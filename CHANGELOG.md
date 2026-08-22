@@ -4,6 +4,16 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.45
+
+### Fixed
+- On recent device firmware the field could crash on every start, inside the
+  system call that registers its Bluetooth profile — an error no app code can
+  catch. The field now remembers which profile form it was about to try, so
+  after such a crash the next start switches to the other one, and if both fail
+  it stops trying and keeps working (without gear data) instead of crashing.
+  The Forget toggle resets those attempts.
+
 ## 0.0.44
 
 ### Fixed
