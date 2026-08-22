@@ -108,6 +108,11 @@ EOF
 echo "▶ diag .prg (устройство, BLE on + файловый лог), version $VERSION"
 # Без -r: System.println пишется в GARMIN/APPS/LOGS/*.TXT на устройстве.
 "$MONKEYC" -d "$DEVICE" -f "$JUNGLE_TMP" -o "$OUT" -y "$KEY" -w
-echo "✓ $OUT — залей в GARMIN/APPS/"
-echo "  ВАЖНО: заранее создай ПУСТОЙ файл GARMIN/APPS/LOGS/$LOGNAME (см. doc/LOGGING.md)"
-echo "         имя .TXT обязано совпадать с именем .prg — иначе лог молча теряется"
+# Готовим пустой файл лога с ПРАВИЛЬНЫМ именем: создавать его вручную — постоянный
+# источник ошибок (имя обязано совпадать с именем .prg, иначе вывод молча теряется).
+# Достаточно скопировать оба файла на устройство.
+: > "bin/$LOGNAME"
+
+echo "✓ $OUT      -> GARMIN/APPS/"
+echo "✓ bin/$LOGNAME -> GARMIN/APPS/LOGS/   (пустой файл лога, уже с нужным именем)"
+echo "  оба файла обязательны: без .TXT с таким же именем лог не пишется"
