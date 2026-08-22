@@ -2,6 +2,7 @@ using Toybox.WatchUi;
 using Toybox.Graphics;
 using Toybox.Lang;
 using Toybox.Application;
+using Toybox.System;
 
 // Рендеринг Data Field (светлая тема). Структура экрана:
 //   ROOT (внутр. отступ)
@@ -192,8 +193,16 @@ class Di2FieldView extends WatchUi.DataField {
         _state.dbgBestRssi = -68;
         _state.dbgDeviceName = "RDM8250S2A8";
         _state.dbgModel = "XT M8250 12s";
-        _state.dbgGearLen = 17;
-        _state.dbgGear = "03 00 00 00 00 05 0C 00 00 00 00 00 00 00 00 00 00";
+        _state.dbgGearLen = 3;
+        _state.dbgPktTotal = 124;
+        _state.dbgPktGood = 41;
+        _state.dbgLastPktMs = 1;
+        _state.dbgSub = "ok";
+        _state.dbgReconnects = 2;
+        // Три разновидности пакетов — ровно как их шлёт реальный XT M8250 (doc/NOTES.md).
+        _state.recordPacket(17, "00 00 03 FF FF 05 0C 80 80 80 FF EE 12 FF FF 15 00");
+        _state.recordPacket(6, "06 42 00 00 00 03");
+        _state.recordPacket(3, "04 FF FF");
     }
 
     (:release)
@@ -318,7 +327,19 @@ class Di2FieldView extends WatchUi.DataField {
         lines.add("R=" + numOrDash(s.rear) + "/" + numOrDash(s.rearTotal)
             + " F=" + numOrDash(s.front) + "/" + numOrDash(s.frontTotal)
             + (ratio > 0.0 ? " " + ratio.format("%.2f") : ""));
-        lines.add("len=" + s.dbgGearLen);
+        // Строка потока notify: длина последнего пакета, счётчики «всего/годных» и
+        // возраст последнего пакета в секундах. Читается так:
+        //   pkt=0/0        — канал молчит: смотреть sub= (подписка) ниже;
+        //   pkt=N/0        — пакеты идут, но ни один не совпал с длиной профиля
+        //                    → менять раскладку профиля, а не чинить связь;
+        //   pkt=N/M age>10 — шли и прекратились (Di2 уснул или связь просела).
+        lines.add("len=" + s.dbgGearLen + " pkt=" + s.dbgPktTotal + "/" + s.dbgPktGood
+            + " age=" + pktAge(s));
+        // Состояние подписки на CCCD + число реконнектов за сессию.
+        // sub=ok при pkt=0/0 → подписка принята, молчит само устройство;
+        // sub=no-svc/no-chr/no-cccd → GATT-раскладка не та, что мы ждём;
+        // sub=e<N> → стек отклонил запись CCCD (частый случай — протухший бонд).
+        lines.add("sub=" + s.dbgSub + " rc=" + s.dbgReconnects);
 
         // Рисуем технические строки под индикатором (с защитой от выхода за экран).
         var y = fh + 1;
@@ -328,13 +349,24 @@ class Di2FieldView extends WatchUi.DataField {
             y += fh;
         }
 
-        // Сырой notify-пакет: hex по строкам (по DIAG_HEX_PER_ROW байт), приглушённо.
-        if (s.dbgGear.length() > 0) {
-            var bytes = toTokens(s.dbgGear);
-            dc.setColor(fade, Graphics.COLOR_TRANSPARENT);
+        // Сырые notify-пакеты: ВСЕ разновидности, приглушённо, по DIAG_HEX_PER_ROW
+        // байт в строке. Первая строка каждого пакета помечена его длиной ("17:"),
+        // продолжения — с отступом под ней, иначе многострочные дампы разных форматов
+        // сливаются в одно полотно. Порядок задан state (по убыванию длины), так что
+        // при нехватке места обрежется хвост из коротких служебных пакетов.
+        dc.setColor(fade, Graphics.COLOR_TRANSPARENT);
+        var hexX = x + dc.getTextWidthInPixels("00: ", Graphics.FONT_XTINY);
+        for (var k = 0; k < s.dbgPktHex.size() && y + fh <= h; k++) {
+            var bytes = toTokens(s.dbgPktHex[k]);
+            var head = true;
             for (var from = 0; from < bytes.size() && y + fh <= h; from += DIAG_HEX_PER_ROW) {
-                var to = from + DIAG_HEX_PER_ROW;
-                dc.drawText(x, y, Graphics.FONT_XTINY, joinRange(bytes, from, to), Graphics.TEXT_JUSTIFY_LEFT);
+                if (head) {
+                    dc.drawText(x, y, Graphics.FONT_XTINY, s.dbgPktLen[k].toString() + ":",
+                        Graphics.TEXT_JUSTIFY_LEFT);
+                    head = false;
+                }
+                dc.drawText(hexX, y, Graphics.FONT_XTINY, joinRange(bytes, from, from + DIAG_HEX_PER_ROW),
+                    Graphics.TEXT_JUSTIFY_LEFT);
                 y += fh;
             }
         }
@@ -342,6 +374,16 @@ class Di2FieldView extends WatchUi.DataField {
 
     // Сколько hex-байт в одной строке дампа на diag-экране.
     private const DIAG_HEX_PER_ROW = 8;
+
+    // Возраст последнего notify-пакета в секундах ("--", если пакетов ещё не было).
+    // Считается во View, а не в делегате: значение нужно свежим на каждый кадр.
+    private function pktAge(s as Di2State) as Lang.String {
+        if (s.dbgLastPktMs == 0) {
+            return "--";
+        }
+        var age = (System.getTimer() - s.dbgLastPktMs) / 1000;
+        return age.toString();
+    }
 
     // Число для diag: значение или "-" при отсутствии данных (<0).
     private function numOrDash(v as Lang.Number) as Lang.String {

@@ -456,6 +456,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     private function onDisconnected() as Void {
         _state.connected = false;
+        _state.dbgSub = "-";           // подписка умерла вместе с соединением
         _state.resetLiveData();
         if (_attemptReachedLive) {
             // Потеряли установленную связь — обычный бэкофф (растущий интервал).
@@ -488,11 +489,20 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 _lastNotifyLogMs = nowMs;
             }
         }
-        // Diag-overlay: сырой пакет ЛЮБОЙ длины на экран (для разбора формата чужой
-        // серии Di2, у которой длина/смещения могут отличаться от PKT_GEAR_LEN).
+        // Счётчики notify ведём ВСЕГДА (два инкремента, не зависят от оверлея): именно
+        // они отличают «канал молчит» от «пакеты идут, но не той длины».
+        _state.dbgPktTotal += 1;
+        if (value.size() == _pktLen) {
+            _state.dbgPktGood += 1;
+        }
+        _state.dbgLastPktMs = System.getTimer();
+
+        // Diag-overlay: сырой пакет на экран (для разбора формата чужой серии Di2,
+        // у которой длина/смещения могут отличаться от профиля). Складываем ВСЕ
+        // разновидности — по последнему пакету на каждую длину (см. recordPacket).
         if (_state.diagOverlay) {
-            _state.dbgGear = toHex(value);
             _state.dbgGearLen = value.size();
+            _state.recordPacket(value.size(), toHex(value));
         }
         parseGearPacket(value);
     }
@@ -536,21 +546,50 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // ── Вспомогательное BLE ───────────────────────────────────────────────────
 
+    // Подписка на notify: запись CCCD [0x01,0x00] на 0x2ac1.
+    // КАЖДЫЙ шаг фиксируется в _state.dbgSub — раньше все отказы были молчаливыми
+    // (три вложенных if без else), и «нет сервиса», «нет дескриптора» и «стек отклонил
+    // запись» выглядели на экране одинаково: пакетов просто нет. Подтверждение записи
+    // приходит асинхронно в onDescriptorWrite (там "wr" -> "ok"/"e<N>").
     private function enableNotifications(device as Ble.Device) as Void {
         try {
             var svc = device.getService(_modeSvcUuid);
-            if (svc != null) {
-                var ch = svc.getCharacteristic(_modeCharUuid);
-                if (ch != null) {
-                    var cccd = ch.getDescriptor(Ble.cccdUuid());
-                    if (cccd != null) {
-                        cccd.requestWrite([0x01, 0x00]b);  // включить notifications
-                    }
-                }
+            if (svc == null) {
+                _state.dbgSub = "no-svc";
+                log("subscribe: service 18ef not found");
+                return;
             }
+            var ch = svc.getCharacteristic(_modeCharUuid);
+            if (ch == null) {
+                _state.dbgSub = "no-chr";
+                log("subscribe: characteristic 2ac1 not found");
+                return;
+            }
+            var cccd = ch.getDescriptor(Ble.cccdUuid());
+            if (cccd == null) {
+                _state.dbgSub = "no-cccd";
+                log("subscribe: cccd descriptor not found");
+                return;
+            }
+            _state.dbgSub = "wr";              // ждём подтверждения от стека
+            cccd.requestWrite([0x01, 0x00]b);  // включить notifications
+            log("subscribe: cccd write requested");
         } catch (e) {
-            if (DEBUG) { log("enable notify failed: " + e.getErrorMessage()); }
+            _state.dbgSub = "ex";
+            log("subscribe: exception " + e.getErrorMessage());
         }
+    }
+
+    // Подтверждение записи CCCD от BLE-стека. Раньше колбэк не был реализован вовсе,
+    // поэтому отклонённая подписка (например при протухшем бонде) была неотличима от
+    // молчащего устройства. Теперь статус виден в diag-оверлее: "ok" либо "e<N>".
+    function onDescriptorWrite(descriptor, status) {
+        if (status == Ble.STATUS_SUCCESS) {
+            _state.dbgSub = "ok";
+        } else {
+            _state.dbgSub = "e" + status.toString();
+        }
+        log("cccd write status=" + status);
     }
 
     // Однократное чтение батареи. Зовётся при подключении и периодически из onTick().
@@ -624,6 +663,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // но попытки не заканчиваются — связь восстановится, как только Di2 проснётся.
     private function scheduleReconnect() as Void {
         _state.phase = CONN_RETRY;
+        _state.dbgReconnects += 1;
         _reconnectAttempts += 1;
         var delay = _reconnectAttempts * RECONNECT_MIN_TICKS;
         _reconnectCountdown = (delay < RECONNECT_MAX_TICKS) ? delay : RECONNECT_MAX_TICKS;
