@@ -83,6 +83,13 @@ find "$RES_TMP" -name strings.xml -exec \
 # Патч 6: свой app id (см. DIAG_APP_ID) — копия манифеста, оригинал не трогаем.
 sed 's#id="[0-9a-f]\{32\}"#id="'"$DIAG_APP_ID"'"#' manifest.xml > "$MANIFEST_TMP"
 
+# Патч 7: в диаг-сборке отключаем FIT-контрибьютор. Data Field на Edge Explore 2 живёт
+# в жёстком лимите памяти, debug-сборка (без -r) не оптимизирована и тратит заметно
+# больше релизной, а поля FIT — уже ловленный источник OOM («New Field out of memory
+# for FIT data», doc/CIQ_LOG.BAK). Для разбора BLE запись в FIT не нужна.
+sed -i '' 's#        _fit = new Di2FitContributor(self);#        _fit = null;   // DIAG: no FIT, spare the memory#' \
+  "$SRC_TMP/Di2FieldView.mc"
+
 # Временный jungle с источниками и ресурсами из копий. Локали перечисляем ЯВНО:
 # автоматика ищет resources-<lang> относительно проекта, а не относительно нашего
 # resourcePath, и без этих строк тянула бы НЕПРОПАТЧЕННЫЕ имена из рабочего дерева
