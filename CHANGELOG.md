@@ -4,6 +4,17 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.42
+
+### Fixed
+- Reconnects and profile retries now also run before the activity timer is
+  started: they used to be driven only by the per-second callback the system
+  makes while recording, so a field left waiting on the start screen never
+  retried anything.
+- If the Bluetooth stack rejects the gear profile, the field now alternates
+  between two ways of describing it (with and without an explicit notification
+  descriptor) instead of repeating the rejected one.
+
 ## 0.0.41
 
 ### Fixed
