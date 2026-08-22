@@ -198,7 +198,9 @@ class Di2FieldView extends WatchUi.DataField {
         _state.dbgPktGood = 41;
         _state.dbgLastPktMs = 1;
         _state.dbgSub = "ok";
-        _state.dbgSvcCount = 4;
+        _state.dbgSvcCount = 2;
+        _state.dbgReg = "180F:ok 18EF:ok";
+        _state.dbgSvcList = "180F 18EF ";
         _state.dbgReconnects = 2;
         // Три разновидности пакетов — ровно как их шлёт реальный XT M8250 (doc/NOTES.md).
         _state.recordPacket(17, "00 00 03 FF FF 05 0C 80 80 80 FF EE 12 FF FF 15 00");
@@ -344,6 +346,15 @@ class Di2FieldView extends WatchUi.DataField {
         // означает «дискавери не готова» (гонка), svc>0 — «сервиса нет в прошивке».
         lines.add("sub=" + s.dbgSub + " svc=" + numOrDash(s.dbgSvcCount)
             + " rc=" + s.dbgReconnects);
+        // Результат регистрации профилей: без неё стек не ищет сервис на устройстве,
+        // поэтому "18EF:e<N>" здесь — прямая причина "sub=no-svc" выше.
+        if (s.dbgReg.length() > 0) {
+            lines.add("reg=" + s.dbgReg);
+        }
+        // Список сервисов, реально видимых стеком (короткие UUID).
+        if (s.dbgSvcList.length() > 0) {
+            lines.add("svc: " + s.dbgSvcList);
+        }
 
         // Рисуем технические строки под индикатором (с защитой от выхода за экран).
         var y = fh + 1;

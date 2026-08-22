@@ -297,24 +297,56 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // ── Регистрация профилей и скан ───────────────────────────────────────────
 
+    // Результат регистрации профиля от BLE-стека. Раньше колбэк не был реализован, и
+    // провал регистрации был невидим: незарегистрированный профиль означает, что стек
+    // НЕ обнаруживает его сервис на устройстве (getServices отдаёт только профили,
+    // зарегистрированные приложением) — то есть подписка обречена, а причина молчит.
+    function onProfileRegister(uuid, status) {
+        var ok = (status == Ble.STATUS_SUCCESS);
+        var tag = shortUuid(uuid) + (ok ? ":ok" : ":e" + status.toString());
+        _state.dbgReg = (_state.dbgReg.length() == 0) ? tag : (_state.dbgReg + " " + tag);
+        log("profile register " + tag);
+    }
+
+    // Короткая метка UUID для диагностики: "0000180f-..." -> "180F".
+    private function shortUuid(uuid) as Lang.String {
+        var s = uuid.toString();
+        return (s.length() >= 8) ? s.substring(4, 8) : s;
+    }
+
+    // Регистрация профилей. КАЖДЫЙ вызов в своём try: Connect IQ ограничивает число
+    // зарегистрированных профилей на приложение, и если первая регистрация упрётся в
+    // лимит (например, поле добавлено на два экрана сразу — тогда профили просит каждый
+    // экземпляр), общий try оставил бы приложение вообще без второго профиля.
+    // Профиль передач регистрируем ПЕРВЫМ: он важнее батареи, и при нехватке слотов
+    // потерять лучше батарею, чем передачи — ради них поле и существует.
     private function registerProfiles() as Void {
-        // Профиль батареи (Read).
-        Ble.registerProfile({
-            :uuid => _battSvcUuid,
-            :characteristics => [
-                { :uuid => _battCharUuid }
-            ]
-        });
         // Профиль нотификаций (Notify через CCCD).
-        Ble.registerProfile({
-            :uuid => _modeSvcUuid,
-            :characteristics => [
-                {
-                    :uuid => _modeCharUuid,
-                    :descriptors => [Ble.cccdUuid()]
-                }
-            ]
-        });
+        try {
+            Ble.registerProfile({
+                :uuid => _modeSvcUuid,
+                :characteristics => [
+                    {
+                        :uuid => _modeCharUuid,
+                        :descriptors => [Ble.cccdUuid()]
+                    }
+                ]
+            });
+        } catch (e) {
+            _state.dbgReg = "18EF:ex";
+            log("register mode profile failed: " + e.getErrorMessage());
+        }
+        // Профиль батареи (Read).
+        try {
+            Ble.registerProfile({
+                :uuid => _battSvcUuid,
+                :characteristics => [
+                    { :uuid => _battCharUuid }
+                ]
+            });
+        } catch (e) {
+            log("register battery profile failed: " + e.getErrorMessage());
+        }
     }
 
     private function startScan() as Void {
@@ -620,17 +652,21 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // (0 сервисов) от «сервис реально отсутствует в прошивке» (есть другие, но не 18ef).
     private function countServices(device as Ble.Device) as Lang.Number {
         var n = 0;
+        var seen = "";
         try {
             // Итератор берём ОДИН раз: повторный getServices() отдаёт новый итератор
             // и цикл вечно читал бы первый сервис.
             var it = device.getServices();
             for (var svc = it.next(); svc != null; svc = it.next()) {
+                seen += shortUuid((svc as Ble.Service).getUuid()) + " ";
                 n += 1;
                 if (n >= 16) { break; }
             }
         } catch (e) {
+            _state.dbgSvcList = "?";
             return -1;
         }
+        _state.dbgSvcList = seen;   // какие именно сервисы видит стек
         return n;
     }
 
