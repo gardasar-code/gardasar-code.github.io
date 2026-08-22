@@ -22,7 +22,12 @@ DEVICE="edgeexplore2"
 # Версия — источник истины manifest.xml (для лога сборки; в имя файла не кладём,
 # чтобы имя совпадало с лог-файлом DI2DIAG.TXT без FAT/8.3-усечения).
 VERSION="$(sed -n 's/.* version="\([0-9.]*\)".*/\1/p' manifest.xml | tail -1)"
-# Короткое фикс-имя: лог на устройстве — GARMIN/APPS/LOGS/DI2DIAG.TXT (создать вручную).
+# Два имени результата:
+#   OUT      — фикс-имя ДЛЯ УСТРОЙСТВА. Лог пишется в GARMIN/APPS/LOGS/<имя_prg>.TXT и
+#              создаётся вручную, поэтому имя не должно меняться от версии к версии —
+#              иначе после каждой пересборки пришлось бы заводить новый пустой .TXT.
+#   OUT_VER  — копия с версией ДЛЯ АРХИВА в bin/ (рядом с .iq-бетами, чтобы в Finder
+#              было видно, что за сборка).
 OUT="bin/DI2DIAG.prg"
 
 SRC_TMP=".diag-src"
@@ -90,5 +95,8 @@ EOF
 echo "▶ diag .prg (устройство, BLE on + файловый лог), version $VERSION"
 # Без -r: System.println пишется в GARMIN/APPS/LOGS/*.TXT на устройстве.
 "$MONKEYC" -d "$DEVICE" -f "$JUNGLE_TMP" -o "$OUT" -y "$KEY" -w
+OUT_VER="bin/Di2App-${VERSION}-diag.prg"
+cp "$OUT" "$OUT_VER"
 echo "✓ $OUT — залей в GARMIN/APPS/"
+echo "  (архивная копия: $OUT_VER)"
 echo "  ВАЖНО: заранее создай ПУСТОЙ файл GARMIN/APPS/LOGS/DI2DIAG.TXT (см. doc/LOGGING.md)"
