@@ -4,6 +4,14 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.46
+
+### Changed
+- When the device refuses to register the gear Bluetooth profile, the field no
+  longer keeps looking for a service that cannot appear: it stops retrying the
+  subscription, saving battery. The diagnostics screen shows this as
+  "sub=no-reg".
+
 ## 0.0.45
 
 ### Fixed
