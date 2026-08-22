@@ -4,6 +4,15 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.37
+
+### Fixed
+- Gears stayed empty on some devices while the connection and the battery
+  readout looked healthy: the notification subscription was attempted once,
+  immediately after connecting, and could land before the Bluetooth stack had
+  finished discovering the services. The subscription is now retried until the
+  stack confirms it.
+
 ## 0.0.36
 
 ### Changed
