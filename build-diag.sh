@@ -19,16 +19,15 @@ MONKEYC="${SDK}bin/monkeyc"
 KEY="/Volumes/WD2TB/Projects/sln_chipre/garmin/developer_key/developer_key"
 DEVICE="edgeexplore2"
 
-# Версия — источник истины manifest.xml (для лога сборки; в имя файла не кладём,
-# чтобы имя совпадало с лог-файлом DI2DIAG.TXT без FAT/8.3-усечения).
+# Версия — источник истины manifest.xml: идёт и в имя .prg, и, как следствие,
+# в имя лог-файла на устройстве (Garmin пишет в GARMIN/APPS/LOGS/<имя_prg>.TXT).
 VERSION="$(sed -n 's/.* version="\([0-9.]*\)".*/\1/p' manifest.xml | tail -1)"
-# Два имени результата:
-#   OUT      — фикс-имя ДЛЯ УСТРОЙСТВА. Лог пишется в GARMIN/APPS/LOGS/<имя_prg>.TXT и
-#              создаётся вручную, поэтому имя не должно меняться от версии к версии —
-#              иначе после каждой пересборки пришлось бы заводить новый пустой .TXT.
-#   OUT_VER  — копия с версией ДЛЯ АРХИВА в bin/ (рядом с .iq-бетами, чтобы в Finder
-#              было видно, что за сборка).
-OUT="bin/DI2DIAG.prg"
+# Имя результата — с версией, как у .iq-бет: в Finder сразу видно, что за сборка.
+# Лог на устройстве Garmin пишет в GARMIN/APPS/LOGS/<имя_prg>.TXT, поэтому имя файла
+# лога меняется вместе с версией — точное имя печатается в конце сборки.
+NAME="Di2App-${VERSION}-diag"
+OUT="bin/${NAME}.prg"
+LOGNAME="${NAME}.TXT"
 
 SRC_TMP=".diag-src"
 RES_TMP=".diag-res"
@@ -102,8 +101,6 @@ EOF
 echo "▶ diag .prg (устройство, BLE on + файловый лог), version $VERSION"
 # Без -r: System.println пишется в GARMIN/APPS/LOGS/*.TXT на устройстве.
 "$MONKEYC" -d "$DEVICE" -f "$JUNGLE_TMP" -o "$OUT" -y "$KEY" -w
-OUT_VER="bin/Di2App-${VERSION}-diag.prg"
-cp "$OUT" "$OUT_VER"
 echo "✓ $OUT — залей в GARMIN/APPS/"
-echo "  (архивная копия: $OUT_VER)"
-echo "  ВАЖНО: заранее создай ПУСТОЙ файл GARMIN/APPS/LOGS/DI2DIAG.TXT (см. doc/LOGGING.md)"
+echo "  ВАЖНО: заранее создай ПУСТОЙ файл GARMIN/APPS/LOGS/$LOGNAME (см. doc/LOGGING.md)"
+echo "         имя .TXT обязано совпадать с именем .prg — иначе лог молча теряется"
