@@ -4,6 +4,16 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.40
+
+### Fixed
+- Gears could stop working entirely after a device firmware update. Some Garmin
+  firmware accepts only the first Bluetooth profile an app registers and
+  rejects the rest, which left the gear service invisible to the field. The
+  gear profile is now registered first and alone; the battery profile is only
+  requested once the gear one is confirmed. On affected firmware the battery
+  percentage may show as "--" while the gears keep working.
+
 ## 0.0.39
 
 ### Fixed
