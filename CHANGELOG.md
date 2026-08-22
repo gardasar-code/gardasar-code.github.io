@@ -4,7 +4,7 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
-## 0.0.40
+## 0.0.41
 
 ### Fixed
 - Gears could stop working entirely after a device firmware update. Some Garmin
