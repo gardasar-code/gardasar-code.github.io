@@ -4,6 +4,15 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.44
+
+### Fixed
+- The field crashed while trying to recover a rejected Bluetooth profile: on
+  this firmware a second registration attempt kills the app from inside the
+  system call, and no error handling can catch it. The profile is now
+  registered once per start, and the alternative form is tried on the next
+  start instead.
+
 ## 0.0.43
 
 ### Fixed
