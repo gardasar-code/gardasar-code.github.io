@@ -84,12 +84,19 @@ find "$RES_TMP" -name strings.xml -exec \
 # Патч 6: свой app id (см. DIAG_APP_ID) — копия манифеста, оригинал не трогаем.
 sed 's#id="[0-9a-f]\{32\}"#id="'"$DIAG_APP_ID"'"#' manifest.xml > "$MANIFEST_TMP"
 
-# Временный jungle с источниками и ресурсами из копий. Локали (resources-<lang>)
-# компилятор подхватывает сам — они лежат рядом с базовой папкой, как в рабочем дереве.
+# Временный jungle с источниками и ресурсами из копий. Локали перечисляем ЯВНО:
+# автоматика ищет resources-<lang> относительно проекта, а не относительно нашего
+# resourcePath, и без этих строк тянула бы НЕПРОПАТЧЕННЫЕ имена из рабочего дерева
+# (симптом: в английском интерфейсе «… Diag», а в испанском по-прежнему «… Beta»).
 cat > "$JUNGLE_TMP" <<EOF
 project.manifest = $MANIFEST_TMP
 base.sourcePath = $SRC_TMP
 base.resourcePath = $RES_TMP/resources
+base.lang.ara = $RES_TMP/resources-ara
+base.lang.deu = $RES_TMP/resources-deu
+base.lang.fre = $RES_TMP/resources-fre
+base.lang.rus = $RES_TMP/resources-rus
+base.lang.spa = $RES_TMP/resources-spa
 EOF
 
 echo "▶ diag .prg (устройство, BLE on + файловый лог), version $VERSION"
