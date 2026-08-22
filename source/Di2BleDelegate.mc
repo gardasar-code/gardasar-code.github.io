@@ -151,7 +151,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             _state.phase = CONN_SCANNING;
             startScan();
         } catch (e) {
-            if (DEBUG) { log("BLE init failed: " + e.getErrorMessage()); }
+            if (DEBUG) { log("BLE init failed"); }
         }
     }
 
@@ -359,7 +359,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 ]
             });
         } catch (e) {
-            log("register battery profile failed: " + e.getErrorMessage());
+            log("register battery profile failed");
         }
     }
 
@@ -384,8 +384,11 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 :characteristics => [chr]
             });
         } catch (e) {
+            // ВНИМАНИЕ: здесь нельзя звать e.getErrorMessage() — системные ошибки
+            // (не Lang.Exception) такого метода не имеют, и обработчик падает сам
+            // «Failed invoking <symbol>», маскируя исходный сбой. Проверено на железе.
             _state.dbgReg = "18EF:ex";
-            log("register mode profile failed: " + e.getErrorMessage());
+            log("register mode profile failed");
         }
         _state.dbgRegAttempts = _regAttempts;
         _state.dbgRegForm = withCccd ? "d" : "n";   // d = с CCCD, n = без
@@ -396,7 +399,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             Ble.setScanState(Ble.SCAN_STATE_SCANNING);
             _scanning = true;
         } catch (e) {
-            if (DEBUG) { log("scan start failed: " + e.getErrorMessage()); }
+            if (DEBUG) { log("scan start failed"); }
         }
     }
 
@@ -486,7 +489,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 onConnected(d);
             }
         } catch (e) {
-            if (DEBUG) { log("pair failed: " + e.getErrorMessage()); }
+            if (DEBUG) { log("pair failed"); }
             scheduleReconnect();
         }
     }
@@ -653,7 +656,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             log("subscribe: cccd write requested");
         } catch (e) {
             _state.dbgSub = "ex";
-            log("subscribe: exception " + e.getErrorMessage());
+            log("subscribe: exception");
         }
     }
 
@@ -748,7 +751,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             }
         } catch (e) {
             _batteryReadInFlight = false;
-            if (DEBUG) { log("battery read failed: " + e.getErrorMessage()); }
+            if (DEBUG) { log("battery read failed"); }
         }
     }
 
