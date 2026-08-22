@@ -85,6 +85,13 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private const PROP_FORGET     = "forgetDevice";
     // Форма описания BLE-профиля, выбранная для следующего запуска (см. registerModeProfile).
     private const STORAGE_REG_FORM = "regProfileForm";
+    // «Канарейка»: попытка регистрации начата, но не подтверждена. Осталась после
+    // перезапуска → прошлый вызов уронил приложение, форму надо сменить.
+    private const STORAGE_REG_PENDING = "regProfilePending";
+    // Сколько раз подряд регистрация уронила приложение. Обе формы упали → больше не
+    // пробуем: поле должно работать хотя бы без передач, а не показывать жёлтый значок.
+    private const STORAGE_REG_FAILS = "regProfileFails";
+    private const REG_FAIL_LIMIT    = 2;
 
     // ── Кэш Uuid-объектов ─────────────────────────────────────────────────────
     // stringToUuid аллоцирует объект на каждый вызов; раньше это происходило в
@@ -286,6 +293,52 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
     }
 
+    // «Канарейка» вокруг registerProfile. Вызов способен УБИТЬ дата-филд изнутри
+    // (System Error, не перехватывается try/catch — CIQ_LOG: registerModeProfile из
+    // start). Раз узнать результат после падения нельзя, отмечаем намерение ДО вызова:
+    //   • ставим флаг «попытка формы X идёт»;
+    //   • успех подтверждаем в onProfileRegister (флаг снимается);
+    //   • если при следующем старте флаг ещё стоит — прошлая попытка не пережила
+    //     вызова, и мы берём ДРУГУЮ форму.
+    // Без этого краш повторялся бы вечно: до кода, переключающего форму, дело не доходит.
+    private function beginRegAttempt(withCccd as Lang.Boolean) as Void {
+        try {
+            Application.Storage.setValue(STORAGE_REG_PENDING, true);
+            Application.Storage.setValue(STORAGE_REG_FORM, withCccd);
+        } catch (e) {
+            // не сохранилось — хуже не станет, просто не переключим форму
+        }
+    }
+
+    // Снять «канарейку»: форма пережила вызов (и была принята стеком).
+    private function endRegAttempt() as Void {
+        try {
+            Application.Storage.setValue(STORAGE_REG_PENDING, false);
+        } catch (e) {
+            // не критично
+        }
+    }
+
+    // Счётчик подряд идущих крашей регистрации.
+    private function regFails() as Lang.Number {
+        var v = Application.Storage.getValue(STORAGE_REG_FAILS);
+        return (v instanceof Lang.Number) ? v : 0;
+    }
+
+    private function saveRegFails(n as Lang.Number) as Void {
+        try {
+            Application.Storage.setValue(STORAGE_REG_FAILS, n);
+        } catch (e) {
+            // не критично
+        }
+    }
+
+    // Пережила ли прошлая попытка вызов registerProfile.
+    private function lastRegCrashed() as Lang.Boolean {
+        var v = Application.Storage.getValue(STORAGE_REG_PENDING);
+        return (v instanceof Lang.Boolean) ? v : false;
+    }
+
     // Прочитать сохранённое имя «своего» Di2 (null, если привязки нет).
     private function loadLockedName() as Lang.String? {
         var v = Application.Storage.getValue(STORAGE_LOCK);
@@ -307,6 +360,11 @@ class Di2BleDelegate extends Ble.BleDelegate {
         Application.Storage.deleteValue(STORAGE_LOCK);
         _lockedName = null;
         _state.locked = false;
+        // Заодно даём регистрации профиля второй шанс: Forget — единственная доступная
+        // пользователю кнопка «начать заново», и застрявший счётчик крашей (18EF:skip)
+        // иначе не сбросить.
+        saveRegFails(0);
+        endRegAttempt();
         try {
             Application.Properties.setValue(PROP_FORGET, false);
         } catch (e) {
@@ -323,10 +381,12 @@ class Di2BleDelegate extends Ble.BleDelegate {
     function onProfileRegister(uuid, status) {
         var ok = (status == Ble.STATUS_SUCCESS);
         if (uuid.equals(_modeSvcUuid)) {
+            endRegAttempt();               // вызов пережит — «канарейка» снимается
             if (ok) {
+                saveRegFails(0);           // рабочая форма найдена, счётчик крашей сброшен
                 registerBatteryProfile();   // слот передач занят — можно просить второй
             } else {
-                saveRegForm(!loadRegForm());   // следующий запуск пробует другую форму
+                saveRegForm(!loadRegForm());   // отказ стека: следующий запуск — другая форма
             }
         }
         var tag = shortUuid(uuid) + (ok ? ":ok" : ":e" + status.toString());
@@ -388,7 +448,25 @@ class Di2BleDelegate extends Ble.BleDelegate {
         // дескриптор всё равно доступен через getDescriptor() после подключения.
         // Чередуем МЕЖДУ ЗАПУСКАМИ поля (форма живёт в Storage): повторный вызов
         // registerProfile в рамках одного запуска роняет дата-филд, см. onIdleTick.
+        // Если прошлый запуск не пережил регистрацию — пробуем другую форму.
         var withCccd = loadRegForm();
+        var fails = regFails();
+        if (lastRegCrashed()) {
+            withCccd = !withCccd;
+            fails += 1;
+            saveRegFails(fails);
+            log("previous register attempt crashed (" + fails + "), switching profile form");
+        }
+        // Обе формы уронили приложение — прекращаем попытки. Передач не будет, но поле
+        // останется живым; состояние видно в diag-оверлее как "18EF:skip".
+        if (fails >= REG_FAIL_LIMIT) {
+            _state.dbgReg = "18EF:skip";
+            endRegAttempt();
+            registerBatteryProfile();   // хотя бы заряд D-Fly
+            log("register mode profile skipped after " + fails + " crashes");
+            return;
+        }
+        beginRegAttempt(withCccd);
         try {
             var chr = withCccd
                 ? { :uuid => _modeCharUuid, :descriptors => [Ble.cccdUuid()] }
