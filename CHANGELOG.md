@@ -4,6 +4,17 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.38
+
+### Fixed
+- The gear notification profile is now registered independently of the battery
+  one, so a failure to register either of them no longer leaves the field
+  without the other.
+
+### Changed
+- Diagnostics mode also reports the profile registration result and the list of
+  services the Bluetooth stack actually sees on the connected device.
+
 ## 0.0.37
 
 ### Fixed
