@@ -108,6 +108,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private var _modeProfileOk as Lang.Boolean = false;
     private var _regRetryCounter as Lang.Number = 0;
     private var _regAttempts as Lang.Number = 0;
+    private var _battProfileRequested as Lang.Boolean = false;
     private var _lockedName as Lang.String? = null;       // имя «своего» Di2 или null
 
     // Троттлинг лога скана: onScanResults зовётся десятки раз в секунду и заспамил
@@ -311,6 +312,9 @@ class Di2BleDelegate extends Ble.BleDelegate {
         var ok = (status == Ble.STATUS_SUCCESS);
         if (uuid.equals(_modeSvcUuid)) {
             _modeProfileOk = ok;
+            if (ok) {
+                registerBatteryProfile();   // слот передач занят — можно просить второй
+            }
         }
         var tag = shortUuid(uuid) + (ok ? ":ok" : ":e" + status.toString());
         _state.dbgReg = (_state.dbgReg.length() == 0) ? tag : (_state.dbgReg + " " + tag);
@@ -329,9 +333,24 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // экземпляр), общий try оставил бы приложение вообще без второго профиля.
     // Профиль передач регистрируем ПЕРВЫМ: он важнее батареи, и при нехватке слотов
     // потерять лучше батарею, чем передачи — ради них поле и существует.
+    // Регистрация профилей. ВАЖНО (известный баг прошивки, forums.garmin.com): на ряде
+    // устройств стек принимает только ПЕРВЫЙ профиль, а на каждый следующий отвечает
+    // недокументированным status=2. Наблюдалось на Edge Explore 2 после обновления
+    // прошивки: 180F:ok, 18EF:e2 — и передачи пропали совсем, потому что незарегистри-
+    // рованный профиль стек не ищет на устройстве вовсе.
+    // Поэтому регистрируем СТРОГО ПО ОДНОМУ: сначала профиль передач (ради него поле и
+    // существует), а батарею — только после того, как стек подтвердил первый. Если на
+    // батарею слота не хватит, поле покажет "--" вместо процента, но передачи будут.
     private function registerProfiles() as Void {
         registerModeProfile();
-        // Профиль батареи (Read).
+    }
+
+    // Профиль батареи (Read). Регистрируется отложенно — см. registerProfiles.
+    private function registerBatteryProfile() as Void {
+        if (_battProfileRequested) {
+            return;                    // одна попытка: слот либо есть, либо нет
+        }
+        _battProfileRequested = true;
         try {
             Ble.registerProfile({
                 :uuid => _battSvcUuid,
