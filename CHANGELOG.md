@@ -4,6 +4,15 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.36
+
+### Changed
+- The on-screen diagnostics mode now reports the notification subscription
+  state, packet counters and the age of the last packet, and dumps every kind
+  of packet the Di2 sends instead of only the most recent one — so a photo of
+  the screen tells apart "the device is silent", "the subscription was
+  rejected" and "the packets look different than expected".
+
 ## 0.0.35
 
 ### Added
