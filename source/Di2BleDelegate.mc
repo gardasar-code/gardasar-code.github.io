@@ -72,6 +72,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private const RECONNECT_MIN_TICKS = 3;    // ~3 c до первой повторной попытки
     private const RECONNECT_MAX_TICKS = 30;   // потолок интервала между попытками
     private const BATTERY_POLL_TICKS  = 30;   // опрос батареи ~раз в 30 c
+    private const SUB_RETRY_TICKS     = 2;    // повтор подписки ~раз в 2 c, пока не "ok"
 
     // ── Sticky-lock: привязка к конкретному переключателю ─────────────────────
     // Имя устройства, к которому «прилипли». Сохраняется в Storage и переживает
@@ -100,6 +101,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private var _batteryReadInFlight as Lang.Boolean = false;
     private var _reconnectCountdown as Lang.Number = -1;  // -1 = реконнект не запланирован
     private var _batteryTickCounter as Lang.Number = 0;
+    private var _subRetryCounter as Lang.Number = 0;
     private var _lockedName as Lang.String? = null;       // имя «своего» Di2 или null
 
     // Троттлинг лога скана: onScanResults зовётся десятки раз в секунду и заспамил
@@ -553,6 +555,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // приходит асинхронно в onDescriptorWrite (там "wr" -> "ok"/"e<N>").
     private function enableNotifications(device as Ble.Device) as Void {
         try {
+            _state.dbgSvcCount = countServices(device);   // 0 = дискавери ещё не готова
             var svc = device.getService(_modeSvcUuid);
             if (svc == null) {
                 _state.dbgSub = "no-svc";
@@ -590,6 +593,56 @@ class Di2BleDelegate extends Ble.BleDelegate {
             _state.dbgSub = "e" + status.toString();
         }
         log("cccd write status=" + status);
+    }
+
+    // Повторная попытка подписки на активном соединении (см. onTick). Устройство берём
+    // из списка спаренных — ссылки на Ble.Device мы намеренно не храним, её валидность
+    // между колбэками не гарантируется.
+    private function retrySubscribe() as Void {
+        try {
+            var d = Ble.getPairedDevices().next() as Ble.Device?;
+            if (d != null && d.isConnected()) {
+                logServices(d);
+                enableNotifications(d);
+            }
+        } catch (e) {
+            _state.dbgSub = "ex";
+        }
+    }
+
+    // Сколько сервисов видит стек на устройстве. Отличает «дискавери не завершена»
+    // (0 сервисов) от «сервис реально отсутствует в прошивке» (есть другие, но не 18ef).
+    private function countServices(device as Ble.Device) as Lang.Number {
+        var n = 0;
+        try {
+            // Итератор берём ОДИН раз: повторный getServices() отдаёт новый итератор
+            // и цикл вечно читал бы первый сервис.
+            var it = device.getServices();
+            for (var svc = it.next(); svc != null; svc = it.next()) {
+                n += 1;
+                if (n >= 16) { break; }
+            }
+        } catch (e) {
+            return -1;
+        }
+        return n;
+    }
+
+    // Перечислить сервисы устройства в лог: пустой список = GATT-дискавери ещё не
+    // завершена, непустой без 18ef = прошивка действительно не отдаёт этот сервис.
+    private function logServices(device as Ble.Device) as Void {
+        if (!DEBUG) {
+            return;
+        }
+        var n = 0;
+        var line = "";
+        var it = device.getServices();   // итератор берём один раз (см. countServices)
+        for (var svc = it.next(); svc != null; svc = it.next()) {
+            line += (svc as Ble.Service).getUuid().toString() + " ";
+            n += 1;
+            if (n >= 8) { break; }
+        }
+        Di2Log.line("services n=" + n + " [" + line + "]");
     }
 
     // Однократное чтение батареи. Зовётся при подключении и периодически из onTick().
@@ -647,6 +700,22 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 if (DEBUG) { log("reconnect attempt " + _reconnectAttempts); }
                 startScan();
             }
+        }
+
+        // Ретрай подписки на notify. КРИТИЧНО: onConnected может быть вызван из
+        // connectTo синхронно, сразу после pairDevice — до того, как BLE-стек завершил
+        // GATT-дискавери. Тогда getService(18ef) отдаёт null (sub=no-svc), а единственная
+        // попытка подписки уже потрачена: соединение живое, батарея читается (её опрос
+        // периодический), а передачи не приходят никогда. Поэтому повторяем подписку,
+        // пока стек не подтвердит запись CCCD (dbgSub == "ok").
+        if (_state.connected && !_state.dbgSub.equals("ok")) {
+            _subRetryCounter += 1;
+            if (_subRetryCounter >= SUB_RETRY_TICKS) {
+                _subRetryCounter = 0;
+                retrySubscribe();
+            }
+        } else {
+            _subRetryCounter = 0;
         }
 
         // Периодический опрос батареи (когда подключены).

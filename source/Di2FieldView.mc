@@ -198,6 +198,7 @@ class Di2FieldView extends WatchUi.DataField {
         _state.dbgPktGood = 41;
         _state.dbgLastPktMs = 1;
         _state.dbgSub = "ok";
+        _state.dbgSvcCount = 4;
         _state.dbgReconnects = 2;
         // Три разновидности пакетов — ровно как их шлёт реальный XT M8250 (doc/NOTES.md).
         _state.recordPacket(17, "00 00 03 FF FF 05 0C 80 80 80 FF EE 12 FF FF 15 00");
@@ -339,7 +340,10 @@ class Di2FieldView extends WatchUi.DataField {
         // sub=ok при pkt=0/0 → подписка принята, молчит само устройство;
         // sub=no-svc/no-chr/no-cccd → GATT-раскладка не та, что мы ждём;
         // sub=e<N> → стек отклонил запись CCCD (частый случай — протухший бонд).
-        lines.add("sub=" + s.dbgSub + " rc=" + s.dbgReconnects);
+        // svc= число сервисов, видимых стеком в момент подписки: svc=0 при sub=no-svc
+        // означает «дискавери не готова» (гонка), svc>0 — «сервиса нет в прошивке».
+        lines.add("sub=" + s.dbgSub + " svc=" + numOrDash(s.dbgSvcCount)
+            + " rc=" + s.dbgReconnects);
 
         // Рисуем технические строки под индикатором (с защитой от выхода за экран).
         var y = fh + 1;
