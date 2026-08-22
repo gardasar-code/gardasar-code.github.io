@@ -603,6 +603,12 @@ class Di2BleDelegate extends Ble.BleDelegate {
             var d = Ble.getPairedDevices().next() as Ble.Device?;
             if (d != null && d.isConnected()) {
                 logServices(d);
+                // Личность снимаем заново: при той же гонке (onConnected до завершения
+                // дискавери) getName() отдаёт null, профиль парсинга остаётся дефолтным,
+                // и на не-XT сериях передачи разбирались бы по чужой раскладке.
+                if (_state.dbgDeviceName.length() == 0) {
+                    captureIdentity(d);
+                }
                 enableNotifications(d);
             }
         } catch (e) {
