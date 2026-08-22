@@ -4,6 +4,13 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.39
+
+### Fixed
+- If the Bluetooth stack refuses to register the gear notification profile, the
+  field keeps retrying instead of giving up for the whole ride: without the
+  profile the gear service is never found, no matter how often it reconnects.
+
 ## 0.0.38
 
 ### Fixed
