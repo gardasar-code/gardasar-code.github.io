@@ -73,6 +73,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private const RECONNECT_MAX_TICKS = 30;   // потолок интервала между попытками
     private const BATTERY_POLL_TICKS  = 30;   // опрос батареи ~раз в 30 c
     private const SUB_RETRY_TICKS     = 2;    // повтор подписки ~раз в 2 c, пока не "ok"
+    private const REG_RETRY_TICKS     = 10;   // повтор регистрации профиля ~раз в 10 c
 
     // ── Sticky-lock: привязка к конкретному переключателю ─────────────────────
     // Имя устройства, к которому «прилипли». Сохраняется в Storage и переживает
@@ -102,6 +103,11 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private var _reconnectCountdown as Lang.Number = -1;  // -1 = реконнект не запланирован
     private var _batteryTickCounter as Lang.Number = 0;
     private var _subRetryCounter as Lang.Number = 0;
+    // Принят ли стеком профиль передач. false → сервис 18ef не будет найден ни на одном
+    // устройстве, сколько ни переподключайся: стек ищет только принятые профили.
+    private var _modeProfileOk as Lang.Boolean = false;
+    private var _regRetryCounter as Lang.Number = 0;
+    private var _regAttempts as Lang.Number = 0;
     private var _lockedName as Lang.String? = null;       // имя «своего» Di2 или null
 
     // Троттлинг лога скана: onScanResults зовётся десятки раз в секунду и заспамил
@@ -303,6 +309,9 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // зарегистрированные приложением) — то есть подписка обречена, а причина молчит.
     function onProfileRegister(uuid, status) {
         var ok = (status == Ble.STATUS_SUCCESS);
+        if (uuid.equals(_modeSvcUuid)) {
+            _modeProfileOk = ok;
+        }
         var tag = shortUuid(uuid) + (ok ? ":ok" : ":e" + status.toString());
         _state.dbgReg = (_state.dbgReg.length() == 0) ? tag : (_state.dbgReg + " " + tag);
         log("profile register " + tag);
@@ -321,7 +330,26 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // Профиль передач регистрируем ПЕРВЫМ: он важнее батареи, и при нехватке слотов
     // потерять лучше батарею, чем передачи — ради них поле и существует.
     private function registerProfiles() as Void {
-        // Профиль нотификаций (Notify через CCCD).
+        registerModeProfile();
+        // Профиль батареи (Read).
+        try {
+            Ble.registerProfile({
+                :uuid => _battSvcUuid,
+                :characteristics => [
+                    { :uuid => _battCharUuid }
+                ]
+            });
+        } catch (e) {
+            log("register battery profile failed: " + e.getErrorMessage());
+        }
+    }
+
+    // Регистрация профиля передач (Notify через CCCD) — отдельно, чтобы её можно было
+    // повторить: стек может отклонить регистрацию (наблюдался недокументированный
+    // status=2), и тогда сервис 18ef не находится ни на одном устройстве. Повтор даёт
+    // шанс занять слот, когда его освободит тот, кто держал.
+    private function registerModeProfile() as Void {
+        _regAttempts += 1;
         try {
             Ble.registerProfile({
                 :uuid => _modeSvcUuid,
@@ -336,17 +364,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             _state.dbgReg = "18EF:ex";
             log("register mode profile failed: " + e.getErrorMessage());
         }
-        // Профиль батареи (Read).
-        try {
-            Ble.registerProfile({
-                :uuid => _battSvcUuid,
-                :characteristics => [
-                    { :uuid => _battCharUuid }
-                ]
-            });
-        } catch (e) {
-            log("register battery profile failed: " + e.getErrorMessage());
-        }
+        _state.dbgRegAttempts = _regAttempts;
     }
 
     private function startScan() as Void {
@@ -741,6 +759,16 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 _state.phase = CONN_SCANNING;
                 if (DEBUG) { log("reconnect attempt " + _reconnectAttempts); }
                 startScan();
+            }
+        }
+
+        // Ретрай регистрации профиля передач, пока стек его не примет. Без принятого
+        // профиля бессмысленны и скан, и подписка — сервис просто не будет найден.
+        if (!_modeProfileOk) {
+            _regRetryCounter += 1;
+            if (_regRetryCounter >= REG_RETRY_TICKS) {
+                _regRetryCounter = 0;
+                registerModeProfile();
             }
         }
 

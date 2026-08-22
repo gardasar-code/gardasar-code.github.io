@@ -199,7 +199,8 @@ class Di2FieldView extends WatchUi.DataField {
         _state.dbgLastPktMs = 1;
         _state.dbgSub = "ok";
         _state.dbgSvcCount = 2;
-        _state.dbgReg = "180F:ok 18EF:ok";
+        _state.dbgReg = "18EF:ok 180F:ok";
+        _state.dbgRegAttempts = 1;
         _state.dbgSvcList = "180F 18EF ";
         _state.dbgReconnects = 2;
         // Три разновидности пакетов — ровно как их шлёт реальный XT M8250 (doc/NOTES.md).
@@ -349,7 +350,7 @@ class Di2FieldView extends WatchUi.DataField {
         // Результат регистрации профилей: без неё стек не ищет сервис на устройстве,
         // поэтому "18EF:e<N>" здесь — прямая причина "sub=no-svc" выше.
         if (s.dbgReg.length() > 0) {
-            lines.add("reg=" + s.dbgReg);
+            lines.add("reg=" + s.dbgReg + " n=" + s.dbgRegAttempts);
         }
         // Список сервисов, реально видимых стеком (короткие UUID).
         if (s.dbgSvcList.length() > 0) {
