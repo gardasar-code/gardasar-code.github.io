@@ -366,6 +366,9 @@ class Di2FieldView extends WatchUi.DataField {
         if (s.dbgReg.length() > 0) {
             lines.add("reg=" + s.dbgReg + " n=" + s.dbgRegAttempts + s.dbgRegForm);
         }
+        if (DIAG_VERSION.length() > 0) {
+            lines.add("v=" + DIAG_VERSION);
+        }
         // Список сервисов, реально видимых стеком (короткие UUID).
         if (s.dbgSvcList.length() > 0) {
             lines.add("svc: " + s.dbgSvcList);
@@ -401,6 +404,11 @@ class Di2FieldView extends WatchUi.DataField {
             }
         }
     }
+
+    // Версия сборки для diag-экрана. В обычной сборке пустая (строка не рисуется);
+    // build-diag.sh подставляет сюда версию из manifest.xml — в имени diag-файла
+    // версии нет, поэтому по фото экрана иначе не понять, какая сборка стоит.
+    private const DIAG_VERSION = "";
 
     // Сколько hex-байт в одной строке дампа на diag-экране.
     private const DIAG_HEX_PER_ROW = 8;
