@@ -113,6 +113,10 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private var _subRetryCounter as Lang.Number = 0;
     private var _regAttempts as Lang.Number = 0;
     private var _battProfileRequested as Lang.Boolean = false;
+    // Зарегистрирован ли профиль передач. При отказе/пропуске искать сервис 18ef и
+    // подписываться бессмысленно: стек его не отдаст. Без флага ретрай подписки крутился
+    // раз в секунду и заваливал 5-килобайтный лог одинаковыми строками.
+    private var _modeProfileUsable as Lang.Boolean = true;
     private var _lockedName as Lang.String? = null;       // имя «своего» Di2 или null
 
     // Троттлинг лога скана: onScanResults зовётся десятки раз в секунду и заспамил
@@ -386,6 +390,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 saveRegFails(0);           // рабочая форма найдена, счётчик крашей сброшен
                 registerBatteryProfile();   // слот передач занят — можно просить второй
             } else {
+                _modeProfileUsable = false;   // стек профиль не принял — сервиса не будет
                 saveRegForm(!loadRegForm());   // отказ стека: следующий запуск — другая форма
             }
         }
@@ -461,6 +466,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         // останется живым; состояние видно в diag-оверлее как "18EF:skip".
         if (fails >= REG_FAIL_LIMIT) {
             _state.dbgReg = "18EF:skip";
+            _modeProfileUsable = false;
             endRegAttempt();
             registerBatteryProfile();   // хотя бы заряд D-Fly
             log("register mode profile skipped after " + fails + " crashes");
@@ -619,7 +625,11 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _state.phase = CONN_LIVE;
         captureIdentity(device);       // GATT-имя + авто-детект профиля модели (для diag/парсинга)
         saveLock(device);              // «прилипаем» к этому устройству по имени (только первый раз)
-        enableNotifications(device);
+        if (_modeProfileUsable) {
+            enableNotifications(device);
+        } else {
+            _state.dbgSub = "no-reg";   // профиль не зарегистрирован — подписываться не к чему
+        }
         readBattery();                 // одно чтение сразу; далее — по тикам в onTick()
         _batteryTickCounter = 0;
         if (DEBUG) { log("connected" + (device.getName() != null ? " " + device.getName() : "")); }
@@ -887,7 +897,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         // попытка подписки уже потрачена: соединение живое, батарея читается (её опрос
         // периодический), а передачи не приходят никогда. Поэтому повторяем подписку,
         // пока стек не подтвердит запись CCCD (dbgSub == "ok").
-        if (_state.connected && !_state.dbgSub.equals("ok")) {
+        if (_modeProfileUsable && _state.connected && !_state.dbgSub.equals("ok")) {
             _subRetryCounter += 1;
             if (_subRetryCounter >= SUB_RETRY_TICKS) {
                 _subRetryCounter = 0;
@@ -917,7 +927,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // защититься нельзя — только не вызывать. Профиль регистрируем ровно один раз
     // за запуск, см. registerProfiles/start.
     function onIdleTick() as Void {
-        if (!_state.connected || _state.dbgSub.equals("ok")) {
+        if (!_modeProfileUsable || !_state.connected || _state.dbgSub.equals("ok")) {
             return;
         }
         _subRetryCounter += 1;

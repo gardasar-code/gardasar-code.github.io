@@ -92,6 +92,7 @@ class Di2State {
     //   "no-svc"  device.getService(18ef) вернул null
     //   "no-chr"  service.getCharacteristic(2ac1) вернул null
     //   "no-cccd" у характеристики нет CCCD-дескриптора
+    //   "no-reg"  профиль передач не зарегистрирован — искать сервис не к чему
     //   "ex"      исключение при подписке
     //   "e<N>"    стек вернул статус N (запись CCCD не прошла)
     public var dbgSub as Lang.String = "-";
