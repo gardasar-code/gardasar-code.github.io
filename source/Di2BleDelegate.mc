@@ -73,7 +73,6 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private const RECONNECT_MAX_TICKS = 30;   // потолок интервала между попытками
     private const BATTERY_POLL_TICKS  = 30;   // опрос батареи ~раз в 30 c
     private const SUB_RETRY_TICKS     = 2;    // повтор подписки ~раз в 2 c, пока не "ok"
-    private const REG_RETRY_TICKS     = 10;   // повтор регистрации профиля ~раз в 10 c
 
     // ── Sticky-lock: привязка к конкретному переключателю ─────────────────────
     // Имя устройства, к которому «прилипли». Сохраняется в Storage и переживает
@@ -84,6 +83,8 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // действует запасной путь «единственный кандидат» (см. onScanResults).
     private const STORAGE_LOCK    = "lockedDi2Name";
     private const PROP_FORGET     = "forgetDevice";
+    // Форма описания BLE-профиля, выбранная для следующего запуска (см. registerModeProfile).
+    private const STORAGE_REG_FORM = "regProfileForm";
 
     // ── Кэш Uuid-объектов ─────────────────────────────────────────────────────
     // stringToUuid аллоцирует объект на каждый вызов; раньше это происходило в
@@ -103,10 +104,6 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private var _reconnectCountdown as Lang.Number = -1;  // -1 = реконнект не запланирован
     private var _batteryTickCounter as Lang.Number = 0;
     private var _subRetryCounter as Lang.Number = 0;
-    // Принят ли стеком профиль передач. false → сервис 18ef не будет найден ни на одном
-    // устройстве, сколько ни переподключайся: стек ищет только принятые профили.
-    private var _modeProfileOk as Lang.Boolean = false;
-    private var _regRetryCounter as Lang.Number = 0;
     private var _regAttempts as Lang.Number = 0;
     private var _battProfileRequested as Lang.Boolean = false;
     private var _lockedName as Lang.String? = null;       // имя «своего» Di2 или null
@@ -274,6 +271,21 @@ class Di2BleDelegate extends Ble.BleDelegate {
         return null;
     }
 
+    // Форма описания профиля для текущего запуска: true — с явным CCCD (дефолт).
+    private function loadRegForm() as Lang.Boolean {
+        var v = Application.Storage.getValue(STORAGE_REG_FORM);
+        return (v instanceof Lang.Boolean) ? v : true;
+    }
+
+    // Запомнить форму для СЛЕДУЮЩЕГО запуска (в текущем перерегистрация запрещена).
+    private function saveRegForm(withCccd as Lang.Boolean) as Void {
+        try {
+            Application.Storage.setValue(STORAGE_REG_FORM, withCccd);
+        } catch (e) {
+            // не сохранилось — в следующий раз просто повторим ту же форму
+        }
+    }
+
     // Прочитать сохранённое имя «своего» Di2 (null, если привязки нет).
     private function loadLockedName() as Lang.String? {
         var v = Application.Storage.getValue(STORAGE_LOCK);
@@ -311,9 +323,10 @@ class Di2BleDelegate extends Ble.BleDelegate {
     function onProfileRegister(uuid, status) {
         var ok = (status == Ble.STATUS_SUCCESS);
         if (uuid.equals(_modeSvcUuid)) {
-            _modeProfileOk = ok;
             if (ok) {
                 registerBatteryProfile();   // слот передач занят — можно просить второй
+            } else {
+                saveRegForm(!loadRegForm());   // следующий запуск пробует другую форму
             }
         }
         var tag = shortUuid(uuid) + (ok ? ":ok" : ":e" + status.toString());
@@ -369,12 +382,13 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // шанс занять слот, когда его освободит тот, кто держал.
     private function registerModeProfile() as Void {
         _regAttempts += 1;
-        // Чередуем две формы описания профиля. Прошивка Edge Explore 2 отклоняет наш
-        // профиль недокументированным status=2 даже когда он единственный, тогда как
-        // батарейный (без :descriptors) принимается — поэтому на нечётных попытках
-        // пробуем форму БЕЗ явного CCCD: дескриптор всё равно доступен через
-        // getDescriptor() после подключения, если стек его отдаст.
-        var withCccd = (_regAttempts % 2 == 1);
+        // Две формы описания профиля. Прошивка Edge Explore 2 отклоняет наш профиль
+        // недокументированным status=2 даже когда он единственный, тогда как батарейный
+        // (без :descriptors) принимается — поэтому пробуем и форму БЕЗ явного CCCD:
+        // дескриптор всё равно доступен через getDescriptor() после подключения.
+        // Чередуем МЕЖДУ ЗАПУСКАМИ поля (форма живёт в Storage): повторный вызов
+        // registerProfile в рамках одного запуска роняет дата-филд, см. onIdleTick.
+        var withCccd = loadRegForm();
         try {
             var chr = withCccd
                 ? { :uuid => _modeCharUuid, :descriptors => [Ble.cccdUuid()] }
@@ -759,7 +773,6 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // Heartbeat дата-филда: гоним отложенный реконнект и периодический опрос батареи.
     function onTick() as Void {
-        onIdleTick();   // фоновая часть (повтор регистрации профиля) — общая для обоих тиков
         // Кадровый счётчик для пульсации индикатора в View (одна анимация на 1 c тик).
         _state.anim += 1;
 
@@ -817,17 +830,22 @@ class Di2BleDelegate extends Ble.BleDelegate {
     }
 
     // Тик, не зависящий от записи активности: его гонит View.onUpdate (см. там же).
-    // Здесь только то, что должно работать ДО старта таймера, — повтор регистрации
-    // профиля передач. Без принятого профиля бессмысленны и скан, и подписка: стек
-    // ищет на устройстве лишь те сервисы, чей профиль он принял.
+    // Нужен, чтобы подписка на notify восстанавливалась и до старта таймера — раньше
+    // вся периодика висела на compute(), который система зовёт только во время записи.
+    //
+    // ЗДЕСЬ НЕЛЬЗЯ ПЕРЕРЕГИСТРИРОВАТЬ ПРОФИЛЬ. Повторный Ble.registerProfile роняет
+    // дата-филд системной ошибкой прямо внутри вызова (CIQ_LOG: registerModeProfile,
+    // строка с registerProfile). System Error не перехватывается try/catch, поэтому
+    // защититься нельзя — только не вызывать. Профиль регистрируем ровно один раз
+    // за запуск, см. registerProfiles/start.
     function onIdleTick() as Void {
-        if (_modeProfileOk) {
+        if (!_state.connected || _state.dbgSub.equals("ok")) {
             return;
         }
-        _regRetryCounter += 1;
-        if (_regRetryCounter >= REG_RETRY_TICKS) {
-            _regRetryCounter = 0;
-            registerModeProfile();
+        _subRetryCounter += 1;
+        if (_subRetryCounter >= SUB_RETRY_TICKS) {
+            _subRetryCounter = 0;
+            retrySubscribe();
         }
     }
 
