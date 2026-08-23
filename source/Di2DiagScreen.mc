@@ -104,7 +104,8 @@ class Di2DiagScreen {
             lines.add("reg=" + s.dbgReg + " n=" + s.dbgRegAttempts + s.dbgRegForm);
         }
         if (DIAG_VERSION.length() > 0) {
-            lines.add("v=" + DIAG_VERSION);
+            // Версия сборки + счётчик строк файлового лога (см. Di2Log.count).
+            lines.add("v=" + DIAG_VERSION + " log=" + Di2Log.count());
         }
         // Список сервисов, реально видимых стеком (короткие UUID).
         if (s.dbgSvcList.length() > 0) {

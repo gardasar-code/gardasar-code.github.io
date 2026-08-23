@@ -4,6 +4,13 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.49
+
+### Changed
+- Diagnostics build only: the diagnostics screen now also shows how many lines
+  the file logger has written, which tells apart "logging is off" from "the log
+  file is missing on the device". No change to the field itself.
+
 ## 0.0.48
 
 ### Changed
