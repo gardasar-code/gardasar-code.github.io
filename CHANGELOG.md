@@ -4,6 +4,13 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.48
+
+### Changed
+- Diagnostics build only: the on-screen diagnostics now collects the raw packets
+  again, so the hex dump and the packet length are shown instead of staying
+  empty. No change to the field itself.
+
 ## 0.0.47
 
 ### Fixed
