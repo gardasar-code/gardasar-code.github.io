@@ -94,8 +94,8 @@ sed -i '' 's#        _fit = new Di2FitContributor(self);#        _fit = null;   
 
 # Патч 8: вписываем версию в diag-экран (строка v=). В имени файла версии больше нет,
 # а знать, какая сборка стоит на устройстве, по фото экрана надо.
-sed -i '' 's#    private const DIAG_VERSION = "";#    private const DIAG_VERSION = "'"$VERSION"'";   // DIAG#' \
-  "$SRC_TMP/Di2FieldView.mc"
+sed -i '' 's#    const DIAG_VERSION = "";#    const DIAG_VERSION = "'"$VERSION"'";   // DIAG#' \
+  "$SRC_TMP/Di2DiagScreen.mc"
 
 # Временный jungle с источниками и ресурсами из копий. Локали перечисляем ЯВНО:
 # автоматика ищет resources-<lang> относительно проекта, а не относительно нашего
