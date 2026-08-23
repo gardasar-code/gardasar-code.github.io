@@ -211,23 +211,32 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // ── Sticky-lock: хранение привязки ────────────────────────────────────────
 
     // Запомнить имя подключённого устройства как «своё» (в Storage и в поле).
-    // Привязка ставится ОДИН раз — при первом успешном коннекте. Дальше она «липкая»
-    // и меняется только тоглом Forget. На чужой переключатель мы не попадём: онн
-    // отбрасывается по имени в onConnected ещё до saveLock.
-    private function saveLock(device as Ble.Device) as Void {
+    // Привязка ставится ОДИН раз — при первом успешном коннекте, дальше она «липкая»
+    // и меняется только тоглом Forget. На чужой переключатель мы не попадём: он
+    // отбрасывается по имени в onConnected ещё до привязки.
+    //
+    // Точка вызова одна — captureIdentity, потому что имя приходит двумя путями: сразу
+    // в onConnected либо позже, когда GATT-дискавери наконец завершилась (captureIdentity
+    // из retryIdentity/retrySubscribe). Раньше привязка стояла только на первом пути:
+    // второй имя подхватывал, а lock не ставил — на diag-экране был id=..., но lk=0,
+    // и sticky-lock не работал вовсе (фото с Edge Explore 2).
+    private function saveLockName(nm as Lang.String?) as Void {
         if (_lockedName != null) {
             _state.locked = true;          // уже привязаны — не переписываем
             return;
         }
+        if (nm == null || nm.length() == 0) {
+            return;                        // имени ещё нет — ждём следующей попытки
+        }
+        _lockedName = nm;
+        // Привязку в состоянии поднимаем ДО записи в Storage: даже если запись не
+        // пройдёт, в текущей сессии lock должен действовать (раньше исключение внутри
+        // try оставляло _lockedName выставленным, а _state.locked — false).
+        _state.locked = true;
         try {
-            var nm = device.getName();
-            if (nm != null && nm.length() > 0) {
-                _lockedName = nm;
-                Application.Storage.setValue(STORAGE_LOCK, nm);
-            }
-            _state.locked = (_lockedName != null);
+            Application.Storage.setValue(STORAGE_LOCK, nm);
         } catch (e) {
-            // имя недоступно — остаёмся без привязки (подключаемся к ближайшему)
+            // не сохранилось — привязка проживёт до конца сессии и встанет заново
         }
     }
 
@@ -243,6 +252,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
         _state.dbgDeviceName = (nm != null) ? nm : "";
         selectProfile(nm);
+        saveLockName(nm);   // имя могло прийти только сейчас — тогда здесь же и «прилипаем»
     }
 
     // Выбрать профиль раскладки пакета по GATT-имени: первый профиль, чей :prefix
@@ -623,8 +633,8 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _attemptReachedLive = true;    // соединение установлено: разрыв отсюда — «обычный»
         _state.connected = true;
         _state.phase = CONN_LIVE;
-        captureIdentity(device);       // GATT-имя + авто-детект профиля модели (для diag/парсинга)
-        saveLock(device);              // «прилипаем» к этому устройству по имени (только первый раз)
+        // GATT-имя + авто-детект профиля модели (для diag/парсинга) + sticky-lock.
+        captureIdentity(device);
         if (_modeProfileUsable) {
             enableNotifications(device);
         } else {
@@ -795,6 +805,19 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
     }
 
+    // Повторно снять GATT-имя с активного соединения. Устройство берём из списка
+    // спаренных — ссылки на Ble.Device мы намеренно не храним (см. retrySubscribe).
+    private function retryIdentity() as Void {
+        try {
+            var d = Ble.getPairedDevices().next() as Ble.Device?;
+            if (d != null && d.isConnected()) {
+                captureIdentity(d);
+            }
+        } catch (e) {
+            // имя по-прежнему недоступно — попробуем на следующем тике
+        }
+    }
+
     // Сколько сервисов видит стек на устройстве. Отличает «дискавери не завершена»
     // (0 сервисов) от «сервис реально отсутствует в прошивке» (есть другие, но не 18ef).
     private function countServices(device as Ble.Device) as Lang.Number {
@@ -905,6 +928,13 @@ class Di2BleDelegate extends Ble.BleDelegate {
             }
         } else {
             _subRetryCounter = 0;
+        }
+
+        // Добор личности, если в onConnected имя ещё не отдавалось (GATT-дискавери не
+        // успела). Отдельно от ретрая подписки: тот работает только при рабочем профиле
+        // передач, а имя нужно всегда — и для sticky-lock, и для diag/краудсорса моделей.
+        if (_state.connected && _state.dbgDeviceName.length() == 0) {
+            retryIdentity();
         }
 
         // Периодический опрос батареи (когда подключены).
