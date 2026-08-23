@@ -4,6 +4,15 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.47
+
+### Fixed
+- Gear and battery values coming from the shifter are now range-checked before
+  they reach the screen and the activity file, so a stray or foreign packet can
+  no longer show something like gear 255.
+- The number of rear sprockets is taken from the shifter itself when it reports
+  it, instead of relying only on the field settings.
+
 ## 0.0.46
 
 ### Changed
