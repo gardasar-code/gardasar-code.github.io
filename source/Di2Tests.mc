@@ -326,3 +326,47 @@ function testMaxRatioTracksPeak(logger as Test.Logger) as Lang.Boolean {
     Test.assert(st.maxRatio() > 4.4 && st.maxRatio() < 4.6);
     return true;
 }
+
+// ── Di2DiagScreen: утилиты hex-дампа ──────────────────────────────────────────
+
+(:test)
+function testDiagTokensAndJoin(logger as Test.Logger) as Lang.Boolean {
+    var d = new Di2DiagScreen(null);
+    var t = d.toTokens("00 11 22 33 ");
+    Test.assertEqual(t.size(), 4);
+    Test.assertEqual(t[0], "00");
+    Test.assertEqual(t[3], "33");
+    // Срез строки дампа: [from, to) с защитой от выхода за границу.
+    Test.assertEqual(d.joinRange(t, 0, 2), "00 11 ");
+    Test.assertEqual(d.joinRange(t, 2, 99), "22 33 ");
+    Test.assertEqual(d.joinRange(t, 4, 8), "");
+    return true;
+}
+
+(:test)
+function testDiagTokensHandleEmptyAndDoubleSpaces(logger as Test.Logger) as Lang.Boolean {
+    var d = new Di2DiagScreen(null);
+    Test.assertEqual(d.toTokens("").size(), 0);
+    Test.assertEqual(d.toTokens("  ").size(), 0);
+    Test.assertEqual(d.toTokens("AA  BB").size(), 2);
+    return true;
+}
+
+(:test)
+function testDiagNumOrDash(logger as Test.Logger) as Lang.Boolean {
+    var d = new Di2DiagScreen(null);
+    // -1 в состоянии означает «нет данных» — на экране это прочерк, а не число.
+    Test.assertEqual(d.numOrDash(-1), "-");
+    Test.assertEqual(d.numOrDash(0), "0");
+    Test.assertEqual(d.numOrDash(12), "12");
+    return true;
+}
+
+(:test)
+function testDiagPktAgeWithoutPackets(logger as Test.Logger) as Lang.Boolean {
+    var st = new Di2State();
+    var d = new Di2DiagScreen(st);
+    // Пакетов ещё не было (dbgLastPktMs == 0) — возраст неизвестен, а не «0 секунд».
+    Test.assertEqual(d.pktAge(st), "--");
+    return true;
+}
