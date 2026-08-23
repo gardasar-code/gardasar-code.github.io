@@ -67,10 +67,70 @@ class Di2State {
     public var dbgScanShimano as Lang.Number = 0;
     public var dbgBestRssi as Lang.Number = -999;   // -999 = нет shimano-кандидатов
 
-    // Сырой последний notify-пакет: hex и длина. Заполняется при diagOverlay для
-    // ЛЮБОЙ длины (не только PKT_GEAR_LEN) — чтобы увидеть формат чужой серии Di2.
-    public var dbgGear as Lang.String = "";
+    // Сырые notify-пакеты в hex — ВСЕ разновидности, а не только последний пакет.
+    // D-Fly шлёт вперемешку несколько форматов (на XT M8250 это 17, 6 и 3 байта,
+    // см. doc/NOTES.md), и «последний пакет» на экране почти всегда оказывался
+    // коротким служебным. Поэтому храним последний пакет КАЖДОЙ встреченной длины:
+    // короткие больше не затирают длинный, а неразобранные форматы наконец видны
+    // целиком — их и предстоит расшифровывать по фото оверлея.
+    // Списки параллельные (hex и длина), отсортированы по УБЫВАНИЮ длины: самый
+    // информативный пакет рисуется первым и гарантированно попадает на экран.
+    public const DBG_MAX_KINDS as Lang.Number = 4;   // потолок разновидностей (экран мал)
+    public var dbgPktHex as Lang.Array<Lang.String> = [] as Lang.Array<Lang.String>;
+    public var dbgPktLen as Lang.Array<Lang.Number> = [] as Lang.Array<Lang.Number>;
+
+    // Длина ПОСЛЕДНЕГО пакета любой длины — сигнал «канал жив прямо сейчас».
     public var dbgGearLen as Lang.Number = 0;
+
+    // ── Диагностика подписки на notify (CCCD) ─────────────────────────────────
+    // Различает молчаливые отказы подписки: до этого «сервис не найден», «нет
+    // характеристики», «нет дескриптора» и «запись отклонена стеком» выглядели на
+    // экране одинаково (пакетов просто нет). Значения:
+    //   "-"       подписка ещё не пробовалась (нет соединения)
+    //   "wr"      CCCD-запись отправлена, подтверждения стека ещё нет
+    //   "ok"      стек подтвердил запись CCCD (STATUS_SUCCESS)
+    //   "no-svc"  device.getService(18ef) вернул null
+    //   "no-chr"  service.getCharacteristic(2ac1) вернул null
+    //   "no-cccd" у характеристики нет CCCD-дескриптора
+    //   "no-reg"  профиль передач не зарегистрирован — искать сервис не к чему
+    //   "ex"      исключение при подписке
+    //   "e<N>"    стек вернул статус N (запись CCCD не прошла)
+    public var dbgSub as Lang.String = "-";
+
+    // Счётчики notify за сессию: всего пакетов и из них годных (длина совпала с
+    // длиной активного профиля → парсинг отработал). total>0 при good=0 означает
+    // «канал жив, но раскладка пакета другая» — то есть чинить профиль, а не связь.
+    public var dbgPktTotal as Lang.Number = 0;
+    public var dbgPktGood as Lang.Number = 0;
+
+    // System.getTimer() последнего notify (0 = пакетов ещё не было). View считает по
+    // нему возраст данных: «пакеты шли и прекратились» ≠ «их не было никогда».
+    public var dbgLastPktMs as Lang.Number = 0;
+
+    // Сколько сервисов BLE-стек видит на подключённом устройстве в момент подписки.
+    // Ключ к различению двух совершенно разных причин "no-svc": 0 — GATT-дискавери
+    // ещё не завершилась (наша гонка, лечится повтором подписки), >0 — сервисы
+    // обнаружены, но нужного среди них нет (прошивка не отдаёт 18ef).
+    public var dbgSvcCount as Lang.Number = -1;   // -1 = подписка ещё не пробовалась
+
+    // Результаты registerProfile от стека ("180F:ok 18EF:e5"). Пусто = колбэк ещё не
+    // приходил. Незарегистрированный профиль стек не ищет на устройстве вовсе, поэтому
+    // ошибка здесь объясняет "no-svc" при заведомо исправном переключателе.
+    public var dbgReg as Lang.String = "";
+
+    // Сколько раз пробовали зарегистрировать профиль передач (растёт, пока стек его
+    // не примет) — видно, что попытки идут, а не залипли на первой.
+    public var dbgRegAttempts as Lang.Number = 0;
+
+    // Какая форма описания профиля пробовалась последней: "d" — с явным CCCD,
+    // "n" — без него (см. Di2BleDelegate.registerModeProfile).
+    public var dbgRegForm as Lang.String = "";
+
+    // Какие сервисы стек реально видит на устройстве (короткие UUID через пробел).
+    public var dbgSvcList as Lang.String = "";
+
+    // Сколько раз за сессию планировался реконнект — мера нестабильности связи.
+    public var dbgReconnects as Lang.Number = 0;
 
     // GATT-имя подключённого устройства (напр. "RDM8250S2A8"). В эфире скана имя
     // недоступно (null) — приходит только после подключения по GATT. Это единственный
@@ -81,6 +141,30 @@ class Di2State {
     public var dbgModel as Lang.String = "";
 
     function initialize() {
+    }
+
+    // Запомнить пакет для diag-оверлея: обновляет запись своей длины либо заводит
+    // новую. Порядок — по убыванию длины (вставка в отсортированный список, размер
+    // <= DBG_MAX_KINDS, поэтому пузырёк дешевле любой универсальной сортировки).
+    // Разновидности сверх лимита отбрасываются с хвоста, то есть самые короткие.
+    function recordPacket(len as Lang.Number, hex as Lang.String) as Void {
+        for (var i = 0; i < dbgPktLen.size(); i++) {
+            if (dbgPktLen[i] == len) {
+                dbgPktHex[i] = hex;
+                return;
+            }
+        }
+        dbgPktLen.add(len);
+        dbgPktHex.add(hex);
+        // Продвигаем новую запись влево, пока слева пакет короче.
+        for (var i = dbgPktLen.size() - 1; i > 0 && dbgPktLen[i] > dbgPktLen[i - 1]; i--) {
+            var tl = dbgPktLen[i];   dbgPktLen[i] = dbgPktLen[i - 1];   dbgPktLen[i - 1] = tl;
+            var th = dbgPktHex[i];   dbgPktHex[i] = dbgPktHex[i - 1];   dbgPktHex[i - 1] = th;
+        }
+        if (dbgPktLen.size() > DBG_MAX_KINDS) {
+            dbgPktLen = dbgPktLen.slice(0, DBG_MAX_KINDS);
+            dbgPktHex = dbgPktHex.slice(0, DBG_MAX_KINDS);
+        }
     }
 
     // Зубья текущей передней звезды (0, если позиция неизвестна).

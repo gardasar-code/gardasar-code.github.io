@@ -4,6 +4,169 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.50
+
+### Changed
+- Diagnostics build only: the build is named without dots again, so the device
+  writes its log file next to the app as it should. No change to the field
+  itself.
+
+## 0.0.49
+
+### Changed
+- Diagnostics build only: the diagnostics screen now also shows how many lines
+  the file logger has written, which tells apart "logging is off" from "the log
+  file is missing on the device". No change to the field itself.
+
+## 0.0.48
+
+### Changed
+- Diagnostics build only: the on-screen diagnostics now collects the raw packets
+  again, so the hex dump and the packet length are shown instead of staying
+  empty. No change to the field itself.
+
+## 0.0.47
+
+### Fixed
+- Gear and battery values coming from the shifter are now range-checked before
+  they reach the screen and the activity file, so a stray or foreign packet can
+  no longer show something like gear 255.
+- The number of rear sprockets is taken from the shifter itself when it reports
+  it, instead of relying only on the field settings.
+
+## 0.0.46
+
+### Changed
+- When the device refuses to register the gear Bluetooth profile, the field no
+  longer keeps looking for a service that cannot appear: it stops retrying the
+  subscription, saving battery. The diagnostics screen shows this as
+  "sub=no-reg".
+
+## 0.0.45
+
+### Fixed
+- On recent device firmware the field could crash on every start, inside the
+  system call that registers its Bluetooth profile — an error no app code can
+  catch. The field now remembers which profile form it was about to try, so
+  after such a crash the next start switches to the other one, and if both fail
+  it stops trying and keeps working (without gear data) instead of crashing.
+  The Forget toggle resets those attempts.
+
+## 0.0.44
+
+### Fixed
+- The field crashed while trying to recover a rejected Bluetooth profile: on
+  this firmware a second registration attempt kills the app from inside the
+  system call, and no error handling can catch it. The profile is now
+  registered once per start, and the alternative form is tried on the next
+  start instead.
+
+## 0.0.43
+
+### Fixed
+- The field could crash on start (Connect IQ error icon) on recent device
+  firmware: it created more FIT fields than the device allows. The FIT set is
+  now within the limit, and if a device rejects it anyway the field keeps
+  working without FIT recording instead of crashing.
+- A Bluetooth error could crash the field inside its own error handler.
+
+### Changed
+- Fewer FIT summary fields are recorded: the most-used gear combination, its
+  share of the ride, the top three rear sprockets and the average ratio are no
+  longer written to the activity file. Per-second gear, teeth, ratio and
+  battery recording is unchanged, as are max gear, max ratio, minimum battery
+  and the shift counters.
+
+## 0.0.42
+
+### Fixed
+- Reconnects and profile retries now also run before the activity timer is
+  started: they used to be driven only by the per-second callback the system
+  makes while recording, so a field left waiting on the start screen never
+  retried anything.
+- If the Bluetooth stack rejects the gear profile, the field now alternates
+  between two ways of describing it (with and without an explicit notification
+  descriptor) instead of repeating the rejected one.
+
+## 0.0.41
+
+### Fixed
+- Gears could stop working entirely after a device firmware update. Some Garmin
+  firmware accepts only the first Bluetooth profile an app registers and
+  rejects the rest, which left the gear service invisible to the field. The
+  gear profile is now registered first and alone; the battery profile is only
+  requested once the gear one is confirmed. On affected firmware the battery
+  percentage may show as "--" while the gears keep working.
+
+## 0.0.39
+
+### Fixed
+- If the Bluetooth stack refuses to register the gear notification profile, the
+  field keeps retrying instead of giving up for the whole ride: without the
+  profile the gear service is never found, no matter how often it reconnects.
+
+## 0.0.38
+
+### Fixed
+- The gear notification profile is now registered independently of the battery
+  one, so a failure to register either of them no longer leaves the field
+  without the other.
+
+### Changed
+- Diagnostics mode also reports the profile registration result and the list of
+  services the Bluetooth stack actually sees on the connected device.
+
+## 0.0.37
+
+### Fixed
+- Gears stayed empty on some devices while the connection and the battery
+  readout looked healthy: the notification subscription was attempted once,
+  immediately after connecting, and could land before the Bluetooth stack had
+  finished discovering the services. The subscription is now retried until the
+  stack confirms it.
+
+## 0.0.36
+
+### Changed
+- The on-screen diagnostics mode now reports the notification subscription
+  state, packet counters and the age of the last packet, and dumps every kind
+  of packet the Di2 sends instead of only the most recent one — so a photo of
+  the screen tells apart "the device is silent", "the subscription was
+  rejected" and "the packets look different than expected".
+
+## 0.0.35
+
+### Added
+- Front chainring display for 2x/3x drivetrains: a bar graph of the chainrings
+  (and a current-ring digit) shown alongside the rear cassette/gear. The active
+  front ring lights up once it can be read; until then it shows as a dash.
+
+### Changed
+- Reworked the on-screen layout into a header (Di2 status + battery) and a body
+  split into front/rear columns with graph and number blocks, so the gears use
+  the available space more consistently across display modes.
+
+## 0.0.34
+
+### Added
+- Drivetrain presets in the field settings: pick a common Shimano chainring
+  setup (e.g. 50-34, 52-36, GRX 48-31) or cassette (10/11/12-speed, 10-51 to
+  11-48) instead of entering every tooth count. While a preset is selected it
+  sets the gearing; choose Custom to enter the count and teeth by hand.
+- Automatic Di2 model detection from the connected device, with profile
+  groundwork to support more Di2 series beyond the tested XT M8250.
+- Full-screen on-screen diagnostics mode (a setting): a colour-coded stage
+  indicator plus scan counts, signal, the detected model and the raw gear
+  packet — turn it on and send a photo to report a connection problem.
+
+### Changed
+- Clearer setup guidance: the Store description now explains how presets,
+  chainring count and teeth fields work together.
+
+### Fixed
+- A selected preset reliably drives the displayed gearing and ratios (presets
+  override the manual count/teeth fields while selected).
+
 ## 0.0.28
 
 ### Changed

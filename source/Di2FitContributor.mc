@@ -9,9 +9,14 @@ using Toybox.Lang;
 //                        (перёд/зад), самая используемая комбинация + доля времени,
 //                        топ-3 задних звёзд, макс. задняя.
 //
-// ВАЖНО: на data field у каждого FIT-сообщения лимит 32 байта суммарно по всем
-// полям (record и session отдельно). Иначе "New Field out of memory" (краш).
-//   record  = 9 байт; session = 27 байт (см. подсчёт ниже). Не превышать!
+// ВАЖНО: на data field лимит не только в байтах (32 на сообщение), но и в ЧИСЛЕ
+// полей. На Edge Explore 2 (прошивка 31.33) createField падает системной ошибкой
+// ровно на 12-м поле — раньше то же место давало "New Field out of memory"
+// (doc/CIQ_LOG.BAK). Поэтому полей СТРОГО не больше 11: 6 record + 5 session,
+// а самая объёмная статистика (комбинация передач, топ-3 звёзд, средний ratio)
+// в FIT не пишется — она есть на экране. Не добавлять поля, не убрав другие!
+// Само создание обёрнуто в try: на устройстве с ещё более жёстким лимитом поле
+// продолжит работать без FIT-записи, а не свалится с жёлтым значком.
 class Di2FitContributor {
 
     private const F_REAR_GEAR       = 0;
@@ -23,18 +28,11 @@ class Di2FitContributor {
     private const F_MAX_REAR        = 6;
     private const F_MAX_RATIO       = 7;
     private const F_MIN_BATTERY     = 8;
-    private const F_AVG_RATIO       = 9;
     private const F_FRONT_SHIFTS    = 10;
     private const F_REAR_SHIFTS     = 11;
-    private const F_MOST_COMBO      = 12;
-    private const F_MOST_COMBO_TIME = 13;
-    private const F_REAR_TOP1       = 16;
-    private const F_REAR_TOP2       = 17;
-    private const F_REAR_TOP3       = 18;
 
     private const UNIT_GEAR  = "gear";
     private const UNIT_TEETH = "T";
-    private const COMBO_LEN  = 6;   // "53/51" + null
 
     private var _stats as Di2RideStats;
 
@@ -45,21 +43,20 @@ class Di2FitContributor {
     private var _frontTeethField;
     private var _ratioField;
     private var _batteryField;
-    // session (27 байт: 1+4+1+4+2+2+6+4+1+1+1)
+    // session (10 байт: 1+4+1+2+2). Флаги ниже говорят, созданы ли группы полей.
     private var _maxRearField;
     private var _maxRatioField;
     private var _minBatteryField;
-    private var _avgRatioField;
     private var _frontShiftsField;
     private var _rearShiftsField;
-    private var _mostComboField;
-    private var _mostComboTimeField;
-    private var _rearTop1Field;
-    private var _rearTop2Field;
-    private var _rearTop3Field;
 
     private var _maxRear as Lang.Number = 0;
     private var _minBattery as Lang.Number = 101;
+
+    // Созданы ли группы полей. false → соответствующая часть update() пропускается:
+    // без этого setData на несозданном поле уронил бы дата-филд.
+    private var _recOk as Lang.Boolean = false;
+    private var _sesOk as Lang.Boolean = false;
 
     function initialize(view as WatchUi.DataField) {
         _stats = new Di2RideStats();
@@ -71,7 +68,8 @@ class Di2FitContributor {
         var REC = Fit.MESG_TYPE_RECORD;
         var SES = Fit.MESG_TYPE_SESSION;
 
-        // ── record ──
+        // ── record ── (создаём в try: лимит полей у прошивок разный)
+        try {
         _rearGearField  = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearGear),   F_REAR_GEAR,   Fit.DATA_TYPE_UINT8, {:mesgType => REC, :units => UNIT_GEAR});
         _frontGearField = view.createField(WatchUi.loadResource(Rez.Strings.FieldFrontGear),  F_FRONT_GEAR,  Fit.DATA_TYPE_UINT8, {:mesgType => REC, :units => UNIT_GEAR});
         _rearTeethField = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearTeeth),  F_REAR_TEETH,  Fit.DATA_TYPE_UINT8, {:mesgType => REC, :units => UNIT_TEETH});
@@ -79,54 +77,57 @@ class Di2FitContributor {
         _ratioField     = view.createField(WatchUi.loadResource(Rez.Strings.FieldRatio),      F_RATIO,       Fit.DATA_TYPE_FLOAT, {:mesgType => REC, :units => ratio});
         _batteryField   = view.createField(WatchUi.loadResource(Rez.Strings.FieldBattery),    F_BATTERY,     Fit.DATA_TYPE_UINT8, {:mesgType => REC, :units => pct});
 
+            _recOk = true;
+        } catch (e) {
+            _recOk = false;   // FIT-запись недоступна — поле работает без неё
+        }
+
         // ── session ──
+        try {
         _maxRearField       = view.createField(WatchUi.loadResource(Rez.Strings.FieldMaxRearGear),   F_MAX_REAR,        Fit.DATA_TYPE_UINT8,  {:mesgType => SES, :units => UNIT_GEAR});
         _maxRatioField      = view.createField(WatchUi.loadResource(Rez.Strings.FieldMaxRatio),      F_MAX_RATIO,       Fit.DATA_TYPE_FLOAT,  {:mesgType => SES, :units => ratio});
         _minBatteryField    = view.createField(WatchUi.loadResource(Rez.Strings.FieldMinBattery),    F_MIN_BATTERY,     Fit.DATA_TYPE_UINT8,  {:mesgType => SES, :units => pct});
-        _avgRatioField      = view.createField(WatchUi.loadResource(Rez.Strings.FieldAvgRatio),      F_AVG_RATIO,       Fit.DATA_TYPE_FLOAT,  {:mesgType => SES, :units => ratio});
         _frontShiftsField   = view.createField(WatchUi.loadResource(Rez.Strings.FieldFrontShifts),   F_FRONT_SHIFTS,    Fit.DATA_TYPE_UINT16, {:mesgType => SES, :units => shift});
         _rearShiftsField    = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearShifts),    F_REAR_SHIFTS,     Fit.DATA_TYPE_UINT16, {:mesgType => SES, :units => shift});
-        _mostComboField     = view.createField(WatchUi.loadResource(Rez.Strings.FieldMostCombo),     F_MOST_COMBO,      Fit.DATA_TYPE_STRING, {:mesgType => SES, :count => COMBO_LEN});
-        _mostComboTimeField = view.createField(WatchUi.loadResource(Rez.Strings.FieldMostComboTime), F_MOST_COMBO_TIME, Fit.DATA_TYPE_FLOAT,  {:mesgType => SES, :units => pct});
-        _rearTop1Field      = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearTop1),      F_REAR_TOP1,       Fit.DATA_TYPE_UINT8,  {:mesgType => SES, :units => UNIT_TEETH});
-        _rearTop2Field      = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearTop2),      F_REAR_TOP2,       Fit.DATA_TYPE_UINT8,  {:mesgType => SES, :units => UNIT_TEETH});
-        _rearTop3Field      = view.createField(WatchUi.loadResource(Rez.Strings.FieldRearTop3),      F_REAR_TOP3,       Fit.DATA_TYPE_UINT8,  {:mesgType => SES, :units => UNIT_TEETH});
+            _sesOk = true;
+        } catch (e) {
+            _sesOk = false;   // сводки не будет, посекундная запись при этом жива
+        }
 
-        _rearGearField.setData(0); _frontGearField.setData(0); _rearTeethField.setData(0);
-        _frontTeethField.setData(0); _ratioField.setData(0.0); _batteryField.setData(0);
-        _maxRearField.setData(0); _maxRatioField.setData(0.0); _minBatteryField.setData(100);
-        _avgRatioField.setData(0.0); _frontShiftsField.setData(0); _rearShiftsField.setData(0);
-        _mostComboField.setData("-"); _mostComboTimeField.setData(0.0);
-        _rearTop1Field.setData(0); _rearTop2Field.setData(0); _rearTop3Field.setData(0);
+        // Начальные значения — только для созданных групп.
+        if (_recOk) {
+            _rearGearField.setData(0); _frontGearField.setData(0); _rearTeethField.setData(0);
+            _frontTeethField.setData(0); _ratioField.setData(0.0); _batteryField.setData(0);
+        }
+        if (_sesOk) {
+            _maxRearField.setData(0); _maxRatioField.setData(0.0); _minBatteryField.setData(100);
+            _frontShiftsField.setData(0); _rearShiftsField.setData(0);
+        }
     }
 
     function update(rearGear as Lang.Number, frontGear as Lang.Number,
                     rearTeeth as Lang.Number, frontTeeth as Lang.Number,
                     ratio as Lang.Float, battery as Lang.Number) as Void {
         // record
-        _rearGearField.setData(rearGear < 0 ? 0 : rearGear);
-        _frontGearField.setData(frontGear < 0 ? 0 : frontGear);
-        _rearTeethField.setData(rearTeeth);
-        _frontTeethField.setData(frontTeeth);
-        _ratioField.setData(ratio);
-        _batteryField.setData(battery < 0 ? 0 : battery);
+        if (_recOk) {
+            _rearGearField.setData(rearGear < 0 ? 0 : rearGear);
+            _frontGearField.setData(frontGear < 0 ? 0 : frontGear);
+            _rearTeethField.setData(rearTeeth);
+            _frontTeethField.setData(frontTeeth);
+            _ratioField.setData(ratio);
+            _batteryField.setData(battery < 0 ? 0 : battery);
+        }
 
-        // накопление статистики
-        _stats.sample(frontGear, rearGear, frontTeeth, rearTeeth, ratio);
+        // накопление статистики для session-сводки
+        _stats.sample(frontGear, rearGear, ratio);
 
         // session
-        if (rearGear > _maxRear) { _maxRear = rearGear; _maxRearField.setData(_maxRear); }
-        if (battery > 0 && battery < _minBattery) { _minBattery = battery; _minBatteryField.setData(_minBattery); }
-        _maxRatioField.setData(_stats.maxRatio());
-        _avgRatioField.setData(_stats.avgRatio());
-        _frontShiftsField.setData(_stats.frontShifts());
-        _rearShiftsField.setData(_stats.rearShifts());
-        _mostComboTimeField.setData(_stats.mostComboPct());
-        _rearTop1Field.setData(_stats.rearTop(1));
-        _rearTop2Field.setData(_stats.rearTop(2));
-        _rearTop3Field.setData(_stats.rearTop(3));
-
-        var mc = _stats.mostCombo();
-        _mostComboField.setData(mc.length() > 0 ? mc : "-");
+        if (_sesOk) {
+            if (rearGear > _maxRear) { _maxRear = rearGear; _maxRearField.setData(_maxRear); }
+            if (battery > 0 && battery < _minBattery) { _minBattery = battery; _minBatteryField.setData(_minBattery); }
+            _maxRatioField.setData(_stats.maxRatio());
+            _frontShiftsField.setData(_stats.frontShifts());
+            _rearShiftsField.setData(_stats.rearShifts());
+        }
     }
 }

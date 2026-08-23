@@ -4,7 +4,6 @@
     <string id="AppName">Campo Di2</string>
     <string id="LabelDi2">Di2</string>
     <string id="LabelNoData">---</string>
-    <string id="LabelFront">Del:</string>
 
     <string id="StatusSearching">Buscando</string>
     <string id="StatusConnecting">Conectando</string>

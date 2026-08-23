@@ -4,7 +4,6 @@
     <string id="AppName">Champ Di2</string>
     <string id="LabelDi2">Di2</string>
     <string id="LabelNoData">---</string>
-    <string id="LabelFront">Av:</string>
 
     <string id="StatusSearching">Recherche</string>
     <string id="StatusConnecting">Connexion</string>

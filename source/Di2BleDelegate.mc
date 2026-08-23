@@ -25,43 +25,8 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private const BATT_SERVICE_UUID = "0000180f-0000-1000-8000-00805f9b34fb";
     private const BATT_CHAR_UUID    = "00002a19-0000-1000-8000-00805f9b34fb";
 
-    // ── Профили серий Di2: авто-детект по GATT-имени ──────────────────────────
-    // Раскладка notify-пакета 0x2ac1 зависит от серии переключателя. Вместо хардкода
-    // смещения вынесены в ТАБЛИЦУ профилей: при подключении читаем GATT-имя устройства
-    // и выбираем первый профиль, чей :prefix совпал с началом имени. Новая серия
-    // добавляется ОДНОЙ строкой в PROFILES — логика парсинга не меняется.
-    //
-    // Поля профиля:
-    //   :prefix — префикс GATT-имени модели (как приходит по getName());
-    //   :label  — человекочитаемая метка (для diag-оверлея и краудсорса);
-    //   :len    — длина пакета передач (байт);
-    //   :rear   — индекс байта текущей ЗАДНЕЙ передачи;
-    //   :front  — индекс байта текущей ПЕРЕДНЕЙ передачи (-1 = не выявлен).
-    //
-    // ПОДТВЕРЖДЕНО на железе: только XT M8250 (len 17, rear=байт5; front не выявлен,
-    // тест 1x). Дорожные/гравийные серии — ГИПОТЕЗА: один и тот же шлюз D-Fly (EW-WU)
-    // вещает тот же канал, поэтому раскладка предположительно совпадает. Подтверждение —
-    // по фото diag-оверлея от пользователей (имя + сырой пакет). См. doc/NOTES.md.
-    private const PROFILES = [
-        { :prefix => "RDM8250", :label => "XT Di2 M8250",   :len => 17, :rear => 5, :front => -1 },
-        // ── ниже: гипотеза, требует подтверждения по фото оверлея ──
-        { :prefix => "RDM9250", :label => "XTR Di2 M9250",  :len => 17, :rear => 5, :front => -1 },
-        { :prefix => "RDR9250", :label => "DURA-ACE R9250", :len => 17, :rear => 5, :front => -1 },
-        { :prefix => "RDR8150", :label => "Ultegra R8150",  :len => 17, :rear => 5, :front => -1 },
-        { :prefix => "RDR7150", :label => "105 R7150",      :len => 17, :rear => 5, :front => -1 },
-        { :prefix => "RDRX825", :label => "GRX RX825",      :len => 17, :rear => 5, :front => -1 }
-    ] as Lang.Array<Lang.Dictionary>;
-
-    // Дефолтный профиль (XT M8250) — пока имя устройства неизвестно или не совпало
-    // ни с одним префиксом. Соответствует прежним хардкод-константам PKT_*.
-    private const DEFAULT_PKT_LEN  = 17;
-    private const DEFAULT_REAR_IDX = 5;
-    private const DEFAULT_FRONT_IDX = -1;
-
-    // Активная раскладка пакета (из выбранного профиля). Меняется в selectProfile().
-    private var _pktLen as Lang.Number = DEFAULT_PKT_LEN;
-    private var _rearIdx as Lang.Number = DEFAULT_REAR_IDX;
-    private var _frontIdx as Lang.Number = DEFAULT_FRONT_IDX;
+    // Раскладка пакета и профили серий Di2 живут в Di2PacketParser (тестируется без BLE).
+    private var _parser as Di2PacketParser = new Di2PacketParser();
 
     // ── Тайминги/лимиты ───────────────────────────────────────────────────────
     // Периодику гоним от onTick() (вызывается из View.compute() ~раз в секунду).
@@ -72,6 +37,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private const RECONNECT_MIN_TICKS = 3;    // ~3 c до первой повторной попытки
     private const RECONNECT_MAX_TICKS = 30;   // потолок интервала между попытками
     private const BATTERY_POLL_TICKS  = 30;   // опрос батареи ~раз в 30 c
+    private const SUB_RETRY_TICKS     = 2;    // повтор подписки ~раз в 2 c, пока не "ok"
 
     // ── Sticky-lock: привязка к конкретному переключателю ─────────────────────
     // Имя устройства, к которому «прилипли». Сохраняется в Storage и переживает
@@ -82,6 +48,15 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // действует запасной путь «единственный кандидат» (см. onScanResults).
     private const STORAGE_LOCK    = "lockedDi2Name";
     private const PROP_FORGET     = "forgetDevice";
+    // Форма описания BLE-профиля, выбранная для следующего запуска (см. registerModeProfile).
+    private const STORAGE_REG_FORM = "regProfileForm";
+    // «Канарейка»: попытка регистрации начата, но не подтверждена. Осталась после
+    // перезапуска → прошлый вызов уронил приложение, форму надо сменить.
+    private const STORAGE_REG_PENDING = "regProfilePending";
+    // Сколько раз подряд регистрация уронила приложение. Обе формы упали → больше не
+    // пробуем: поле должно работать хотя бы без передач, а не показывать жёлтый значок.
+    private const STORAGE_REG_FAILS = "regProfileFails";
+    private const REG_FAIL_LIMIT    = 2;
 
     // ── Кэш Uuid-объектов ─────────────────────────────────────────────────────
     // stringToUuid аллоцирует объект на каждый вызов; раньше это происходило в
@@ -100,6 +75,13 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private var _batteryReadInFlight as Lang.Boolean = false;
     private var _reconnectCountdown as Lang.Number = -1;  // -1 = реконнект не запланирован
     private var _batteryTickCounter as Lang.Number = 0;
+    private var _subRetryCounter as Lang.Number = 0;
+    private var _regAttempts as Lang.Number = 0;
+    private var _battProfileRequested as Lang.Boolean = false;
+    // Зарегистрирован ли профиль передач. При отказе/пропуске искать сервис 18ef и
+    // подписываться бессмысленно: стек его не отдаст. Без флага ретрай подписки крутился
+    // раз в секунду и заваливал 5-килобайтный лог одинаковыми строками.
+    private var _modeProfileUsable as Lang.Boolean = true;
     private var _lockedName as Lang.String? = null;       // имя «своего» Di2 или null
 
     // Троттлинг лога скана: onScanResults зовётся десятки раз в секунду и заспамил
@@ -142,7 +124,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             _state.phase = CONN_SCANNING;
             startScan();
         } catch (e) {
-            if (DEBUG) { log("BLE init failed: " + e.getErrorMessage()); }
+            if (DEBUG) { log("BLE init failed"); }
         }
     }
 
@@ -194,23 +176,32 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // ── Sticky-lock: хранение привязки ────────────────────────────────────────
 
     // Запомнить имя подключённого устройства как «своё» (в Storage и в поле).
-    // Привязка ставится ОДИН раз — при первом успешном коннекте. Дальше она «липкая»
-    // и меняется только тоглом Forget. На чужой переключатель мы не попадём: онн
-    // отбрасывается по имени в onConnected ещё до saveLock.
-    private function saveLock(device as Ble.Device) as Void {
+    // Привязка ставится ОДИН раз — при первом успешном коннекте, дальше она «липкая»
+    // и меняется только тоглом Forget. На чужой переключатель мы не попадём: он
+    // отбрасывается по имени в onConnected ещё до привязки.
+    //
+    // Точка вызова одна — captureIdentity, потому что имя приходит двумя путями: сразу
+    // в onConnected либо позже, когда GATT-дискавери наконец завершилась (captureIdentity
+    // из retryIdentity/retrySubscribe). Раньше привязка стояла только на первом пути:
+    // второй имя подхватывал, а lock не ставил — на diag-экране был id=..., но lk=0,
+    // и sticky-lock не работал вовсе (фото с Edge Explore 2).
+    private function saveLockName(nm as Lang.String?) as Void {
         if (_lockedName != null) {
             _state.locked = true;          // уже привязаны — не переписываем
             return;
         }
+        if (nm == null || nm.length() == 0) {
+            return;                        // имени ещё нет — ждём следующей попытки
+        }
+        _lockedName = nm;
+        // Привязку в состоянии поднимаем ДО записи в Storage: даже если запись не
+        // пройдёт, в текущей сессии lock должен действовать (раньше исключение внутри
+        // try оставляло _lockedName выставленным, а _state.locked — false).
+        _state.locked = true;
         try {
-            var nm = device.getName();
-            if (nm != null && nm.length() > 0) {
-                _lockedName = nm;
-                Application.Storage.setValue(STORAGE_LOCK, nm);
-            }
-            _state.locked = (_lockedName != null);
+            Application.Storage.setValue(STORAGE_LOCK, nm);
         } catch (e) {
-            // имя недоступно — остаёмся без привязки (подключаемся к ближайшему)
+            // не сохранилось — привязка проживёт до конца сессии и встанет заново
         }
     }
 
@@ -226,45 +217,75 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
         _state.dbgDeviceName = (nm != null) ? nm : "";
         selectProfile(nm);
+        saveLockName(nm);   // имя могло прийти только сейчас — тогда здесь же и «прилипаем»
     }
 
-    // Выбрать профиль раскладки пакета по GATT-имени: первый профиль, чей :prefix
-    // совпал с началом имени. Имя null/без совпадения → дефолт (XT M8250). Применяется
-    // к смещениям парсинга (_pktLen/_rearIdx/_frontIdx) и метке модели в state.
+    // Выбрать раскладку пакета по GATT-имени и отразить метку модели в состоянии.
     private function selectProfile(name as Lang.String?) as Void {
-        // Старт с дефолта (XT M8250): подходит и как fallback для нераспознанной модели —
-        // пробуем самую вероятную раскладку, а сырой пакет всё равно виден в diag.
-        _pktLen   = DEFAULT_PKT_LEN;
-        _rearIdx  = DEFAULT_REAR_IDX;
-        _frontIdx = DEFAULT_FRONT_IDX;
+        _parser.selectProfile(name);
+        _state.dbgModel = _parser.label;
+    }
 
-        var p = matchProfile(name);
-        if (p != null) {
-            _pktLen   = p[:len] as Lang.Number;
-            _rearIdx  = p[:rear] as Lang.Number;
-            _frontIdx = p[:front] as Lang.Number;
-            _state.dbgModel = p[:label] as Lang.String;
-        } else {
-            // Имя есть, но не распознано — метим "?" (по фото оверлея добавим профиль).
-            _state.dbgModel = (name != null && name.length() > 0) ? "?" : "";
+    // Форма описания профиля для текущего запуска: true — с явным CCCD (дефолт).
+    private function loadRegForm() as Lang.Boolean {
+        var v = Application.Storage.getValue(STORAGE_REG_FORM);
+        return (v instanceof Lang.Boolean) ? v : true;
+    }
+
+    // Запомнить форму для СЛЕДУЮЩЕГО запуска (в текущем перерегистрация запрещена).
+    private function saveRegForm(withCccd as Lang.Boolean) as Void {
+        try {
+            Application.Storage.setValue(STORAGE_REG_FORM, withCccd);
+        } catch (e) {
+            // не сохранилось — в следующий раз просто повторим ту же форму
         }
     }
 
-    // Найти профиль по префиксу GATT-имени (name.find(prefix)==0 → имя начинается с него).
-    private function matchProfile(name as Lang.String?) as Lang.Dictionary? {
-        if (name == null || name.length() == 0) {
-            return null;
+    // «Канарейка» вокруг registerProfile. Вызов способен УБИТЬ дата-филд изнутри
+    // (System Error, не перехватывается try/catch — CIQ_LOG: registerModeProfile из
+    // start). Раз узнать результат после падения нельзя, отмечаем намерение ДО вызова:
+    //   • ставим флаг «попытка формы X идёт»;
+    //   • успех подтверждаем в onProfileRegister (флаг снимается);
+    //   • если при следующем старте флаг ещё стоит — прошлая попытка не пережила
+    //     вызова, и мы берём ДРУГУЮ форму.
+    // Без этого краш повторялся бы вечно: до кода, переключающего форму, дело не доходит.
+    private function beginRegAttempt(withCccd as Lang.Boolean) as Void {
+        try {
+            Application.Storage.setValue(STORAGE_REG_PENDING, true);
+            Application.Storage.setValue(STORAGE_REG_FORM, withCccd);
+        } catch (e) {
+            // не сохранилось — хуже не станет, просто не переключим форму
         }
-        for (var i = 0; i < PROFILES.size(); i++) {
-            var p = PROFILES[i] as Lang.Dictionary;
-            var prefix = p[:prefix] as Lang.String;
-            if (name.find(prefix) == 0) {
-                return p;
-            }
-        }
-        return null;
     }
 
+    // Снять «канарейку»: форма пережила вызов (и была принята стеком).
+    private function endRegAttempt() as Void {
+        try {
+            Application.Storage.setValue(STORAGE_REG_PENDING, false);
+        } catch (e) {
+            // не критично
+        }
+    }
+
+    // Счётчик подряд идущих крашей регистрации.
+    private function regFails() as Lang.Number {
+        var v = Application.Storage.getValue(STORAGE_REG_FAILS);
+        return (v instanceof Lang.Number) ? v : 0;
+    }
+
+    private function saveRegFails(n as Lang.Number) as Void {
+        try {
+            Application.Storage.setValue(STORAGE_REG_FAILS, n);
+        } catch (e) {
+            // не критично
+        }
+    }
+
+    // Пережила ли прошлая попытка вызов registerProfile.
+    private function lastRegCrashed() as Lang.Boolean {
+        var v = Application.Storage.getValue(STORAGE_REG_PENDING);
+        return (v instanceof Lang.Boolean) ? v : false;
+    }
     // Прочитать сохранённое имя «своего» Di2 (null, если привязки нет).
     private function loadLockedName() as Lang.String? {
         var v = Application.Storage.getValue(STORAGE_LOCK);
@@ -286,6 +307,11 @@ class Di2BleDelegate extends Ble.BleDelegate {
         Application.Storage.deleteValue(STORAGE_LOCK);
         _lockedName = null;
         _state.locked = false;
+        // Заодно даём регистрации профиля второй шанс: Forget — единственная доступная
+        // пользователю кнопка «начать заново», и застрявший счётчик крашей (18EF:skip)
+        // иначе не сбросить.
+        saveRegFails(0);
+        endRegAttempt();
         try {
             Application.Properties.setValue(PROP_FORGET, false);
         } catch (e) {
@@ -295,24 +321,118 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // ── Регистрация профилей и скан ───────────────────────────────────────────
 
+    // Результат регистрации профиля от BLE-стека. Раньше колбэк не был реализован, и
+    // провал регистрации был невидим: незарегистрированный профиль означает, что стек
+    // НЕ обнаруживает его сервис на устройстве (getServices отдаёт только профили,
+    // зарегистрированные приложением) — то есть подписка обречена, а причина молчит.
+    function onProfileRegister(uuid, status) {
+        var ok = (status == Ble.STATUS_SUCCESS);
+        if (uuid.equals(_modeSvcUuid)) {
+            endRegAttempt();               // вызов пережит — «канарейка» снимается
+            if (ok) {
+                saveRegFails(0);           // рабочая форма найдена, счётчик крашей сброшен
+                registerBatteryProfile();   // слот передач занят — можно просить второй
+            } else {
+                _modeProfileUsable = false;   // стек профиль не принял — сервиса не будет
+                saveRegForm(!loadRegForm());   // отказ стека: следующий запуск — другая форма
+            }
+        }
+        var tag = shortUuid(uuid) + (ok ? ":ok" : ":e" + status.toString());
+        _state.dbgReg = (_state.dbgReg.length() == 0) ? tag : (_state.dbgReg + " " + tag);
+        log("profile register " + tag);
+    }
+
+    // Короткая метка UUID для диагностики: "0000180f-..." -> "180F".
+    private function shortUuid(uuid) as Lang.String {
+        var s = uuid.toString();
+        return (s.length() >= 8) ? s.substring(4, 8) : s;
+    }
+
+    // Регистрация профилей. КАЖДЫЙ вызов в своём try: Connect IQ ограничивает число
+    // зарегистрированных профилей на приложение, и если первая регистрация упрётся в
+    // лимит (например, поле добавлено на два экрана сразу — тогда профили просит каждый
+    // экземпляр), общий try оставил бы приложение вообще без второго профиля.
+    // Профиль передач регистрируем ПЕРВЫМ: он важнее батареи, и при нехватке слотов
+    // потерять лучше батарею, чем передачи — ради них поле и существует.
+    // Регистрация профилей. ВАЖНО (известный баг прошивки, forums.garmin.com): на ряде
+    // устройств стек принимает только ПЕРВЫЙ профиль, а на каждый следующий отвечает
+    // недокументированным status=2. Наблюдалось на Edge Explore 2 после обновления
+    // прошивки: 180F:ok, 18EF:e2 — и передачи пропали совсем, потому что незарегистри-
+    // рованный профиль стек не ищет на устройстве вовсе.
+    // Поэтому регистрируем СТРОГО ПО ОДНОМУ: сначала профиль передач (ради него поле и
+    // существует), а батарею — только после того, как стек подтвердил первый. Если на
+    // батарею слота не хватит, поле покажет "--" вместо процента, но передачи будут.
     private function registerProfiles() as Void {
-        // Профиль батареи (Read).
-        Ble.registerProfile({
-            :uuid => _battSvcUuid,
-            :characteristics => [
-                { :uuid => _battCharUuid }
-            ]
-        });
-        // Профиль нотификаций (Notify через CCCD).
-        Ble.registerProfile({
-            :uuid => _modeSvcUuid,
-            :characteristics => [
-                {
-                    :uuid => _modeCharUuid,
-                    :descriptors => [Ble.cccdUuid()]
-                }
-            ]
-        });
+        registerModeProfile();
+    }
+
+    // Профиль батареи (Read). Регистрируется отложенно — см. registerProfiles.
+    private function registerBatteryProfile() as Void {
+        if (_battProfileRequested) {
+            return;                    // одна попытка: слот либо есть, либо нет
+        }
+        _battProfileRequested = true;
+        try {
+            Ble.registerProfile({
+                :uuid => _battSvcUuid,
+                :characteristics => [
+                    { :uuid => _battCharUuid }
+                ]
+            });
+        } catch (e) {
+            log("register battery profile failed");
+        }
+    }
+
+    // Регистрация профиля передач (Notify через CCCD) — отдельно, чтобы её можно было
+    // повторить: стек может отклонить регистрацию (наблюдался недокументированный
+    // status=2), и тогда сервис 18ef не находится ни на одном устройстве. Повтор даёт
+    // шанс занять слот, когда его освободит тот, кто держал.
+    private function registerModeProfile() as Void {
+        _regAttempts += 1;
+        // Две формы описания профиля. Прошивка Edge Explore 2 отклоняет наш профиль
+        // недокументированным status=2 даже когда он единственный, тогда как батарейный
+        // (без :descriptors) принимается — поэтому пробуем и форму БЕЗ явного CCCD:
+        // дескриптор всё равно доступен через getDescriptor() после подключения.
+        // Чередуем МЕЖДУ ЗАПУСКАМИ поля (форма живёт в Storage): повторный вызов
+        // registerProfile в рамках одного запуска роняет дата-филд, см. onIdleTick.
+        // Если прошлый запуск не пережил регистрацию — пробуем другую форму.
+        var withCccd = loadRegForm();
+        var fails = regFails();
+        if (lastRegCrashed()) {
+            withCccd = !withCccd;
+            fails += 1;
+            saveRegFails(fails);
+            log("previous register attempt crashed (" + fails + "), switching profile form");
+        }
+        // Обе формы уронили приложение — прекращаем попытки. Передач не будет, но поле
+        // останется живым; состояние видно в diag-оверлее как "18EF:skip".
+        if (fails >= REG_FAIL_LIMIT) {
+            _state.dbgReg = "18EF:skip";
+            _modeProfileUsable = false;
+            endRegAttempt();
+            registerBatteryProfile();   // хотя бы заряд D-Fly
+            log("register mode profile skipped after " + fails + " crashes");
+            return;
+        }
+        beginRegAttempt(withCccd);
+        try {
+            var chr = withCccd
+                ? { :uuid => _modeCharUuid, :descriptors => [Ble.cccdUuid()] }
+                : { :uuid => _modeCharUuid };
+            Ble.registerProfile({
+                :uuid => _modeSvcUuid,
+                :characteristics => [chr]
+            });
+        } catch (e) {
+            // ВНИМАНИЕ: здесь нельзя звать e.getErrorMessage() — системные ошибки
+            // (не Lang.Exception) такого метода не имеют, и обработчик падает сам
+            // «Failed invoking <symbol>», маскируя исходный сбой. Проверено на железе.
+            _state.dbgReg = "18EF:ex";
+            log("register mode profile failed");
+        }
+        _state.dbgRegAttempts = _regAttempts;
+        _state.dbgRegForm = withCccd ? "d" : "n";   // d = с CCCD, n = без
     }
 
     private function startScan() as Void {
@@ -320,7 +440,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             Ble.setScanState(Ble.SCAN_STATE_SCANNING);
             _scanning = true;
         } catch (e) {
-            if (DEBUG) { log("scan start failed: " + e.getErrorMessage()); }
+            if (DEBUG) { log("scan start failed"); }
         }
     }
 
@@ -410,7 +530,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 onConnected(d);
             }
         } catch (e) {
-            if (DEBUG) { log("pair failed: " + e.getErrorMessage()); }
+            if (DEBUG) { log("pair failed"); }
             scheduleReconnect();
         }
     }
@@ -446,9 +566,13 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _attemptReachedLive = true;    // соединение установлено: разрыв отсюда — «обычный»
         _state.connected = true;
         _state.phase = CONN_LIVE;
-        captureIdentity(device);       // GATT-имя + авто-детект профиля модели (для diag/парсинга)
-        saveLock(device);              // «прилипаем» к этому устройству по имени (только первый раз)
-        enableNotifications(device);
+        // GATT-имя + авто-детект профиля модели (для diag/парсинга) + sticky-lock.
+        captureIdentity(device);
+        if (_modeProfileUsable) {
+            enableNotifications(device);
+        } else {
+            _state.dbgSub = "no-reg";   // профиль не зарегистрирован — подписываться не к чему
+        }
         readBattery();                 // одно чтение сразу; далее — по тикам в onTick()
         _batteryTickCounter = 0;
         if (DEBUG) { log("connected" + (device.getName() != null ? " " + device.getName() : "")); }
@@ -456,6 +580,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     private function onDisconnected() as Void {
         _state.connected = false;
+        _state.dbgSub = "-";           // подписка умерла вместе с соединением
         _state.resetLiveData();
         if (_attemptReachedLive) {
             // Потеряли установленную связь — обычный бэкофф (растущий интервал).
@@ -480,7 +605,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             // Троттлинг: notify сыпется ~десятки раз в секунду и забивает 5 КБ-лог
             // одинаковыми пакетами, вытесняя события связи. Логируем пакет только при
             // СМЕНЕ передачи (байт[5]) либо хартбитом раз в SCAN_LOG_HB_MS.
-            var gear = (value.size() > _rearIdx) ? value[_rearIdx] : -1;
+            var gear = (value.size() > _parser.rearIdx) ? value[_parser.rearIdx] : -1;
             var nowMs = System.getTimer();
             if (gear != _lastLoggedGear || (nowMs - _lastNotifyLogMs) >= SCAN_LOG_HB_MS) {
                 logBytes(characteristic, value);
@@ -488,11 +613,20 @@ class Di2BleDelegate extends Ble.BleDelegate {
                 _lastNotifyLogMs = nowMs;
             }
         }
-        // Diag-overlay: сырой пакет ЛЮБОЙ длины на экран (для разбора формата чужой
-        // серии Di2, у которой длина/смещения могут отличаться от PKT_GEAR_LEN).
+        // Счётчики notify ведём ВСЕГДА (два инкремента, не зависят от оверлея): именно
+        // они отличают «канал молчит» от «пакеты идут, но не той длины».
+        _state.dbgPktTotal += 1;
+        if (value.size() == _parser.pktLen) {
+            _state.dbgPktGood += 1;
+        }
+        _state.dbgLastPktMs = System.getTimer();
+
+        // Diag-overlay: сырой пакет на экран (для разбора формата чужой серии Di2,
+        // у которой длина/смещения могут отличаться от профиля). Складываем ВСЕ
+        // разновидности — по последнему пакету на каждую длину (см. recordPacket).
         if (_state.diagOverlay) {
-            _state.dbgGear = toHex(value);
             _state.dbgGearLen = value.size();
+            _state.recordPacket(value.size(), toHex(value));
         }
         parseGearPacket(value);
     }
@@ -502,27 +636,27 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _batteryReadInFlight = false;
         if (characteristic.getUuid().equals(_battCharUuid)) {
             if (value != null && value.size() > 0) {
-                _state.battery = value[0].toNumber();
+                // Стандартный Battery Level — процент 0..100. Значение вне диапазона
+                // означает чужой формат: показываем "--" вместо "255%".
+                var pct = value[0].toNumber();
+                if (pct >= 0 && pct <= 100) {
+                    _state.battery = pct;
+                }
             }
         }
     }
 
     // ── Парсинг ───────────────────────────────────────────────────────────────
 
+    // Разбор и применение пакета. Вся логика раскладки и санитарных проверок — в
+    // Di2PacketParser; здесь только перенос результата в состояние.
     private function parseGearPacket(value as Lang.ByteArray) as Void {
-        if (value.size() == _pktLen) {
-            if (_rearIdx >= 0 && _rearIdx < value.size()) {
-                _state.rear = value[_rearIdx].toNumber();
-            }
-            // Передняя передача: только если профиль выявил её байт (_frontIdx>=0).
-            // Иначе front остаётся из настроек (1x → 1; 2x/3x → "-/N", см. Di2FieldApp).
-            if (_frontIdx >= 0 && _frontIdx < value.size()) {
-                _state.front = value[_frontIdx].toNumber();
-            }
-            // frontTotal/rearTotal (число звёзд) задаются настройками (см. Di2FieldApp).
-            // Сырой дамп пакета для diag-overlay снимается в onCharacteristicChanged
-            // (любой длины), здесь не дублируем.
+        if (!_parser.parse(value, _state.rearTotal, _state.frontTotal)) {
+            return;
         }
+        if (_parser.rearTotal > 0) { _state.rearTotal = _parser.rearTotal; }
+        if (_parser.rear > 0)      { _state.rear = _parser.rear; }
+        if (_parser.front > 0)     { _state.front = _parser.front; }
     }
 
     // Hex-строка байтов: "00 11 22 ...".
@@ -536,21 +670,124 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // ── Вспомогательное BLE ───────────────────────────────────────────────────
 
+    // Подписка на notify: запись CCCD [0x01,0x00] на 0x2ac1.
+    // КАЖДЫЙ шаг фиксируется в _state.dbgSub — раньше все отказы были молчаливыми
+    // (три вложенных if без else), и «нет сервиса», «нет дескриптора» и «стек отклонил
+    // запись» выглядели на экране одинаково: пакетов просто нет. Подтверждение записи
+    // приходит асинхронно в onDescriptorWrite (там "wr" -> "ok"/"e<N>").
     private function enableNotifications(device as Ble.Device) as Void {
         try {
+            _state.dbgSvcCount = countServices(device);   // 0 = дискавери ещё не готова
             var svc = device.getService(_modeSvcUuid);
-            if (svc != null) {
-                var ch = svc.getCharacteristic(_modeCharUuid);
-                if (ch != null) {
-                    var cccd = ch.getDescriptor(Ble.cccdUuid());
-                    if (cccd != null) {
-                        cccd.requestWrite([0x01, 0x00]b);  // включить notifications
-                    }
+            if (svc == null) {
+                _state.dbgSub = "no-svc";
+                log("subscribe: service 18ef not found");
+                return;
+            }
+            var ch = svc.getCharacteristic(_modeCharUuid);
+            if (ch == null) {
+                _state.dbgSub = "no-chr";
+                log("subscribe: characteristic 2ac1 not found");
+                return;
+            }
+            var cccd = ch.getDescriptor(Ble.cccdUuid());
+            if (cccd == null) {
+                _state.dbgSub = "no-cccd";
+                log("subscribe: cccd descriptor not found");
+                return;
+            }
+            _state.dbgSub = "wr";              // ждём подтверждения от стека
+            cccd.requestWrite([0x01, 0x00]b);  // включить notifications
+            log("subscribe: cccd write requested");
+        } catch (e) {
+            _state.dbgSub = "ex";
+            log("subscribe: exception");
+        }
+    }
+
+    // Подтверждение записи CCCD от BLE-стека. Раньше колбэк не был реализован вовсе,
+    // поэтому отклонённая подписка (например при протухшем бонде) была неотличима от
+    // молчащего устройства. Теперь статус виден в diag-оверлее: "ok" либо "e<N>".
+    function onDescriptorWrite(descriptor, status) {
+        if (status == Ble.STATUS_SUCCESS) {
+            _state.dbgSub = "ok";
+        } else {
+            _state.dbgSub = "e" + status.toString();
+        }
+        log("cccd write status=" + status);
+    }
+
+    // Повторная попытка подписки на активном соединении (см. onTick). Устройство берём
+    // из списка спаренных — ссылки на Ble.Device мы намеренно не храним, её валидность
+    // между колбэками не гарантируется.
+    private function retrySubscribe() as Void {
+        try {
+            var d = Ble.getPairedDevices().next() as Ble.Device?;
+            if (d != null && d.isConnected()) {
+                logServices(d);
+                // Личность снимаем заново: при той же гонке (onConnected до завершения
+                // дискавери) getName() отдаёт null, профиль парсинга остаётся дефолтным,
+                // и на не-XT сериях передачи разбирались бы по чужой раскладке.
+                if (_state.dbgDeviceName.length() == 0) {
+                    captureIdentity(d);
                 }
+                enableNotifications(d);
             }
         } catch (e) {
-            if (DEBUG) { log("enable notify failed: " + e.getErrorMessage()); }
+            _state.dbgSub = "ex";
         }
+    }
+
+    // Повторно снять GATT-имя с активного соединения. Устройство берём из списка
+    // спаренных — ссылки на Ble.Device мы намеренно не храним (см. retrySubscribe).
+    private function retryIdentity() as Void {
+        try {
+            var d = Ble.getPairedDevices().next() as Ble.Device?;
+            if (d != null && d.isConnected()) {
+                captureIdentity(d);
+            }
+        } catch (e) {
+            // имя по-прежнему недоступно — попробуем на следующем тике
+        }
+    }
+
+    // Сколько сервисов видит стек на устройстве. Отличает «дискавери не завершена»
+    // (0 сервисов) от «сервис реально отсутствует в прошивке» (есть другие, но не 18ef).
+    private function countServices(device as Ble.Device) as Lang.Number {
+        var n = 0;
+        var seen = "";
+        try {
+            // Итератор берём ОДИН раз: повторный getServices() отдаёт новый итератор
+            // и цикл вечно читал бы первый сервис.
+            var it = device.getServices();
+            for (var svc = it.next(); svc != null; svc = it.next()) {
+                seen += shortUuid((svc as Ble.Service).getUuid()) + " ";
+                n += 1;
+                if (n >= 16) { break; }
+            }
+        } catch (e) {
+            _state.dbgSvcList = "?";
+            return -1;
+        }
+        _state.dbgSvcList = seen;   // какие именно сервисы видит стек
+        return n;
+    }
+
+    // Перечислить сервисы устройства в лог: пустой список = GATT-дискавери ещё не
+    // завершена, непустой без 18ef = прошивка действительно не отдаёт этот сервис.
+    private function logServices(device as Ble.Device) as Void {
+        if (!DEBUG) {
+            return;
+        }
+        var n = 0;
+        var line = "";
+        var it = device.getServices();   // итератор берём один раз (см. countServices)
+        for (var svc = it.next(); svc != null; svc = it.next()) {
+            line += (svc as Ble.Service).getUuid().toString() + " ";
+            n += 1;
+            if (n >= 8) { break; }
+        }
+        Di2Log.line("services n=" + n + " [" + line + "]");
     }
 
     // Однократное чтение батареи. Зовётся при подключении и периодически из onTick().
@@ -572,7 +809,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             }
         } catch (e) {
             _batteryReadInFlight = false;
-            if (DEBUG) { log("battery read failed: " + e.getErrorMessage()); }
+            if (DEBUG) { log("battery read failed"); }
         }
     }
 
@@ -610,6 +847,29 @@ class Di2BleDelegate extends Ble.BleDelegate {
             }
         }
 
+        // Ретрай подписки на notify. КРИТИЧНО: onConnected может быть вызван из
+        // connectTo синхронно, сразу после pairDevice — до того, как BLE-стек завершил
+        // GATT-дискавери. Тогда getService(18ef) отдаёт null (sub=no-svc), а единственная
+        // попытка подписки уже потрачена: соединение живое, батарея читается (её опрос
+        // периодический), а передачи не приходят никогда. Поэтому повторяем подписку,
+        // пока стек не подтвердит запись CCCD (dbgSub == "ok").
+        if (_modeProfileUsable && _state.connected && !_state.dbgSub.equals("ok")) {
+            _subRetryCounter += 1;
+            if (_subRetryCounter >= SUB_RETRY_TICKS) {
+                _subRetryCounter = 0;
+                retrySubscribe();
+            }
+        } else {
+            _subRetryCounter = 0;
+        }
+
+        // Добор личности, если в onConnected имя ещё не отдавалось (GATT-дискавери не
+        // успела). Отдельно от ретрая подписки: тот работает только при рабочем профиле
+        // передач, а имя нужно всегда — и для sticky-lock, и для diag/краудсорса моделей.
+        if (_state.connected && _state.dbgDeviceName.length() == 0) {
+            retryIdentity();
+        }
+
         // Периодический опрос батареи (когда подключены).
         if (_state.connected) {
             _batteryTickCounter += 1;
@@ -620,10 +880,31 @@ class Di2BleDelegate extends Ble.BleDelegate {
         }
     }
 
+    // Тик, не зависящий от записи активности: его гонит View.onUpdate (см. там же).
+    // Нужен, чтобы подписка на notify восстанавливалась и до старта таймера — раньше
+    // вся периодика висела на compute(), который система зовёт только во время записи.
+    //
+    // ЗДЕСЬ НЕЛЬЗЯ ПЕРЕРЕГИСТРИРОВАТЬ ПРОФИЛЬ. Повторный Ble.registerProfile роняет
+    // дата-филд системной ошибкой прямо внутри вызова (CIQ_LOG: registerModeProfile,
+    // строка с registerProfile). System Error не перехватывается try/catch, поэтому
+    // защититься нельзя — только не вызывать. Профиль регистрируем ровно один раз
+    // за запуск, см. registerProfiles/start.
+    function onIdleTick() as Void {
+        if (!_modeProfileUsable || !_state.connected || _state.dbgSub.equals("ok")) {
+            return;
+        }
+        _subRetryCounter += 1;
+        if (_subRetryCounter >= SUB_RETRY_TICKS) {
+            _subRetryCounter = 0;
+            retrySubscribe();
+        }
+    }
+
     // Запланировать повторный скан. Интервал растёт с числом неудач до потолка,
     // но попытки не заканчиваются — связь восстановится, как только Di2 проснётся.
     private function scheduleReconnect() as Void {
         _state.phase = CONN_RETRY;
+        _state.dbgReconnects += 1;
         _reconnectAttempts += 1;
         var delay = _reconnectAttempts * RECONNECT_MIN_TICKS;
         _reconnectCountdown = (delay < RECONNECT_MAX_TICKS) ? delay : RECONNECT_MAX_TICKS;

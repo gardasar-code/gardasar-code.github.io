@@ -338,6 +338,19 @@
   .rec-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
   @media(max-width:820px){.rec-summary{grid-template-columns:1fr 1fr}}
   @media(max-width:420px){.rec-summary{grid-template-columns:1fr}}
+  /* Заметка о дефекте прошивки Garmin: оранжевая рамка, но не «ошибка» —
+     приложение работает, не работает канал передач на конкретной прошивке. */
+  .fwnote{
+    margin-top:26px;border:1px solid color-mix(in srgb,var(--orange) 40%,transparent);
+    border-radius:16px;background:color-mix(in srgb,var(--orange) 7%,var(--panel));
+    padding:18px 20px;display:flex;gap:14px;align-items:flex-start;
+  }
+  .fwnote .ic{color:var(--orange);font-size:18px;line-height:1.2;flex:none}
+  .fwnote .tx{font-size:14.5px;line-height:1.55;color:var(--ink)}
+  .fwnote .tx b{color:var(--orange)}
+  .fwnote .tx a{color:var(--acc)}
+  @media(max-width:520px){.fwnote{padding:16px}}
+
   .schip{border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:15px 16px}
   .schip .v{font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1;color:var(--ink)}
   .schip .v span{font-family:"JetBrains Mono";font-weight:500;font-size:12px;color:var(--muted);letter-spacing:.02em}
@@ -460,7 +473,7 @@
         </div>
         <div class="card reveal"><span class="tag">05</span>
           <div class="ic">▦</div><h3 data-i18n="feat.c5t">Records to your ride</h3>
-          <p data-i18n="feat.c5d">Per-second gears, teeth, ratio and battery to the FIT file, plus a summary: avg/max ratio, shift counts, most-used combo, top sprockets.</p>
+          <p data-i18n="feat.c5d">Per-second gears, teeth, ratio and battery to the FIT file, plus a summary: max ratio, max gear, minimum battery and shift counts.</p>
         </div>
         <div class="card reveal"><span class="tag">06</span>
           <div class="ic">◐</div><h3 data-i18n="feat.c6t">Day / night · 6 languages</h3>
@@ -528,19 +541,13 @@
         </div>
       </div>
 
-      <div class="rec-group reveal"><span data-i18n="rec.summary">End-of-ride summary · 11 values</span></div>
+      <div class="rec-group reveal"><span data-i18n="rec.summary">End-of-ride summary · 5 values</span></div>
       <div class="rec-summary reveal">
         <div class="schip"><div class="v">12 <span>gear</span></div><div class="k" data-i18n="f.maxRear">Max Rear Gear</div></div>
         <div class="schip"><div class="v">3.2 <span>:1</span></div><div class="k" data-i18n="f.maxRatio">Max Ratio</div></div>
         <div class="schip"><div class="v">80 <span>%</span></div><div class="k" data-i18n="f.minBat">Min Di2 Battery</div></div>
-        <div class="schip"><div class="v">2.10 <span>:1</span></div><div class="k" data-i18n="f.avgRatio">Avg Ratio</div></div>
         <div class="schip"><div class="v">0 <span>shifts</span></div><div class="k" data-i18n="f.frontShifts">Front Shifts</div></div>
         <div class="schip"><div class="v">23 <span>shifts</span></div><div class="k" data-i18n="f.rearShifts">Rear Shifts</div></div>
-        <div class="schip"><div class="v">32/10 <span>T</span></div><div class="k" data-i18n="f.mostCombo">Most Used Combo</div></div>
-        <div class="schip"><div class="v">33.3 <span>%</span></div><div class="k" data-i18n="f.comboTime">Most Combo Time</div></div>
-        <div class="schip"><div class="v">16 <span>T</span></div><div class="k" data-i18n="f.top1">Rear Most Used #1</div></div>
-        <div class="schip"><div class="v">18 <span>T</span></div><div class="k" data-i18n="f.top2">Rear Most Used #2</div></div>
-        <div class="schip"><div class="v">14 <span>T</span></div><div class="k" data-i18n="f.top3">Rear Most Used #3</div></div>
       </div>
     </div>
   </section>
@@ -560,6 +567,15 @@
         <div class="row"><span data-i18n="comp.r3">Link</span><b>Bluetooth Low Energy</b></div>
         <div class="row"><span data-i18n="comp.r4">Tested with</span><b>XT Di2 RD-M8250 · 12-sp</b></div>
         <div class="row"><span data-i18n="comp.r5">Price</span><b style="color:var(--acc)" data-i18n="comp.free">Free</b></div>
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="fwnote reveal">
+        <div class="ic">⚠</div>
+        <div class="tx">
+          <b data-i18n="comp.fw.t">Edge Explore 2 firmware 31.33: gears unavailable.</b>
+          <span data-i18n="comp.fw.d"> On this Garmin firmware the head unit refuses to register the Bluetooth service the Di2 uses, so no third-party app can read gear data — the Di2 battery still works. Reported to Garmin and acknowledged (CIQQA-4662); a firmware fix is pending. Firmware 30.23 is unaffected.</span>
+        </div>
       </div>
     </div>
   </section>
@@ -605,7 +621,7 @@
       "feat.c2t":"Di2 battery","feat.c2d":"Wireless-unit charge as a colour-coded icon, a percentage, or both — orange under 40%, red under 15%.",
       "feat.c3t":"Smart auto-reconnect","feat.c3d":"Keeps its Bluetooth bond between rides and relinks on its own the moment the Di2 is awake. No re-pairing after a short break.",
       "feat.c4t":"Configurable drivetrain","feat.c4d":"Set your chainrings (1–3) and cassette, enter the teeth of each cog — accurate gear ratios and a true cassette profile.",
-      "feat.c5t":"Records to your ride","feat.c5d":"Per-second gears, teeth, ratio and battery to the FIT file, plus a summary: avg/max ratio, shift counts, most-used combo, top sprockets.",
+      "feat.c5t":"Records to your ride","feat.c5d":"Per-second gears, teeth, ratio and battery to the FIT file, plus a summary: max ratio, max gear, minimum battery and shift counts.",
       "feat.c6t":"Day / night · 6 languages","feat.c6d":"Adapts to the Edge Explore 2 colour theme. English, French, Spanish, Russian, German and Arabic out of the box.",
       "conn.eyebrow":"Connection","conn.h2":"A colour-coded dot tells you exactly what's happening.",
       "conn.d1":"Searching","conn.d1s":"scanning","conn.d2":"Connecting","conn.d2s":"linking up","conn.d3":"Connected","conn.d3s":"receiving","conn.d4":"Your Di2","conn.d4s":"locked on","conn.d5":"Retrying","conn.d5s":"link lost",
@@ -613,11 +629,11 @@
       "conn.s2t":"Wake the Di2","conn.s2d":"Tap a shifter to wake the system. The field finds the nearest Di2 and connects on its own.",
       "conn.s3t":"Ride","conn.s3d":"It sticks to your unit and reconnects automatically every ride. Switch bikes with one “Forget” toggle.",
       "comp.eyebrow":"Compatibility","comp.h2":"What you need.","comp.sub":"Connects to a Shimano wireless module advertising over Bluetooth LE — the native radio on your Edge Explore 2, no ANT+.",
-      "comp.r1":"Device","comp.r3":"Link","comp.r4":"Tested with","comp.r5":"Price","comp.free":"Free",
+      "comp.fw.t":"Edge Explore 2 firmware 31.33: gears unavailable.","comp.fw.d":" On this Garmin firmware the head unit refuses to register the Bluetooth service the Di2 uses, so no third-party app can read gear data — the Di2 battery still works. Reported to Garmin and acknowledged (CIQQA-4662); a firmware fix is pending. Firmware 30.23 is unaffected.","comp.r1":"Device","comp.r3":"Link","comp.r4":"Tested with","comp.r5":"Price","comp.free":"Free",
       "cta.eyebrow":"Ready when you are","cta.h2":"Put your Di2 on the screen.","cta.p":"Install from the Connect IQ Store, add it to a data field, and ride.","cta.btn":"Search “Di2 Field” in the Connect IQ Store",
       "foot.disc":"Independent, unofficial app, not affiliated with Shimano Inc. or Garmin Ltd. All product names, brands and logos — including Shimano, Di2, Garmin and Edge — are trademarks or registered trademarks of their respective owners, used here for identification and compatibility purposes only.","foot.made":"Made by","foot.freenote":"© 2026 · Free to use",
-      "nav.data":"Data","rec.eyebrow":"Recorded data","rec.h2":"Every shift, written to your ride.","rec.sub":"While you ride, Di2 Field logs the whole drivetrain to the FIT activity — so Garmin Connect and any analysis tool can chart it afterwards. Field names match the app, in your language.","rec.graphs":"Per-second graphs · 6 fields","rec.summary":"End-of-ride summary · 11 values",
-      "f.rearGear":"Rear Gear","f.frontGear":"Front Gear","f.rearTeeth":"Rear Teeth","f.frontTeeth":"Front Teeth","f.ratio":"Gears Ratio","f.battery":"Di2 Battery","f.maxRear":"Max Rear Gear","f.maxRatio":"Max Ratio","f.minBat":"Min Di2 Battery","f.avgRatio":"Avg Ratio","f.frontShifts":"Front Shifts","f.rearShifts":"Rear Shifts","f.mostCombo":"Most Used Combo","f.comboTime":"Most Combo Time","f.top1":"Rear Most Used #1","f.top2":"Rear Most Used #2","f.top3":"Rear Most Used #3",
+      "nav.data":"Data","rec.eyebrow":"Recorded data","rec.h2":"Every shift, written to your ride.","rec.sub":"While you ride, Di2 Field logs the whole drivetrain to the FIT activity — so Garmin Connect and any analysis tool can chart it afterwards. Field names match the app, in your language.","rec.graphs":"Per-second graphs · 6 fields","rec.summary":"End-of-ride summary · 5 values",
+      "f.rearGear":"Rear Gear","f.frontGear":"Front Gear","f.rearTeeth":"Rear Teeth","f.frontTeeth":"Front Teeth","f.ratio":"Gears Ratio","f.battery":"Di2 Battery","f.maxRear":"Max Rear Gear","f.maxRatio":"Max Ratio","f.minBat":"Min Di2 Battery","f.frontShifts":"Front Shifts","f.rearShifts":"Rear Shifts",
       "seo.title":"Di2 Field — Shimano Di2 gear & Di2 battery on Garmin Edge Explore 2","seo.desc":"Free, unofficial Connect IQ data field that shows your Shimano Di2 rear gear, a live cassette graphic and Di2 battery on the Garmin Edge Explore 2 over Bluetooth.","seo.locale":"en_US"
     },
     fr:{
@@ -631,7 +647,7 @@
       "feat.c2t":"Batterie Di2","feat.c2d":"La charge du module sans fil en icône colorée, en pourcentage, ou les deux — orange sous 40 %, rouge sous 15 %.",
       "feat.c3t":"Reconnexion automatique","feat.c3d":"Garde sa liaison Bluetooth entre les sorties et se reconnecte seul dès que le Di2 se réveille. Pas de nouvel appairage après une pause.",
       "feat.c4t":"Transmission configurable","feat.c4d":"Réglez vos plateaux (1–3) et votre cassette, saisissez les dents de chaque pignon — rapports précis et profil de cassette fidèle.",
-      "feat.c5t":"Enregistré dans la sortie","feat.c5d":"Vitesses, dents, rapport et batterie chaque seconde dans le fichier FIT, plus un résumé : rapport moy./max, nombre de changements, combinaison favorite, pignons les plus utilisés.",
+      "feat.c5t":"Enregistré dans la sortie","feat.c5d":"Vitesses, dents, rapport et batterie chaque seconde dans le fichier FIT, plus un résumé : rapport max, plus grand pignon, batterie minimale et nombre de changements.",
       "feat.c6t":"Jour / nuit · 6 langues","feat.c6d":"S’adapte au thème de l’Edge Explore 2. Anglais, français, espagnol, russe, allemand et arabe d’origine.",
       "conn.eyebrow":"Connexion","conn.h2":"Un point coloré vous dit exactement ce qui se passe.",
       "conn.d1":"Recherche","conn.d1s":"balayage","conn.d2":"Connexion","conn.d2s":"liaison","conn.d3":"Connecté","conn.d3s":"réception","conn.d4":"Votre Di2","conn.d4s":"verrouillé","conn.d5":"Nouvel essai","conn.d5s":"liaison perdue",
@@ -639,11 +655,11 @@
       "conn.s2t":"Réveillez le Di2","conn.s2d":"Actionnez une manette pour réveiller le système. Le champ trouve le Di2 le plus proche et se connecte seul.",
       "conn.s3t":"Roulez","conn.s3d":"Il reste lié à votre unité et se reconnecte automatiquement à chaque sortie. Changez de vélo avec un seul bouton « Oublier ».",
       "comp.eyebrow":"Compatibilité","comp.h2":"Ce qu’il vous faut.","comp.sub":"Se connecte à un module sans fil Shimano diffusant en Bluetooth LE — la radio native de votre Edge Explore 2, sans ANT+.",
-      "comp.r1":"Appareil","comp.r3":"Liaison","comp.r4":"Testé avec","comp.r5":"Prix","comp.free":"Gratuit",
+      "comp.fw.t":"Firmware 31.33 de l’Edge Explore 2 : vitesses indisponibles.","comp.fw.d":" Sur ce firmware Garmin, le compteur refuse d’enregistrer le service Bluetooth utilisé par le Di2 : aucune application tierce ne peut lire les vitesses — la batterie Di2 reste affichée. Signalé à Garmin et pris en compte (CIQQA-4662) ; correctif firmware en attente. Le firmware 30.23 n’est pas concerné.","comp.r1":"Appareil","comp.r3":"Liaison","comp.r4":"Testé avec","comp.r5":"Prix","comp.free":"Gratuit",
       "cta.eyebrow":"Quand vous voulez","cta.h2":"Mettez votre Di2 à l’écran.","cta.p":"Installez depuis la boutique Connect IQ, ajoutez-le à un champ de données, et roulez.","cta.btn":"Cherchez « Di2 Field » dans la boutique Connect IQ",
       "foot.disc":"Application indépendante et non officielle, non affiliée à Shimano Inc. ou Garmin Ltd. Tous les noms de produits, marques et logos — dont Shimano, Di2, Garmin et Edge — sont des marques ou marques déposées de leurs propriétaires respectifs, utilisés ici à des fins d’identification et de compatibilité uniquement.","foot.made":"Créé par","foot.freenote":"© 2026 · Gratuit",
-      "nav.data":"Données","rec.eyebrow":"Enregistrement","rec.h2":"Chaque changement, écrit dans votre sortie.","rec.sub":"Pendant que vous roulez, Di2 Field enregistre toute la transmission dans l’activité FIT — Garmin Connect et tout outil d’analyse peuvent ensuite en tracer les courbes. Les noms des champs correspondent à l’application, dans votre langue.","rec.graphs":"Courbes à la seconde · 6 champs","rec.summary":"Résumé de fin de sortie · 11 valeurs",
-      "f.rearGear":"Pignon arrière","f.frontGear":"Plateau avant","f.rearTeeth":"Dents arrière","f.frontTeeth":"Dents avant","f.ratio":"Rapport","f.battery":"Batterie Di2","f.maxRear":"Pignon arr. max","f.maxRatio":"Rapport max","f.minBat":"Batterie Di2 min","f.avgRatio":"Rapport moyen","f.frontShifts":"Changements avant","f.rearShifts":"Changements arrière","f.mostCombo":"Combo le plus utilisé","f.comboTime":"Temps combo max","f.top1":"Pignon + utilisé #1","f.top2":"Pignon + utilisé #2","f.top3":"Pignon + utilisé #3",
+      "nav.data":"Données","rec.eyebrow":"Enregistrement","rec.h2":"Chaque changement, écrit dans votre sortie.","rec.sub":"Pendant que vous roulez, Di2 Field enregistre toute la transmission dans l’activité FIT — Garmin Connect et tout outil d’analyse peuvent ensuite en tracer les courbes. Les noms des champs correspondent à l’application, dans votre langue.","rec.graphs":"Courbes à la seconde · 6 champs","rec.summary":"Résumé de fin de sortie · 5 valeurs",
+      "f.rearGear":"Pignon arrière","f.frontGear":"Plateau avant","f.rearTeeth":"Dents arrière","f.frontTeeth":"Dents avant","f.ratio":"Rapport","f.battery":"Batterie Di2","f.maxRear":"Pignon arr. max","f.maxRatio":"Rapport max","f.minBat":"Batterie Di2 min","f.frontShifts":"Changements avant","f.rearShifts":"Changements arrière",
       "seo.title":"Di2 Field — vitesse Shimano Di2 et batterie Di2 sur Garmin Edge Explore 2","seo.desc":"Champ de données Connect IQ gratuit et non officiel : pignon Shimano Di2, cassette graphique en direct et batterie Di2 sur Garmin Edge Explore 2, via Bluetooth.","seo.locale":"fr_FR"
     },
     es:{
@@ -657,7 +673,7 @@
       "feat.c2t":"Batería Di2","feat.c2d":"La carga del módulo inalámbrico como icono con color, porcentaje o ambos — naranja bajo 40 %, rojo bajo 15 %.",
       "feat.c3t":"Reconexión automática","feat.c3d":"Mantiene su vínculo Bluetooth entre salidas y se reconecta solo en cuanto el Di2 despierta. Sin volver a emparejar tras una pausa.",
       "feat.c4t":"Transmisión configurable","feat.c4d":"Define tus platos (1–3) y tu cassette, introduce los dientes de cada piñón — relaciones precisas y un perfil de cassette real.",
-      "feat.c5t":"Se graba en tu salida","feat.c5d":"Marchas, dientes, relación y batería cada segundo en el archivo FIT, más un resumen: relación media/máx, número de cambios, combinación más usada, piñones top.",
+      "feat.c5t":"Se graba en tu salida","feat.c5d":"Marchas, dientes, relación y batería cada segundo en el archivo FIT, más un resumen: relación máx, marcha máx, batería mínima y número de cambios.",
       "feat.c6t":"Día / noche · 6 idiomas","feat.c6d":"Se adapta al tema de color del Edge Explore 2. Inglés, francés, español, ruso, alemán y árabe de serie.",
       "conn.eyebrow":"Conexión","conn.h2":"Un punto de color te dice exactamente qué está pasando.",
       "conn.d1":"Buscando","conn.d1s":"escaneando","conn.d2":"Conectando","conn.d2s":"enlazando","conn.d3":"Conectado","conn.d3s":"recibiendo","conn.d4":"Tu Di2","conn.d4s":"fijado","conn.d5":"Reintentando","conn.d5s":"enlace perdido",
@@ -665,11 +681,11 @@
       "conn.s2t":"Despierta el Di2","conn.s2d":"Acciona una maneta para despertar el sistema. El campo encuentra el Di2 más cercano y se conecta solo.",
       "conn.s3t":"Rueda","conn.s3d":"Se queda con tu unidad y se reconecta automáticamente cada salida. Cambia de bici con un solo botón «Olvidar».",
       "comp.eyebrow":"Compatibilidad","comp.h2":"Lo que necesitas.","comp.sub":"Se conecta a un módulo inalámbrico Shimano que emite por Bluetooth LE — la radio nativa de tu Edge Explore 2, sin ANT+.",
-      "comp.r1":"Dispositivo","comp.r3":"Enlace","comp.r4":"Probado con","comp.r5":"Precio","comp.free":"Gratis",
+      "comp.fw.t":"Firmware 31.33 del Edge Explore 2: marchas no disponibles.","comp.fw.d":" Con este firmware de Garmin el ciclocomputador se niega a registrar el servicio Bluetooth que usa el Di2, así que ninguna app de terceros puede leer las marchas — la batería del Di2 sigue funcionando. Reportado a Garmin y aceptado (CIQQA-4662); falta la corrección del firmware. El firmware 30.23 no está afectado.","comp.r1":"Dispositivo","comp.r3":"Enlace","comp.r4":"Probado con","comp.r5":"Precio","comp.free":"Gratis",
       "cta.eyebrow":"Cuando quieras","cta.h2":"Pon tu Di2 en la pantalla.","cta.p":"Instala desde la tienda Connect IQ, añádelo a un campo de datos y rueda.","cta.btn":"Busca «Di2 Field» en la tienda Connect IQ",
       "foot.disc":"Aplicación independiente y no oficial, no afiliada a Shimano Inc. ni a Garmin Ltd. Todos los nombres de producto, marcas y logotipos — incluidos Shimano, Di2, Garmin y Edge — son marcas comerciales o registradas de sus respectivos propietarios, usados aquí solo con fines de identificación y compatibilidad.","foot.made":"Hecho por","foot.freenote":"© 2026 · Gratis",
-      "nav.data":"Datos","rec.eyebrow":"Registro de datos","rec.h2":"Cada cambio, escrito en tu salida.","rec.sub":"Mientras ruedas, Di2 Field registra toda la transmisión en la actividad FIT — Garmin Connect y cualquier herramienta de análisis pueden luego trazar sus gráficas. Los nombres de los campos coinciden con la app, en tu idioma.","rec.graphs":"Gráficas por segundo · 6 campos","rec.summary":"Resumen de fin de salida · 11 valores",
-      "f.rearGear":"Piñón trasero","f.frontGear":"Plato delantero","f.rearTeeth":"Dientes traseros","f.frontTeeth":"Dientes delant.","f.ratio":"Relación","f.battery":"Batería Di2","f.maxRear":"Piñón tras. máx","f.maxRatio":"Relación máx","f.minBat":"Batería Di2 mín","f.avgRatio":"Relación media","f.frontShifts":"Cambios delant.","f.rearShifts":"Cambios traseros","f.mostCombo":"Combo más usado","f.comboTime":"Tiempo combo más","f.top1":"Piñón más usado #1","f.top2":"Piñón más usado #2","f.top3":"Piñón más usado #3",
+      "nav.data":"Datos","rec.eyebrow":"Registro de datos","rec.h2":"Cada cambio, escrito en tu salida.","rec.sub":"Mientras ruedas, Di2 Field registra toda la transmisión en la actividad FIT — Garmin Connect y cualquier herramienta de análisis pueden luego trazar sus gráficas. Los nombres de los campos coinciden con la app, en tu idioma.","rec.graphs":"Gráficas por segundo · 6 campos","rec.summary":"Resumen de fin de salida · 5 valores",
+      "f.rearGear":"Piñón trasero","f.frontGear":"Plato delantero","f.rearTeeth":"Dientes traseros","f.frontTeeth":"Dientes delant.","f.ratio":"Relación","f.battery":"Batería Di2","f.maxRear":"Piñón tras. máx","f.maxRatio":"Relación máx","f.minBat":"Batería Di2 mín","f.frontShifts":"Cambios delant.","f.rearShifts":"Cambios traseros",
       "seo.title":"Di2 Field — marcha Shimano Di2 y batería Di2 en Garmin Edge Explore 2","seo.desc":"Campo de datos Connect IQ gratuito y no oficial: piñón Shimano Di2, cassette gráfico en vivo y batería Di2 en Garmin Edge Explore 2 por Bluetooth.","seo.locale":"es_ES"
     },
     ru:{
@@ -683,7 +699,7 @@
       "feat.c2t":"Батарея Di2","feat.c2d":"Заряд беспроводного модуля цветной иконкой, процентом или вместе — оранжевый ниже 40 %, красный ниже 15 %.",
       "feat.c3t":"Умное автопереподключение","feat.c3d":"Сохраняет Bluetooth-привязку между заездами и сам восстанавливает связь, как только Di2 проснулся. Не нужно паринговать заново после паузы.",
       "feat.c4t":"Настраиваемая трансмиссия","feat.c4d":"Задайте передние звёзды (1–3) и кассету, впишите зубья каждой звезды — точные передаточные и реальный профиль кассеты.",
-      "feat.c5t":"Пишется в ваш заезд","feat.c5d":"Передачи, зубья, передаточное и заряд каждую секунду в FIT-файл, плюс сводка: среднее/макс. передаточное, число переключений, частая комбинация, топ звёзд.",
+      "feat.c5t":"Пишется в ваш заезд","feat.c5d":"Передачи, зубья, передаточное и заряд каждую секунду в FIT-файл, плюс сводка: макс. передаточное, макс. передача, мин. заряд и число переключений.",
       "feat.c6t":"День / ночь · 6 языков","feat.c6d":"Подстраивается под цветовую тему Edge Explore 2. Английский, французский, испанский, русский, немецкий и арабский из коробки.",
       "conn.eyebrow":"Связь","conn.h2":"Цветная точка точно говорит, что происходит.",
       "conn.d1":"Поиск","conn.d1s":"сканирование","conn.d2":"Подключение","conn.d2s":"установка связи","conn.d3":"Подключено","conn.d3s":"приём","conn.d4":"Ваш Di2","conn.d4s":"привязан","conn.d5":"Повтор","conn.d5s":"связь потеряна",
@@ -691,11 +707,11 @@
       "conn.s2t":"Разбудите Di2","conn.s2d":"Нажмите манетку, чтобы разбудить систему. Поле находит ближайший Di2 и подключается само.",
       "conn.s3t":"Едьте","conn.s3d":"Поле держится за ваш модуль и переподключается само каждый заезд. Смена велосипеда — одним переключателем «Забыть».",
       "comp.eyebrow":"Совместимость","comp.h2":"Что нужно.","comp.sub":"Подключается к беспроводному модулю Shimano, вещающему по Bluetooth LE — это родная радиосвязь вашего Edge Explore 2, без ANT+.",
-      "comp.r1":"Устройство","comp.r3":"Связь","comp.r4":"Проверено на","comp.r5":"Цена","comp.free":"Бесплатно",
+      "comp.fw.t":"Прошивка Edge Explore 2 31.33: передачи недоступны.","comp.fw.d":" На этой прошивке Garmin навигатор отказывается регистрировать Bluetooth-сервис, который использует Di2, поэтому ни одно стороннее приложение не может читать передачи — заряд Di2 при этом работает. Передано в Garmin и принято (CIQQA-4662), ждём исправления прошивки. Прошивки 30.23 это не касается.","comp.r1":"Устройство","comp.r3":"Связь","comp.r4":"Проверено на","comp.r5":"Цена","comp.free":"Бесплатно",
       "cta.eyebrow":"Когда будете готовы","cta.h2":"Выведите Di2 на экран.","cta.p":"Установите из магазина Connect IQ, добавьте в поле данных — и в путь.","cta.btn":"Найдите «Di2 Field» в магазине Connect IQ",
       "foot.disc":"Независимое неофициальное приложение, не связанное с Shimano Inc. и Garmin Ltd. Все названия продуктов, бренды и логотипы — включая Shimano, Di2, Garmin и Edge — являются товарными знаками или зарегистрированными товарными знаками соответствующих владельцев и используются здесь исключительно для идентификации и указания совместимости.","foot.made":"Автор","foot.freenote":"© 2026 · Бесплатно",
-      "nav.data":"Данные","rec.eyebrow":"Запись в активность","rec.h2":"Каждое переключение — в ваш заезд.","rec.sub":"Во время поездки Di2 Field пишет всю трансмиссию в FIT-активность — Garmin Connect и любой анализатор потом строят по ней графики. Названия полей совпадают с приложением, на вашем языке.","rec.graphs":"Графики посекундно · 6 полей","rec.summary":"Сводка после заезда · 11 значений",
-      "f.rearGear":"Задняя передача","f.frontGear":"Передняя передача","f.rearTeeth":"Зубья задней","f.frontTeeth":"Зубья перед.","f.ratio":"Передаточное","f.battery":"Батарея Di2","f.maxRear":"Макс. задняя","f.maxRatio":"Макс. передат.","f.minBat":"Мин. заряд Di2","f.avgRatio":"Сред. передат.","f.frontShifts":"Перекл. передней","f.rearShifts":"Перекл. задней","f.mostCombo":"Частая комбинация","f.comboTime":"Время частой комб.","f.top1":"Частая задняя #1","f.top2":"Частая задняя #2","f.top3":"Частая задняя #3",
+      "nav.data":"Данные","rec.eyebrow":"Запись в активность","rec.h2":"Каждое переключение — в ваш заезд.","rec.sub":"Во время поездки Di2 Field пишет всю трансмиссию в FIT-активность — Garmin Connect и любой анализатор потом строят по ней графики. Названия полей совпадают с приложением, на вашем языке.","rec.graphs":"Графики посекундно · 6 полей","rec.summary":"Сводка после заезда · 5 значений",
+      "f.rearGear":"Задняя передача","f.frontGear":"Передняя передача","f.rearTeeth":"Зубья задней","f.frontTeeth":"Зубья перед.","f.ratio":"Передаточное","f.battery":"Батарея Di2","f.maxRear":"Макс. задняя","f.maxRatio":"Макс. передат.","f.minBat":"Мин. заряд Di2","f.frontShifts":"Перекл. передней","f.rearShifts":"Перекл. задней",
       "seo.title":"Di2 Field — передачи Shimano Di2 и заряд Di2 на Garmin Edge Explore 2","seo.desc":"Бесплатное неофициальное поле Connect IQ: задняя передача Shimano Di2, живой график кассеты и заряд Di2 на Garmin Edge Explore 2 по Bluetooth.","seo.locale":"ru_RU"
     },
     de:{
@@ -709,7 +725,7 @@
       "feat.c2t":"Di2-Akku","feat.c2d":"Ladezustand der Funkeinheit als farbiges Symbol, als Prozentwert oder beides — orange unter 40 %, rot unter 15 %.",
       "feat.c3t":"Smarter Auto-Reconnect","feat.c3d":"Behält seine Bluetooth-Bindung zwischen den Fahrten und verbindet sich von selbst, sobald die Di2 wach ist. Kein erneutes Koppeln nach einer Pause.",
       "feat.c4t":"Konfigurierbarer Antrieb","feat.c4d":"Stelle deine Kettenblätter (1–3) und die Kassette ein, trage die Zähne jedes Ritzels ein — exakte Übersetzungen und ein echtes Kassettenprofil.",
-      "feat.c5t":"Wird in der Fahrt aufgezeichnet","feat.c5d":"Gänge, Zähne, Übersetzung und Akku jede Sekunde in die FIT-Datei, dazu eine Zusammenfassung: Ø/max. Übersetzung, Schaltvorgänge, häufigste Kombination, Top-Ritzel.",
+      "feat.c5t":"Wird in der Fahrt aufgezeichnet","feat.c5d":"Gänge, Zähne, Übersetzung und Akku jede Sekunde in die FIT-Datei, dazu eine Zusammenfassung: max. Übersetzung, größter Gang, minimaler Akku und Schaltvorgänge.",
       "feat.c6t":"Tag / Nacht · 6 Sprachen","feat.c6d":"Passt sich dem Farbschema des Edge Explore 2 an. Englisch, Französisch, Spanisch, Russisch, Deutsch und Arabisch ab Werk.",
       "conn.eyebrow":"Verbindung","conn.h2":"Ein farbiger Punkt sagt dir genau, was gerade passiert.",
       "conn.d1":"Suche","conn.d1s":"scannt","conn.d2":"Verbinde","conn.d2s":"koppelt","conn.d3":"Verbunden","conn.d3s":"empfängt","conn.d4":"Deine Di2","conn.d4s":"fixiert","conn.d5":"Neuer Versuch","conn.d5s":"Verbindung weg",
@@ -717,11 +733,11 @@
       "conn.s2t":"Di2 wecken","conn.s2d":"Tippe einen Schalthebel an, um das System zu wecken. Das Feld findet die nächste Di2 und verbindet sich von selbst.",
       "conn.s3t":"Fahren","conn.s3d":"Es bleibt an deiner Einheit und verbindet sich jede Fahrt automatisch neu. Radwechsel mit einem einzigen „Vergessen“-Schalter.",
       "comp.eyebrow":"Kompatibilität","comp.h2":"Was du brauchst.","comp.sub":"Verbindet sich mit einem Shimano-Funkmodul, das per Bluetooth LE sendet — dem nativen Funk deines Edge Explore 2, ohne ANT+.",
-      "comp.r1":"Gerät","comp.r3":"Verbindung","comp.r4":"Getestet mit","comp.r5":"Preis","comp.free":"Kostenlos",
+      "comp.fw.t":"Edge Explore 2 Firmware 31.33: Gänge nicht verfügbar.","comp.fw.d":" Mit dieser Garmin-Firmware weigert sich der Radcomputer, den vom Di2 genutzten Bluetooth-Dienst zu registrieren — keine Drittanbieter-App kann die Gänge lesen, der Di2-Akkustand funktioniert weiterhin. An Garmin gemeldet und bestätigt (CIQQA-4662); ein Firmware-Fix steht aus. Firmware 30.23 ist nicht betroffen.","comp.r1":"Gerät","comp.r3":"Verbindung","comp.r4":"Getestet mit","comp.r5":"Preis","comp.free":"Kostenlos",
       "cta.eyebrow":"Bereit, wenn du es bist","cta.h2":"Bring deine Di2 aufs Display.","cta.p":"Aus dem Connect IQ Store installieren, einem Datenfeld hinzufügen und losfahren.","cta.btn":"Suche „Di2 Field“ im Connect IQ Store",
       "foot.disc":"Unabhängige, inoffizielle App, weder mit Shimano Inc. noch mit Garmin Ltd. verbunden. Alle Produktnamen, Marken und Logos — darunter Shimano, Di2, Garmin und Edge — sind Marken oder eingetragene Marken ihrer jeweiligen Eigentümer und werden hier nur zur Identifikation und zur Angabe der Kompatibilität verwendet.","foot.made":"Erstellt von","foot.freenote":"© 2026 · Kostenlos",
-      "nav.data":"Daten","rec.eyebrow":"Aufzeichnung","rec.h2":"Jede Schaltung, in deine Fahrt geschrieben.","rec.sub":"Während der Fahrt schreibt Di2 Field den gesamten Antrieb in die FIT-Aktivität — Garmin Connect und jedes Analyse-Tool können sie danach als Diagramm darstellen. Die Feldnamen entsprechen der App, in deiner Sprache.","rec.graphs":"Sekundengenaue Diagramme · 6 Felder","rec.summary":"Zusammenfassung nach der Fahrt · 11 Werte",
-      "f.rearGear":"Gang hinten","f.frontGear":"Gang vorne","f.rearTeeth":"Zähne hinten","f.frontTeeth":"Zähne vorne","f.ratio":"Übersetzung","f.battery":"Di2 Akku","f.maxRear":"Max. Gang hinten","f.maxRatio":"Max. Übersetzung","f.minBat":"Di2 Akku min","f.avgRatio":"Ø Übersetzung","f.frontShifts":"Schaltungen vorne","f.rearShifts":"Schaltungen hinten","f.mostCombo":"Häufigste Kombi","f.comboTime":"Zeit häufigste Kombi","f.top1":"Häufigstes Ritzel #1","f.top2":"Häufigstes Ritzel #2","f.top3":"Häufigstes Ritzel #3",
+      "nav.data":"Daten","rec.eyebrow":"Aufzeichnung","rec.h2":"Jede Schaltung, in deine Fahrt geschrieben.","rec.sub":"Während der Fahrt schreibt Di2 Field den gesamten Antrieb in die FIT-Aktivität — Garmin Connect und jedes Analyse-Tool können sie danach als Diagramm darstellen. Die Feldnamen entsprechen der App, in deiner Sprache.","rec.graphs":"Sekundengenaue Diagramme · 6 Felder","rec.summary":"Zusammenfassung nach der Fahrt · 5 Werte",
+      "f.rearGear":"Gang hinten","f.frontGear":"Gang vorne","f.rearTeeth":"Zähne hinten","f.frontTeeth":"Zähne vorne","f.ratio":"Übersetzung","f.battery":"Di2 Akku","f.maxRear":"Max. Gang hinten","f.maxRatio":"Max. Übersetzung","f.minBat":"Di2 Akku min","f.frontShifts":"Schaltungen vorne","f.rearShifts":"Schaltungen hinten",
       "seo.title":"Di2 Field — Shimano-Di2-Gang & Di2-Akku auf dem Garmin Edge Explore 2","seo.desc":"Kostenloses, inoffizielles Connect-IQ-Datenfeld: Shimano-Di2-Gang, Live-Kassettengrafik und Di2-Akku auf dem Garmin Edge Explore 2 per Bluetooth.","seo.locale":"de_DE"
     },
     ar:{
@@ -735,7 +751,7 @@
       "feat.c2t":"بطارية Di2","feat.c2d":"شحن الوحدة اللاسلكية كأيقونة ملوّنة أو نسبة مئوية أو الاثنين — برتقالي تحت 40٪ وأحمر تحت 15٪.",
       "feat.c3t":"إعادة اتصال ذكية","feat.c3d":"يحتفظ بارتباط البلوتوث بين الجولات ويعيد الاتصال تلقائيًا بمجرد استيقاظ Di2. لا حاجة لإعادة الإقران بعد توقف قصير.",
       "feat.c4t":"نظام نقل قابل للضبط","feat.c4d":"اضبط التروس الأمامية (1–3) والكاسيت، وأدخل أسنان كل ترس — نسب دقيقة وملف كاسيت حقيقي.",
-      "feat.c5t":"يُسجَّل في جولتك","feat.c5d":"التروس والأسنان والنسبة والبطارية كل ثانية في ملف FIT، مع ملخص: متوسط/أقصى نسبة، عدد التبديلات، التركيبة الأكثر استخدامًا، أبرز التروس.",
+      "feat.c5t":"يُسجَّل في جولتك","feat.c5d":"التروس والأسنان والنسبة والبطارية كل ثانية في ملف FIT، مع ملخص: أقصى نسبة، أعلى ترس، أدنى بطارية، وعدد التبديلات.",
       "feat.c6t":"نهار / ليل · 6 لغات","feat.c6d":"يتكيّف مع نسق ألوان Edge Explore 2. الإنجليزية والفرنسية والإسبانية والروسية والألمانية والعربية جاهزة.",
       "conn.eyebrow":"الاتصال","conn.h2":"نقطة ملوّنة تخبرك تمامًا بما يحدث.",
       "conn.d1":"بحث","conn.d1s":"مسح","conn.d2":"اتصال","conn.d2s":"ربط","conn.d3":"متصل","conn.d3s":"استقبال","conn.d4":"Di2 خاصتك","conn.d4s":"مثبّت","conn.d5":"إعادة محاولة","conn.d5s":"انقطع الاتصال",
@@ -743,11 +759,11 @@
       "conn.s2t":"أيقظ Di2","conn.s2d":"اضغط ذراع التبديل لإيقاظ النظام. يجد الحقل أقرب Di2 ويتصل تلقائيًا.",
       "conn.s3t":"انطلق","conn.s3d":"يبقى مرتبطًا بوحدتك ويعيد الاتصال تلقائيًا كل جولة. بدّل الدراجة بمفتاح «نسيان» واحد.",
       "comp.eyebrow":"التوافق","comp.h2":"ما تحتاجه.","comp.sub":"يتصل بوحدة Shimano اللاسلكية التي تبث عبر Bluetooth LE — راديو جهاز Edge Explore 2 الأصلي، بدون ANT+.",
-      "comp.r1":"الجهاز","comp.r3":"الاتصال","comp.r4":"اختُبر مع","comp.r5":"السعر","comp.free":"مجاني",
+      "comp.fw.t":"إصدار البرنامج 31.33 على Edge Explore 2: التروس غير متاحة.","comp.fw.d":" مع هذا الإصدار من Garmin يرفض الجهاز تسجيل خدمة البلوتوث التي يستخدمها Di2، لذا لا يمكن لأي تطبيق خارجي قراءة التروس — بينما تظل بطارية Di2 تعمل. أُبلغت Garmin وتم اعتماد البلاغ (CIQQA-4662) بانتظار إصلاح البرنامج. الإصدار 30.23 غير متأثر.","comp.r1":"الجهاز","comp.r3":"الاتصال","comp.r4":"اختُبر مع","comp.r5":"السعر","comp.free":"مجاني",
       "cta.eyebrow":"جاهز متى شئت","cta.h2":"ضع Di2 على الشاشة.","cta.p":"ثبّته من متجر Connect IQ، أضِفه إلى حقل بيانات، وانطلق.","cta.btn":"ابحث عن «Di2 Field» في متجر Connect IQ",
       "foot.disc":"تطبيق مستقل غير رسمي، غير تابع لشركة Shimano Inc. أو Garmin Ltd. جميع أسماء المنتجات والعلامات والشعارات — بما فيها Shimano و Di2 و Garmin و Edge — هي علامات تجارية أو علامات مسجّلة لأصحابها، وتُستخدم هنا لأغراض التعريف وبيان التوافق فقط.","foot.made":"من إعداد","foot.freenote":"© 2026 · مجاني",
-      "nav.data":"البيانات","rec.eyebrow":"تسجيل البيانات","rec.h2":"كل تبديلة تُكتب في رحلتك.","rec.sub":"أثناء القيادة يسجّل Di2 Field كامل نظام النقل في نشاط FIT — ويمكن لـ Garmin Connect وأي أداة تحليل رسمها بيانيًا لاحقًا. أسماء الحقول مطابقة للتطبيق وبلغتك.","rec.graphs":"رسوم لكل ثانية · 6 حقول","rec.summary":"ملخص نهاية الرحلة · 11 قيمة",
-      "f.rearGear":"السرعة الخلفية","f.frontGear":"السرعة الأمامية","f.rearTeeth":"أسنان خلفية","f.frontTeeth":"أسنان أمامية","f.ratio":"نسبة التروس","f.battery":"بطارية Di2","f.maxRear":"أقصى سرعة خلفية","f.maxRatio":"أقصى نسبة","f.minBat":"أدنى بطارية Di2","f.avgRatio":"متوسط النسبة","f.frontShifts":"تبديلات أمامية","f.rearShifts":"تبديلات خلفية","f.mostCombo":"أكثر تركيبة استخداماً","f.comboTime":"وقت أكثر تركيبة","f.top1":"الأكثر خلفي #1","f.top2":"الأكثر خلفي #2","f.top3":"الأكثر خلفي #3",
+      "nav.data":"البيانات","rec.eyebrow":"تسجيل البيانات","rec.h2":"كل تبديلة تُكتب في رحلتك.","rec.sub":"أثناء القيادة يسجّل Di2 Field كامل نظام النقل في نشاط FIT — ويمكن لـ Garmin Connect وأي أداة تحليل رسمها بيانيًا لاحقًا. أسماء الحقول مطابقة للتطبيق وبلغتك.","rec.graphs":"رسوم لكل ثانية · 6 حقول","rec.summary":"ملخص نهاية الرحلة · 5 قيم",
+      "f.rearGear":"السرعة الخلفية","f.frontGear":"السرعة الأمامية","f.rearTeeth":"أسنان خلفية","f.frontTeeth":"أسنان أمامية","f.ratio":"نسبة التروس","f.battery":"بطارية Di2","f.maxRear":"أقصى سرعة خلفية","f.maxRatio":"أقصى نسبة","f.minBat":"أدنى بطارية Di2","f.frontShifts":"تبديلات أمامية","f.rearShifts":"تبديلات خلفية",
       "seo.title":"Di2 Field — تروس Shimano Di2 وبطارية Di2 على Garmin Edge Explore 2","seo.desc":"حقل بيانات Connect IQ مجاني غير رسمي: الترس الخلفي لـ Shimano Di2 ورسم حي للكاسيت وبطارية Di2 على Garmin Edge Explore 2 عبر البلوتوث.","seo.locale":"ar_AR"
     }
   };
