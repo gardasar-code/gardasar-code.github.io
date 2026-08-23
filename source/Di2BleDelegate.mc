@@ -36,20 +36,21 @@ class Di2BleDelegate extends Ble.BleDelegate {
     //   :label  — человекочитаемая метка (для diag-оверлея и краудсорса);
     //   :len    — длина пакета передач (байт);
     //   :rear   — индекс байта текущей ЗАДНЕЙ передачи;
-    //   :front  — индекс байта текущей ПЕРЕДНЕЙ передачи (-1 = не выявлен).
+    //   :front  — индекс байта текущей ПЕРЕДНЕЙ передачи (-1 = не выявлен);
+    //   :cogs   — индекс байта ЧИСЛА задних звёзд (-1 = не выявлен).
     //
     // ПОДТВЕРЖДЕНО на железе: только XT M8250 (len 17, rear=байт5; front не выявлен,
     // тест 1x). Дорожные/гравийные серии — ГИПОТЕЗА: один и тот же шлюз D-Fly (EW-WU)
     // вещает тот же канал, поэтому раскладка предположительно совпадает. Подтверждение —
     // по фото diag-оверлея от пользователей (имя + сырой пакет). См. doc/NOTES.md.
     private const PROFILES = [
-        { :prefix => "RDM8250", :label => "XT Di2 M8250",   :len => 17, :rear => 5, :front => -1 },
+        { :prefix => "RDM8250", :label => "XT Di2 M8250",   :len => 17, :rear => 5, :front => -1, :cogs => 6 },
         // ── ниже: гипотеза, требует подтверждения по фото оверлея ──
-        { :prefix => "RDM9250", :label => "XTR Di2 M9250",  :len => 17, :rear => 5, :front => -1 },
-        { :prefix => "RDR9250", :label => "DURA-ACE R9250", :len => 17, :rear => 5, :front => -1 },
-        { :prefix => "RDR8150", :label => "Ultegra R8150",  :len => 17, :rear => 5, :front => -1 },
-        { :prefix => "RDR7150", :label => "105 R7150",      :len => 17, :rear => 5, :front => -1 },
-        { :prefix => "RDRX825", :label => "GRX RX825",      :len => 17, :rear => 5, :front => -1 }
+        { :prefix => "RDM9250", :label => "XTR Di2 M9250",  :len => 17, :rear => 5, :front => -1, :cogs => 6 },
+        { :prefix => "RDR9250", :label => "DURA-ACE R9250", :len => 17, :rear => 5, :front => -1, :cogs => 6 },
+        { :prefix => "RDR8150", :label => "Ultegra R8150",  :len => 17, :rear => 5, :front => -1, :cogs => 6 },
+        { :prefix => "RDR7150", :label => "105 R7150",      :len => 17, :rear => 5, :front => -1, :cogs => 6 },
+        { :prefix => "RDRX825", :label => "GRX RX825",      :len => 17, :rear => 5, :front => -1, :cogs => 6 }
     ] as Lang.Array<Lang.Dictionary>;
 
     // Дефолтный профиль (XT M8250) — пока имя устройства неизвестно или не совпало
@@ -57,11 +58,20 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private const DEFAULT_PKT_LEN  = 17;
     private const DEFAULT_REAR_IDX = 5;
     private const DEFAULT_FRONT_IDX = -1;
+    private const DEFAULT_COGS_IDX  = 6;    // байт 6 = число задних звёзд (подтверждён дважды)
+
+    // Границы санитарной проверки распарсенных значений. Данные приходят по воздуху
+    // от чужого устройства: мусорный или чужой по формату пакет не должен попадать
+    // ни на экран, ни в FIT (раньше байт клался в состояние как есть, и на экране
+    // могло оказаться, например, "255/12").
+    private const MAX_REAR_COGS  = 31;      // предел ANT+/Di2 для задних звёзд
+    private const MAX_FRONT_RINGS = 3;      // 1x/2x/3x
 
     // Активная раскладка пакета (из выбранного профиля). Меняется в selectProfile().
     private var _pktLen as Lang.Number = DEFAULT_PKT_LEN;
     private var _rearIdx as Lang.Number = DEFAULT_REAR_IDX;
     private var _frontIdx as Lang.Number = DEFAULT_FRONT_IDX;
+    private var _cogsIdx as Lang.Number = DEFAULT_COGS_IDX;
 
     // ── Тайминги/лимиты ───────────────────────────────────────────────────────
     // Периодику гоним от onTick() (вызывается из View.compute() ~раз в секунду).
@@ -264,12 +274,14 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _pktLen   = DEFAULT_PKT_LEN;
         _rearIdx  = DEFAULT_REAR_IDX;
         _frontIdx = DEFAULT_FRONT_IDX;
+        _cogsIdx  = DEFAULT_COGS_IDX;
 
         var p = matchProfile(name);
         if (p != null) {
             _pktLen   = p[:len] as Lang.Number;
             _rearIdx  = p[:rear] as Lang.Number;
             _frontIdx = p[:front] as Lang.Number;
+            _cogsIdx  = (p[:cogs] != null) ? (p[:cogs] as Lang.Number) : DEFAULT_COGS_IDX;
             _state.dbgModel = p[:label] as Lang.String;
         } else {
             // Имя есть, но не распознано — метим "?" (по фото оверлея добавим профиль).
@@ -703,7 +715,12 @@ class Di2BleDelegate extends Ble.BleDelegate {
         _batteryReadInFlight = false;
         if (characteristic.getUuid().equals(_battCharUuid)) {
             if (value != null && value.size() > 0) {
-                _state.battery = value[0].toNumber();
+                // Стандартный Battery Level — процент 0..100. Значение вне диапазона
+                // означает чужой формат: показываем "--" вместо "255%".
+                var pct = value[0].toNumber();
+                if (pct >= 0 && pct <= 100) {
+                    _state.battery = pct;
+                }
             }
         }
     }
@@ -711,19 +728,49 @@ class Di2BleDelegate extends Ble.BleDelegate {
     // ── Парсинг ───────────────────────────────────────────────────────────────
 
     private function parseGearPacket(value as Lang.ByteArray) as Void {
-        if (value.size() == _pktLen) {
-            if (_rearIdx >= 0 && _rearIdx < value.size()) {
-                _state.rear = value[_rearIdx].toNumber();
-            }
-            // Передняя передача: только если профиль выявил её байт (_frontIdx>=0).
-            // Иначе front остаётся из настроек (1x → 1; 2x/3x → "-/N", см. Di2FieldApp).
-            if (_frontIdx >= 0 && _frontIdx < value.size()) {
-                _state.front = value[_frontIdx].toNumber();
-            }
-            // frontTotal/rearTotal (число звёзд) задаются настройками (см. Di2FieldApp).
-            // Сырой дамп пакета для diag-overlay снимается в onCharacteristicChanged
-            // (любой длины), здесь не дублируем.
+        if (value.size() != _pktLen) {
+            return;
         }
+
+        // Число задних звёзд из пакета (байт 6 на подтверждённых сериях). Железо
+        // авторитетнее настроек: пользователь может ошибиться в конфигурации, а
+        // переключатель знает свою кассету. При мусорном значении остаётся настройка.
+        if (_cogsIdx >= 0 && _cogsIdx < value.size()) {
+            var cogs = value[_cogsIdx].toNumber();
+            if (cogs >= 1 && cogs <= MAX_REAR_COGS) {
+                _state.rearTotal = cogs;
+            }
+        }
+
+        // Задняя передача. ВАЛИДАЦИЯ ОБЯЗАТЕЛЬНА: значение приходит по воздуху и на
+        // чужой серии Di2 (или в служебном пакете нашей длины) в этом байте может
+        // оказаться что угодно. Вне диапазона — пакет игнорируем целиком, показываем
+        // прежнее значение, а не 255-ю передачу.
+        if (_rearIdx >= 0 && _rearIdx < value.size()) {
+            var rear = value[_rearIdx].toNumber();
+            if (!validGear(rear, _state.rearTotal, MAX_REAR_COGS)) {
+                return;
+            }
+            _state.rear = rear;
+        }
+
+        // Передняя передача: только если профиль выявил её байт (_frontIdx>=0).
+        // Иначе front остаётся из настроек (1x → 1; 2x/3x → "-/N", см. Di2FieldApp).
+        if (_frontIdx >= 0 && _frontIdx < value.size()) {
+            var front = value[_frontIdx].toNumber();
+            if (validGear(front, _state.frontTotal, MAX_FRONT_RINGS)) {
+                _state.front = front;
+            }
+        }
+    }
+
+    // Индекс передачи правдоподобен: 1..total (если число звёзд известно) либо
+    // 1..hardMax (пока неизвестно — например до первого валидного байта числа звёзд).
+    private function validGear(v as Lang.Number, total as Lang.Number, hardMax as Lang.Number) as Lang.Boolean {
+        if (v < 1) {
+            return false;
+        }
+        return (total > 0) ? (v <= total) : (v <= hardMax);
     }
 
     // Hex-строка байтов: "00 11 22 ...".
