@@ -63,83 +63,50 @@ git checkout main
 
 **Description (EN):**
 ```
-Di2 Field shows your current Di2 (tested with RD-M8250-SGS 12-speed) rear gear
-(e.g. 5•12) and the wireless unit battery level right on your Edge data screen.
+Di2 Field puts your current Di2 rear gear (e.g. 5•12) and the wireless unit
+battery level on your Edge data screen. It connects over Bluetooth Low Energy —
+no ANT+ needed.
 
-It connects over Bluetooth Low Energy — no ANT+ needed.
+There is no button to press: add the field to a data screen, tap any shifter to
+wake the Di2, and the field finds it and connects on its own. It then sticks to
+that unit and reconnects automatically on every ride. A colour-coded dot shows
+the state: blue searching, yellow connecting, green connected, dark blue locked
+onto your Di2, orange retrying.
 
-GETTING CONNECTED
-There is no button to press — it's a data field. Connection is automatic:
-1. Add the Di2 field to a data screen on your Edge.
-2. Wake your Di2 by tapping any shifter (it sleeps when idle and stays
-   invisible on the air until then).
-3. The field finds the nearest Di2 and connects on its own — the status dot
-   turns green and the gear numbers appear.
-4. It then sticks to that Di2 (the dot turns dark blue) and reconnects to the
-   same one automatically on every future ride.
-
-If the link drops, the field keeps retrying on its own and reconnects as soon
-as the Di2 is awake again — for a short break there's nothing to do. If the Di2
-has been asleep for a long time it stops broadcasting entirely (a Shimano
-power-saving behaviour); when that happens the hint changes to "Hold Di2 button"
-— put the unit back into pairing mode once and the field reconnects.
-
-The status dot next to "Di2" is color-coded:
-- Blue — searching for a Di2 (pulsing while it scans)
-- Yellow — connecting
-- Green — connected and receiving data
-- Dark blue — connected to your paired Di2 (the one it locked onto)
-- Orange — link lost, retrying
+WHAT IT SHOWS
+- Rear gear as large numbers, a cassette graphic, or both
+- Front chainring indicator for 2x/3x
+- Di2 battery as a percentage, a colour-coded icon, or both
+- Day / night theme, six languages (EN, FR, ES, RU, DE, AR)
 
 SETTING UP YOUR DRIVETRAIN
-For correct gears and ratios, tell the field your gearing — two ways:
-- Preset (easiest): pick a built-in Shimano preset for the chainrings and the
-  cassette (e.g. 50-34, 11-34, 10-51). It sets your gearing in one tap.
-- Manual: set the preset to Custom, then choose the chainring count (1–3) and
-  cassette size and enter the teeth of each ring and cog (comma-separated, one
-  value per gear, from smallest to largest).
-While a preset is selected it takes over the chainring count and teeth — the
-manual fields keep their own values and are used only when the preset is Custom.
-Note: the settings screen won't copy a preset's numbers into those fields, and
-the prompt under each setting may not show on iOS — that's a Garmin Connect
-display limitation, not a problem with your setup.
+Pick a built-in Shimano preset for your chainrings and cassette (e.g. 50-34,
+11-34, 10-51), or choose Custom and enter the teeth by hand.
 
-SWITCHING OR FORGETTING A DI2
-Riding a different bike, or want to pair with another unit?
-1. Open the field settings in Garmin Connect Mobile.
-2. Turn on "Forget paired Di2" and save.
-3. The field drops the current unit and locks onto the nearest awake Di2 on
-   the next scan. The toggle switches itself back off — it's a one-shot button.
-To pick a specific Di2 when two are nearby: bring your Edge close to the right
-bike (or keep the other Di2 asleep), then use Forget — it grabs the nearest
-one that's awake.
+RECORDS TO YOUR ACTIVITY
+Per-second gear, teeth, ratio and battery, plus a ride summary: highest rear
+gear, maximum ratio, lowest battery and shift counts. Visible in the Connect IQ
+section of the activity.
 
-FEATURES
-- Large, clear rear gear with cassette size (current • total)
-- Front chainring indicator
-- Rear gear as numbers, a cassette graphic, or both
-- Built-in Shimano presets for popular chainrings and cassettes
-  (10/11/12-speed), or enter your own teeth for any drivetrain
-- Battery percentage or a color-coded battery icon
-- Color-coded connection status dot with auto-reconnect
-- Automatic Di2 model detection
-- On-screen diagnostics overlay to help troubleshoot connection
-- Day / night color theme
-- Six languages: English, French, Spanish, Russian, German, Arabic
+SWITCHING BIKES
+Turn on "Forget paired Di2" in the field settings — the field drops the current
+unit and locks onto the nearest awake Di2 on the next scan.
 
-RECORDS TO YOUR ACTIVITY (Connect IQ data in Garmin Connect)
-- Per-second: rear & front gear, rear & front teeth, gear ratio, battery
-- Ride summary: average & maximum gear ratio, front & rear shift counts,
-  most-used gear combo with time share, top-3 most-used rear sprockets,
-  highest rear gear used, lowest battery
-- Viewable in the Connect IQ section of the activity and any FIT-aware service
+TESTED SETUP
+Built and tested on my own bike: Shimano XT Di2 RD-M8250-SGS (12-speed) with a
+Garmin Edge Explore 2. Other Di2 series that broadcast the same Bluetooth data
+should work too, but I cannot verify them myself.
 
-REQUIREMENTS
-- Shimano Di2 advertising over BLE.
+IF SOMETHING DOESN'T WORK
+Turn on "Diagnostics overlay" in the field settings. The field then shows a
+technical screen instead of the normal layout — connection state, the detected
+model and the raw data from your Di2. Send me a photo of that screen and I can
+tell what is happening on your setup, and often add support for it.
 
-Confirmed on Shimano XT Di2 RD-M8250-SGS (12-speed) with Garmin Edge Explore 2.
-Other Di2 series that broadcast the same BLE data may also work — the field
-detects the model, and the diagnostics overlay helps add support for new ones.
+Known issue: on Edge Explore 2 firmware 31.33 the device itself refuses to
+register the Bluetooth service the Di2 uses, so no third-party app can read
+gears (the battery still works). Reported to Garmin and acknowledged
+(CIQQA-4662), waiting for a firmware fix. Firmware 30.23 is unaffected.
 
 Independent, unofficial app — not affiliated with or endorsed by Shimano.
 ```
@@ -203,256 +170,257 @@ Connects to your Shimano Di2 to read gear position and battery level.
 
 ### 🇫🇷 Français — Title: `Champ Di2`
 ```
-Champ Di2 affiche votre vitesse arrière Di2 actuelle (testé avec RD-M8250-SGS
-12 vitesses, p. ex. 5•12) et le niveau de batterie du module sans fil
-directement sur votre écran de données Edge.
+Champ Di2 affiche votre vitesse arrière Di2 actuelle (p. ex. 5•12) et le niveau
+de batterie du module sans fil sur votre écran de données Edge. La liaison se
+fait en Bluetooth Low Energy — pas besoin d'ANT+.
 
-Il se connecte en Bluetooth Low Energy — pas besoin d'ANT+.
+Aucun bouton à presser : ajoutez le champ à un écran de données, réveillez le
+Di2 en actionnant une manette, et le champ le trouve et s'y connecte tout seul.
+Il reste ensuite attaché à ce module et se reconnecte à chaque sortie. Un point
+coloré indique l'état : bleu recherche, jaune connexion, vert connecté, bleu
+foncé attaché à votre Di2, orange nouvelle tentative.
+
+CE QUE VOUS VOYEZ
+- Vitesse arrière en grands chiffres, en graphique de cassette, ou les deux
+- Indicateur de plateau avant pour 2x/3x
+- Batterie Di2 en pourcentage, en icône colorée, ou les deux
+- Thème jour / nuit, six langues (EN, FR, ES, RU, DE, AR)
 
 CONFIGURER VOTRE TRANSMISSION
-Pour des vitesses et rapports corrects, indiquez votre transmission — deux façons :
-- Préréglage (le plus simple) : choisissez un préréglage Shimano intégré pour les
-  plateaux et la cassette (p. ex. 50-34, 11-34, 10-51). Il règle tout en un geste.
-- Manuel : réglez le préréglage sur Personnalisé, puis choisissez le nombre de
-  plateaux (1–3) et la taille de cassette et saisissez les dents de chaque plateau
-  et pignon (séparées par des virgules, une par vitesse, de la plus petite à la
-  plus grande).
-Tant qu'un préréglage est sélectionné, il prend le dessus sur le nombre de plateaux
-et les dents — les champs manuels gardent leurs valeurs et ne servent que si le
-préréglage est sur Personnalisé. Remarque : l'écran de réglages ne recopie pas les
-valeurs d'un préréglage dans ces champs, et l'aide sous chaque réglage peut ne pas
-s'afficher sur iOS — c'est une limite d'affichage de Garmin Connect, pas un problème
-de votre configuration.
+Choisissez un préréglage Shimano intégré pour les plateaux et la cassette
+(p. ex. 50-34, 11-34, 10-51), ou sélectionnez Personnalisé et saisissez les
+dents à la main.
 
-FONCTIONNALITÉS
-- Vitesse arrière grande et lisible avec la taille de cassette (actuelle • totale)
-- Indicateur de plateau avant
-- Vitesse arrière en chiffres, en graphique de cassette, ou les deux
-- Préréglages Shimano intégrés pour plateaux et cassettes courants
-  (10/11/12 vitesses), ou saisissez vos propres dents pour toute transmission
-- Pourcentage de batterie ou icône de batterie colorée
-- Indicateur de connexion avec reconnexion automatique
-- Détection automatique du modèle Di2
-- Superposition de diagnostic à l'écran pour résoudre les problèmes de connexion
-- Thème de couleur jour / nuit
-- Six langues : anglais, français, espagnol, russe, allemand, arabe
+ENREGISTREMENT DANS L'ACTIVITÉ
+Vitesses, dents, rapport et batterie chaque seconde, plus un résumé : plus
+grande vitesse arrière, rapport maximal, batterie minimale et nombre de
+changements. Visible dans la section Connect IQ de l'activité.
 
-ENREGISTREMENT DANS L'ACTIVITÉ (données Connect IQ dans Garmin Connect)
-- Par seconde : vitesse avant et arrière, dents avant et arrière, rapport, batterie
-- Résumé de sortie : rapport moyen et maximal, nombre de changements avant et arrière,
-  combinaison la plus utilisée avec part de temps, top-3 des pignons arrière les plus
-  utilisés, plus grande vitesse arrière, batterie minimale
-- Visible dans la section Connect IQ de l'activité et tout service compatible FIT
+CHANGER DE VÉLO
+Activez « Oublier le Di2 associé » dans les réglages du champ : il abandonne le
+module actuel et s'attache au Di2 éveillé le plus proche au scan suivant.
 
-PRÉREQUIS
-- Shimano Di2 diffusant en BLE.
+CONFIGURATION TESTÉE
+Développé et testé sur mon propre vélo : Shimano XT Di2 RD-M8250-SGS
+(12 vitesses) avec un Garmin Edge Explore 2. D'autres séries Di2 diffusant les
+mêmes données Bluetooth devraient fonctionner, mais je ne peux pas les vérifier
+moi-même.
 
-Confirmé avec Shimano XT Di2 RD-M8250-SGS (12 vitesses) sur Garmin Edge Explore 2.
-D'autres séries Di2 diffusant les mêmes données BLE peuvent aussi fonctionner — le
-champ détecte le modèle, et la superposition de diagnostic aide à prendre en charge
-de nouveaux modèles.
+SI QUELQUE CHOSE NE FONCTIONNE PAS
+Activez « Superposition de diagnostic » dans les réglages du champ. Le champ
+affiche alors un écran technique à la place de l'affichage normal : état de la
+liaison, modèle détecté et données brutes de votre Di2. Envoyez-moi une photo
+de cet écran et je pourrai voir ce qui se passe sur votre installation, et
+souvent ajouter la prise en charge.
 
-Application indépendante et non officielle — sans lien ni approbation de Shimano.
+Problème connu : sur le firmware 31.33 de l'Edge Explore 2, l'appareil refuse
+d'enregistrer le service Bluetooth utilisé par le Di2 — aucune application
+tierce ne peut lire les vitesses (la batterie reste affichée). Signalé à Garmin
+et pris en compte (CIQQA-4662), correctif firmware en attente. Le firmware
+30.23 n'est pas concerné.
+
+Application indépendante et non officielle — non affiliée à Shimano.
 ```
 
 ### 🇪🇸 Español — Title: `Campo Di2`
 ```
-Campo Di2 muestra tu marcha trasera Di2 actual (probado con RD-M8250-SGS
-12 velocidades, p. ej. 5•12) y el nivel de batería del módulo inalámbrico
-directamente en tu pantalla de datos Edge.
+Campo Di2 muestra tu marcha trasera Di2 actual (p. ej. 5•12) y el nivel de
+batería del módulo inalámbrico en la pantalla de datos de tu Edge. Se conecta
+por Bluetooth Low Energy — sin ANT+.
 
-Se conecta por Bluetooth Low Energy — sin necesidad de ANT+.
+No hay ningún botón que pulsar: añade el campo a una pantalla de datos,
+despierta el Di2 accionando cualquier maneta y el campo lo encuentra y se
+conecta solo. Después se queda con esa unidad y se reconecta en cada salida. Un
+punto de color indica el estado: azul buscando, amarillo conectando, verde
+conectado, azul oscuro fijado a tu Di2, naranja reintentando.
+
+QUÉ MUESTRA
+- Marcha trasera en números grandes, gráfico de cassette, o ambos
+- Indicador de plato delantero para 2x/3x
+- Batería Di2 en porcentaje, icono de color, o ambos
+- Tema día / noche, seis idiomas (EN, FR, ES, RU, DE, AR)
 
 CONFIGURAR TU TRANSMISIÓN
-Para marchas y relaciones correctas, indica tu transmisión — dos formas:
-- Preajuste (lo más fácil): elige un preajuste Shimano integrado para los platos
-  y el cassette (p. ej. 50-34, 11-34, 10-51). Lo configura todo con un toque.
-- Manual: pon el preajuste en Personalizado, luego elige el número de platos (1–3)
-  y el tamaño del cassette e introduce los dientes de cada plato y piñón (separados
-  por comas, uno por marcha, de menor a mayor).
-Mientras hay un preajuste seleccionado, prevalece sobre el número de platos y los
-dientes — los campos manuales conservan sus valores y solo se usan si el preajuste
-está en Personalizado. Nota: la pantalla de ajustes no copia los valores de un
-preajuste en esos campos, y la ayuda bajo cada ajuste puede no mostrarse en iOS —
-es una limitación de Garmin Connect, no un problema de tu configuración.
+Elige un preajuste Shimano integrado para platos y cassette (p. ej. 50-34,
+11-34, 10-51), o selecciona Personalizado e introduce los dientes a mano.
 
-CARACTERÍSTICAS
-- Marcha trasera grande y clara con el tamaño del cassette (actual • total)
-- Indicador de plato delantero
-- Marcha trasera en números, en gráfico de cassette, o ambos
-- Preajustes Shimano integrados para platos y cassettes comunes
-  (10/11/12 velocidades), o introduce tus propios dientes para cualquier transmisión
-- Porcentaje de batería o icono de batería con color
-- Indicador de conexión con reconexión automática
-- Detección automática del modelo Di2
-- Superposición de diagnóstico en pantalla para resolver problemas de conexión
-- Tema de color día / noche
-- Seis idiomas: inglés, francés, español, ruso, alemán, árabe
+REGISTRO EN LA ACTIVIDAD
+Marchas, dientes, relación y batería cada segundo, más un resumen: marcha
+trasera más alta, relación máxima, batería mínima y número de cambios. Visible
+en la sección Connect IQ de la actividad.
 
-REGISTRO EN LA ACTIVIDAD (datos Connect IQ en Garmin Connect)
-- Por segundo: marcha delantera y trasera, dientes delanteros y traseros, relación, batería
-- Resumen de la ruta: relación media y máxima, número de cambios delanteros y traseros,
-  combinación más usada con porcentaje de tiempo, top-3 de piñones traseros más usados,
-  marcha trasera más alta, batería mínima
-- Visible en la sección Connect IQ de la actividad y cualquier servicio compatible con FIT
+CAMBIAR DE BICICLETA
+Activa «Olvidar Di2 emparejado» en los ajustes del campo: suelta la unidad
+actual y se fija al Di2 despierto más cercano en el siguiente escaneo.
 
-REQUISITOS
-- Shimano Di2 emitiendo por BLE.
+CONFIGURACIÓN PROBADA
+Desarrollado y probado en mi propia bici: Shimano XT Di2 RD-M8250-SGS
+(12 velocidades) con un Garmin Edge Explore 2. Otras series Di2 que emitan los
+mismos datos Bluetooth deberían funcionar, pero no puedo comprobarlas yo mismo.
 
-Confirmado con Shimano XT Di2 RD-M8250-SGS (12 velocidades) en Garmin Edge Explore 2.
-Otras series Di2 que emitan los mismos datos BLE también pueden funcionar — el campo
-detecta el modelo, y la superposición de diagnóstico ayuda a añadir compatibilidad
-con nuevos modelos.
+SI ALGO NO FUNCIONA
+Activa «Superposición de diagnóstico» en los ajustes del campo. El campo
+mostrará una pantalla técnica en lugar del diseño normal: estado de la
+conexión, modelo detectado y datos en bruto de tu Di2. Envíame una foto de esa
+pantalla y podré ver qué ocurre en tu equipo, y a menudo añadir compatibilidad.
 
-App independiente y no oficial — sin afiliación ni respaldo de Shimano.
+Problema conocido: con el firmware 31.33 del Edge Explore 2 el propio
+dispositivo se niega a registrar el servicio Bluetooth que usa el Di2, así que
+ninguna app de terceros puede leer las marchas (la batería sigue funcionando).
+Reportado a Garmin y aceptado (CIQQA-4662), a la espera de la corrección del
+firmware. El firmware 30.23 no está afectado.
+
+Aplicación independiente y no oficial — no afiliada a Shimano.
 ```
 
 ### 🇷🇺 Русский — Title: `Поле Di2`
 ```
-Поле Di2 показывает текущую заднюю передачу Di2 (протестировано на RD-M8250-SGS
-12 скоростей, например 5•12) и заряд беспроводного модуля прямо на экране данных
-вашего Edge.
+Поле Di2 показывает текущую заднюю передачу Di2 (например, 5•12) и заряд
+беспроводного модуля прямо на экране данных Edge. Связь по Bluetooth Low
+Energy — ANT+ не нужен.
 
-Подключается по Bluetooth Low Energy — ANT+ не требуется.
+Нажимать нечего: добавьте поле на экран данных, разбудите Di2 щелчком любой
+манетки — поле само его найдёт и подключится. Дальше оно «прилипает» к этому
+модулю и переподключается к нему каждую поездку. Цветная точка показывает
+состояние: синяя — поиск, жёлтая — подключение, зелёная — связь есть,
+тёмно-синяя — привязка к вашему Di2, оранжевая — переподключение.
+
+ЧТО ПОКАЗЫВАЕТ
+- Задняя передача крупными цифрами, графиком кассеты или и тем, и другим
+- Индикатор передней звезды для 2x/3x
+- Заряд Di2 процентом, цветной иконкой или и тем, и другим
+- Дневная / ночная тема, шесть языков (EN, FR, ES, RU, DE, AR)
 
 НАСТРОЙКА ТРАНСМИССИИ
-Чтобы передачи и отношения были верными, укажите трансмиссию — два способа:
-- Пресет (проще всего): выберите встроенный пресет Shimano для звёзд и кассеты
-  (например, 50-34, 11-34, 10-51). Он задаёт всё в одно касание.
-- Вручную: поставьте пресет «Свой», затем выберите число передних звёзд (1–3)
-  и размер кассеты и введите зубья каждой звезды (через запятую, по одному
-  значению на передачу, от меньшей к большей).
-Пока выбран пресет, он имеет приоритет над числом звёзд и зубьями — ручные поля
-сохраняют свои значения и используются только при пресете «Свой». Примечание:
-экран настроек не копирует значения пресета в эти поля, а подсказки под каждым
-пунктом могут не отображаться на iOS — это ограничение Garmin Connect, а не
-проблема вашей настройки.
+Выберите готовый пресет Shimano для звёзд и кассеты (например, 50-34, 11-34,
+10-51) либо режим Custom и введите зубья вручную.
 
-ВОЗМОЖНОСТИ
-- Крупная, читаемая задняя передача с размером кассеты (текущая • всего)
-- Индикатор передней звезды
-- Задняя передача цифрами, графиком кассеты или вместе
-- Встроенные пресеты Shimano для популярных звёзд и кассет
-  (10/11/12 скоростей) или ввод своих зубьев для любой трансмиссии
-- Процент заряда или цветная иконка батареи
-- Индикатор соединения с автопереподключением
-- Автоматическое распознавание модели Di2
-- Экранный диагностический оверлей для разбора проблем подключения
-- Дневная / ночная цветовая тема
-- Шесть языков: английский, французский, испанский, русский, немецкий, арабский
+ЗАПИСЬ В АКТИВНОСТЬ
+Передачи, зубья, передаточное и заряд каждую секунду, плюс сводка: наибольшая
+задняя передача, максимальное передаточное, минимальный заряд и число
+переключений. Видно в разделе Connect IQ в активности.
 
-ЗАПИСЬ В АКТИВНОСТЬ (данные Connect IQ в Garmin Connect)
-- Посекундно: передняя и задняя передача, зубья спереди и сзади, передаточное, заряд
-- Сводка за заезд: среднее и максимальное передаточное, число переключений спереди и сзади,
-  самая используемая комбинация с долей времени, топ-3 самых используемых задних звёзд,
-  наибольшая задняя передача, минимальный заряд
-- Видно в разделе Connect IQ активности и в любом сервисе, читающем FIT
+СМЕНА ВЕЛОСИПЕДА
+Включите «Забыть привязанный Di2» в настройках поля — оно отпустит текущий
+модуль и привяжется к ближайшему проснувшемуся Di2 при следующем скане.
 
-ТРЕБОВАНИЯ
-- Shimano Di2, вещающий по BLE.
+НА ЧЁМ ПРОВЕРЕНО
+Сделано и протестировано на моём собственном велосипеде: Shimano XT Di2
+RD-M8250-SGS (12 скоростей) и Garmin Edge Explore 2. Другие серии Di2, которые
+вещают те же данные по Bluetooth, скорее всего тоже работают, но проверить их
+сам я не могу.
 
-Подтверждено на Shimano XT Di2 RD-M8250-SGS (12 скоростей) с Garmin Edge Explore 2.
-Другие серии Di2, вещающие те же BLE-данные, тоже могут работать — поле распознаёт
-модель, а диагностический оверлей помогает добавить поддержку новых.
+ЕСЛИ ЧТО-ТО НЕ РАБОТАЕТ
+Включите «Диагностический режим» в настройках поля. Вместо обычного макета
+поле покажет технический экран: состояние связи, распознанную модель и сырые
+данные от вашего Di2. Пришлите мне фото этого экрана — по нему видно, что
+происходит именно у вас, и часто это позволяет добавить поддержку.
 
-Независимое неофициальное приложение — не связано с Shimano и не одобрено ею.
+Известная проблема: на прошивке Edge Explore 2 31.33 сам навигатор отказывается
+регистрировать Bluetooth-сервис, который использует Di2, поэтому ни одно
+стороннее приложение не может читать передачи (заряд при этом работает).
+Передано в Garmin и принято (CIQQA-4662), ждём исправления прошивки. Прошивки
+30.23 это не касается.
+
+Независимое, неофициальное приложение — не связано с Shimano.
 ```
 
 ### 🇩🇪 Deutsch — Title: `Di2 Feld`
 ```
-Di2 Feld zeigt deinen aktuellen Di2 Gang hinten (getestet mit RD-M8250-SGS
-12-fach, z. B. 5•12) und den Akkustand des kabellosen Moduls direkt auf deinem
-Edge-Datenbildschirm.
+Di2 Feld zeigt deinen aktuellen Di2-Gang hinten (z. B. 5•12) und den Akkustand
+der Funkeinheit direkt auf dem Datenbildschirm deines Edge. Die Verbindung läuft
+über Bluetooth Low Energy — kein ANT+ nötig.
 
-Es verbindet sich per Bluetooth Low Energy — kein ANT+ nötig.
+Es gibt keinen Knopf: Feld auf einen Datenbildschirm legen, Di2 mit einem
+Schalthebel wecken — das Feld findet ihn und verbindet sich von selbst. Danach
+bleibt es bei dieser Einheit und verbindet sich bei jeder Fahrt automatisch neu.
+Ein farbiger Punkt zeigt den Zustand: blau sucht, gelb verbindet, grün
+verbunden, dunkelblau an deinen Di2 gebunden, orange erneuter Versuch.
+
+WAS ES ANZEIGT
+- Gang hinten als große Zahlen, als Kassettengrafik oder beides
+- Kettenblatt-Anzeige für 2x/3x
+- Di2-Akku als Prozentwert, als farbiges Symbol oder beides
+- Tag- / Nacht-Design, sechs Sprachen (EN, FR, ES, RU, DE, AR)
 
 ANTRIEB EINRICHTEN
-Für korrekte Gänge und Übersetzungen gib deinen Antrieb an — zwei Wege:
-- Vorlage (am einfachsten): wähle eine integrierte Shimano-Vorlage für Kettenblätter
-  und Kassette (z. B. 50-34, 11-34, 10-51). Sie stellt alles mit einem Tippen ein.
-- Manuell: stelle die Vorlage auf „Benutzerdefiniert“, dann wähle die Anzahl der
-  Kettenblätter (1–3) und die Kassettengröße und gib die Zähne jedes Blatts und
-  Ritzels ein (durch Komma getrennt, ein Wert pro Gang, vom kleinsten zum größten).
-Solange eine Vorlage gewählt ist, hat sie Vorrang vor Kettenblattanzahl und Zähnen —
-die manuellen Felder behalten ihre Werte und gelten nur bei „Benutzerdefiniert“.
-Hinweis: der Einstellungsbildschirm kopiert die Werte einer Vorlage nicht in diese
-Felder, und der Hinweistext unter jeder Einstellung wird auf iOS evtl. nicht
-angezeigt — eine Anzeigegrenze von Garmin Connect, kein Problem deiner Einrichtung.
+Wähle eine eingebaute Shimano-Voreinstellung für Kettenblätter und Kassette
+(z. B. 50-34, 11-34, 10-51) oder Custom und trage die Zähnezahlen selbst ein.
 
-FUNKTIONEN
-- Großer, klarer Gang hinten mit Kassettengröße (aktuell • gesamt)
-- Anzeige des vorderen Kettenblatts
-- Gang hinten als Zahlen, als Kassettengrafik oder beides
-- Integrierte Shimano-Vorlagen für gängige Kettenblätter und Kassetten
-  (10/11/12-fach), oder gib eigene Zähne für jeden Antrieb ein
-- Akkustand in Prozent oder farbcodiertes Akkusymbol
-- Verbindungsanzeige mit automatischer Wiederverbindung
-- Automatische Erkennung des Di2 Modells
-- Diagnose-Overlay auf dem Bildschirm zur Behebung von Verbindungsproblemen
-- Tag-/Nacht-Farbschema
-- Sechs Sprachen: Englisch, Französisch, Spanisch, Russisch, Deutsch, Arabisch
+AUFZEICHNUNG IN DIE AKTIVITÄT
+Gänge, Zähne, Übersetzung und Akku im Sekundentakt, dazu eine Zusammenfassung:
+größter Gang hinten, maximale Übersetzung, niedrigster Akkustand und
+Schaltvorgänge. Sichtbar im Connect-IQ-Bereich der Aktivität.
 
-AUFZEICHNUNG IN DER AKTIVITÄT (Connect IQ Daten in Garmin Connect)
-- Pro Sekunde: Gang vorne und hinten, Zähne vorne und hinten, Übersetzung, Akku
-- Fahrt-Zusammenfassung: durchschnittliche und maximale Übersetzung, Anzahl der
-  Schaltvorgänge vorne und hinten, häufigste Kombination mit Zeitanteil, Top-3 der
-  meistgenutzten hinteren Ritzel, höchster Gang hinten, niedrigster Akku
-- Sichtbar im Connect IQ Bereich der Aktivität und in jedem FIT-fähigen Dienst
+RAD WECHSELN
+Aktiviere „Gekoppelten Di2 vergessen" in den Feldeinstellungen — das Feld gibt
+die aktuelle Einheit frei und bindet sich beim nächsten Scan an den nächsten
+wachen Di2.
 
-VORAUSSETZUNGEN
-- Shimano Di2, das über BLE sendet.
+GETESTETE KONFIGURATION
+Entwickelt und getestet an meinem eigenen Rad: Shimano XT Di2 RD-M8250-SGS
+(12-fach) mit einem Garmin Edge Explore 2. Andere Di2-Serien, die dieselben
+Bluetooth-Daten senden, sollten ebenfalls funktionieren — überprüfen kann ich
+sie selbst aber nicht.
 
-Bestätigt mit Shimano XT Di2 RD-M8250-SGS (12-fach) auf Garmin Edge Explore 2.
-Andere Di2 Serien, die dieselben BLE-Daten senden, können ebenfalls funktionieren —
-das Feld erkennt das Modell, und das Diagnose-Overlay hilft, neue Modelle zu
-unterstützen.
+WENN ETWAS NICHT FUNKTIONIERT
+Aktiviere „Diagnose-Overlay" in den Feldeinstellungen. Das Feld zeigt dann statt
+der normalen Ansicht einen technischen Bildschirm: Verbindungszustand, erkanntes
+Modell und Rohdaten deines Di2. Schick mir ein Foto davon — daran sehe ich, was
+bei dir passiert, und kann oft Unterstützung ergänzen.
 
-Unabhängige, inoffizielle App — nicht mit Shimano verbunden oder unterstützt.
+Bekanntes Problem: Mit Edge-Explore-2-Firmware 31.33 weigert sich das Gerät
+selbst, den vom Di2 genutzten Bluetooth-Dienst zu registrieren — keine
+Drittanbieter-App kann die Gänge lesen (der Akkustand funktioniert weiter). An
+Garmin gemeldet und bestätigt (CIQQA-4662), ein Firmware-Fix steht aus. Firmware
+30.23 ist nicht betroffen.
+
+Unabhängige, inoffizielle App — nicht mit Shimano verbunden.
 ```
 
 ### 🇸🇦 العربية — Title: `حقل Di2`
 ```
-يعرض حقل Di2 سرعتك الخلفية الحالية من Di2 (تم اختباره مع RD-M8250-SGS بـ 12 سرعة،
-مثل 5•12) ومستوى بطارية الوحدة اللاسلكية مباشرة على شاشة بيانات جهاز Edge.
+يعرض حقل Di2 الترس الخلفي الحالي لنظام Di2 (مثل 5•12) ومستوى بطارية الوحدة
+اللاسلكية مباشرة على شاشة بيانات جهاز Edge. الاتصال عبر Bluetooth Low Energy —
+دون الحاجة إلى ANT+.
 
-يتصل عبر Bluetooth Low Energy — دون الحاجة إلى ANT+.
+لا يوجد زر للضغط: أضف الحقل إلى شاشة بيانات، وأيقظ Di2 بتحريك أي ذراع تبديل،
+فيعثر عليه الحقل ويتصل تلقائيًا. بعدها يظل مرتبطًا بتلك الوحدة ويعيد الاتصال بها
+في كل رحلة. تشير النقطة الملونة إلى الحالة: أزرق بحث، أصفر اتصال، أخضر متصل،
+أزرق داكن مرتبط بجهاز Di2 الخاص بك، برتقالي إعادة محاولة.
 
-إعداد مجموعة النقل
-للحصول على سرعات ونسب صحيحة، حدّد مجموعة النقل — بطريقتين:
-- إعداد مسبق (الأسهل): اختر إعداداً مسبقاً من Shimano للنجوم الأمامية والكاسيت
-  (مثل 50-34، 11-34، 10-51). يضبط كل شيء بلمسة واحدة.
-- يدوي: اضبط الإعداد المسبق على مخصص، ثم اختر عدد النجوم الأمامية (1–3) وحجم
-  الكاسيت وأدخل أسنان كل نجمة وترس (مفصولة بفواصل، قيمة لكل سرعة، من الأصغر للأكبر).
-طالما أن إعداداً مسبقاً مختار، فإنه يتجاوز عدد النجوم والأسنان — تحتفظ الحقول اليدوية
-بقيمها وتُستخدم فقط عندما يكون الإعداد المسبق مخصصاً. ملاحظة: لا تنسخ شاشة الإعدادات
-قيم الإعداد المسبق إلى تلك الحقول، وقد لا يظهر النص الإرشادي أسفل كل إعداد على iOS —
-هذا قيد عرض في Garmin Connect، وليس مشكلة في إعدادك.
+ما الذي يعرضه
+- الترس الخلفي بأرقام كبيرة أو كرسم للكاسيت أو كليهما
+- مؤشر الترس الأمامي لأنظمة 2x/3x
+- بطارية Di2 كنسبة مئوية أو أيقونة ملونة أو كليهما
+- مظهر نهاري / ليلي، وست لغات (EN, FR, ES, RU, DE, AR)
 
-الميزات
-- سرعة خلفية كبيرة وواضحة مع حجم الكاسيت (الحالية • الإجمالي)
-- مؤشر النجمة الأمامية
-- السرعة الخلفية بالأرقام، أو كرسم للكاسيت، أو كليهما
-- إعدادات Shimano المسبقة للنجوم والكاسيتات الشائعة
-  (10/11/12 سرعة)، أو أدخل أسنانك الخاصة لأي مجموعة نقل
-- نسبة البطارية أو أيقونة بطارية ملونة
-- مؤشر الاتصال مع إعادة اتصال تلقائية
-- كشف تلقائي لطراز Di2
-- طبقة تشخيص على الشاشة للمساعدة في حل مشكلات الاتصال
-- سمة ألوان نهارية / ليلية
-- ست لغات: الإنجليزية، الفرنسية، الإسبانية، الروسية، الألمانية، العربية
+إعداد نظام النقل
+اختر إعدادًا مسبقًا من Shimano للتروس الأمامية والكاسيت (مثل 50-34 أو 11-34 أو
+10-51)، أو اختر Custom وأدخل عدد الأسنان يدويًا.
 
-التسجيل في النشاط (بيانات Connect IQ في Garmin Connect)
-- كل ثانية: السرعة الأمامية والخلفية، الأسنان الأمامية والخلفية، النسبة، البطارية
-- ملخص الرحلة: متوسط وأقصى نسبة، عدد التبديلات الأمامية والخلفية، أكثر تركيبة استخداماً
-  مع نسبة الوقت، أفضل 3 تروس خلفية استخداماً، أعلى سرعة خلفية، أدنى بطارية
-- يظهر في قسم Connect IQ للنشاط وفي أي خدمة تدعم FIT
+التسجيل في النشاط
+التروس والأسنان والنسبة والبطارية كل ثانية، مع ملخص: أعلى ترس خلفي، وأقصى نسبة،
+وأدنى بطارية، وعدد التبديلات. يظهر في قسم Connect IQ داخل النشاط.
 
-المتطلبات
-- نظام Shimano Di2 يبث عبر BLE.
+تبديل الدراجة
+فعّل «نسيان Di2 المقترن» في إعدادات الحقل — يترك الوحدة الحالية ويرتبط بأقرب
+جهاز Di2 مستيقظ عند الفحص التالي.
 
-تم التأكيد مع Shimano XT Di2 RD-M8250-SGS (12 سرعة) على Garmin Edge Explore 2.
-قد تعمل أيضاً سلاسل Di2 أخرى تبث نفس بيانات BLE — يكتشف الحقل الطراز، وتساعد طبقة
-التشخيص في إضافة دعم لطُرز جديدة.
+الإعداد الذي جُرّب عليه
+طُوِّر وجُرِّب على دراجتي الشخصية: Shimano XT Di2 RD-M8250-SGS (12 سرعة) مع
+Garmin Edge Explore 2. من المرجّح أن تعمل سلاسل Di2 الأخرى التي تبث البيانات
+نفسها عبر Bluetooth، لكن لا يمكنني التحقق منها بنفسي.
 
-تطبيق مستقل غير رسمي — غير مرتبط بشركة Shimano أو معتمد منها.
+إذا لم يعمل شيء ما
+فعّل «شاشة التشخيص» في إعدادات الحقل. عندها يعرض الحقل شاشة تقنية بدل التخطيط
+المعتاد: حالة الاتصال، والطراز المكتشف، والبيانات الخام من جهاز Di2 لديك. أرسل
+لي صورة لتلك الشاشة، فأرى ما يجري في إعدادك، وغالبًا ما أتمكن من إضافة الدعم.
+
+مشكلة معروفة: مع إصدار البرنامج 31.33 على Edge Explore 2 يرفض الجهاز نفسه تسجيل
+خدمة البلوتوث التي يستخدمها Di2، لذا لا يمكن لأي تطبيق خارجي قراءة التروس (تظل
+البطارية تعمل). أُبلغت Garmin وتم اعتماد البلاغ (CIQQA-4662) بانتظار إصلاح
+البرنامج. الإصدار 30.23 غير متأثر.
+
+تطبيق مستقل غير رسمي — غير تابع لشركة Shimano.
 ```
