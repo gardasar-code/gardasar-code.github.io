@@ -4,6 +4,13 @@ All notable user-facing changes to Di2 Field. Version numbers match
 `manifest.xml`. Text here is English on purpose — it feeds the Connect IQ
 Store "What's New" field.
 
+## 0.0.50
+
+### Changed
+- Diagnostics build only: the build is named without dots again, so the device
+  writes its log file next to the app as it should. No change to the field
+  itself.
+
 ## 0.0.49
 
 ### Changed
