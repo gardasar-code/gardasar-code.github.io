@@ -80,7 +80,12 @@ class Di2FieldView extends WatchUi.DataField {
     // DEMO_SCENE_TICKS секунд (compute ≈ 1 Гц), затем переключается на следующую.
     // anim крутим каждый тик, чтобы были видны пульсация точки и «бегущее» многоточие.
     //
-    // Полный цикл сцен (0..8) — прогоняет фазы связи И варианты показа батареи/передачи:
+    // ВАЖНО: сцены — это ВЫДУМАННЫЕ данные, а не поведение BLE. В симуляторе стек
+    // Bluetooth отсутствует, registerProfile/скан/notify не выполняются вовсе, поэтому
+    // симулятор показывает только то, что нарисовано ниже. Реальное железо (FW 31.33)
+    // сейчас живёт в сцене 10 — см. doc/NOTES.md и bugreport.
+    //
+    // Полный цикл сцен — фазы связи, варианты показа батареи/передачи и diag-экраны:
     //   0 Searching   — синяя пульсирующая точка, статус-экран поиска
     //   1 Connecting  — жёлтая точка, статус-экран подключения
     //   2 Live        — цифры + батарея %, 1x, передача 5/12, 80 %
@@ -90,17 +95,20 @@ class Di2FieldView extends WatchUi.DataField {
     //   6 Live+lock   — ГРАФИК кассеты + иконка, 3x (бар передней активный), 9/12, 30 %
     //   7 Live+lock   — ОБА (график+цифры) + иконка+%, 2x (бар+цифра), 12/12, 90 %
     //   8 Retry       — оранжевая точка, статус-экран (привязка ещё активна)
-    //   9 Diag        — диагностический экран (BLE-разбор по фото): discovery, GATT-имя,
-    //                   профиль, передачи, сырой notify-пакет
+    //   9 Diag OK     — как ДОЛЖНО быть: 18EF:ok, sub=ok, пакеты идут (эталон)
+    //  10 Diag SKIP   — как ЕСТЬ на Edge Explore 2 FW 31.33: 18EF:skip → sub=no-svc,
+    //                   виден только 180F, передач нет (снимок с устройства)
+    //  11 Diag SILENT — подписка принята, но Di2 молчит: sub=ok, pkt=0/0 (уснул)
+    //  12 Diag RAW    — незнакомая серия: mdl=?, пакеты идут, но длина чужая (pkt=N/0)
     //
     // Зафиксировать ОДИН вид (для скриншота) двумя способами:
     //   • в коде — константа DEMO_SCENE ниже: -1 = цикл по всем сценам (как сейчас),
-    //     0..8 = всегда показывать эту сцену (быстро менять прямо в исходнике);
+    //     0..12 = всегда показывать эту сцену (быстро менять прямо в исходнике);
     //   • в рантайме — «File → Edit Persistent Storage» в симуляторе → ключ debugScene.
     // Приоритет: DEMO_SCENE (если >=0) → debugScene → цикл по тикам.
-    (:debug) const DEMO_SCENE = -1;        // -1 = цикл; 0..9 = зафиксировать сцену в коде
+    (:debug) const DEMO_SCENE = -1;        // -1 = цикл; 0..12 = зафиксировать сцену в коде
     (:debug) const DEMO_SCENE_TICKS = 5;
-    (:debug) const DEMO_SCENE_COUNT = 10;  // число сцен в демо-цикле (0..9)
+    (:debug) const DEMO_SCENE_COUNT = 13;  // число сцен в демо-цикле (0..12)
 
     (:debug)
     function applyDebugData() as Void {
@@ -151,9 +159,21 @@ class Di2FieldView extends WatchUi.DataField {
             case 8:   // потеря связи / реконнект
                 setDemo(false, CONN_RETRY, true, -1, -1, -1, 0, 0, 1, 1);
                 break;
-            default:  // диагностический экран (BLE-разбор по фото)
-                setDemo(true, CONN_LIVE, true, 5, 12, 80, 0, 0, 2, 2);
-                setDemoDiag();
+            case 9:   // diag: всё работает (эталон для сравнения с фото пользователя)
+                setDemo(true, CONN_LIVE, true, 5, 12, 80, 0, 0, 1, 1);
+                setDemoDiagOk();
+                break;
+            case 10:  // diag: снимок с реального Edge Explore 2 (FW 31.33) — профиль пропущен
+                setDemo(true, CONN_LIVE, false, -1, 12, 100, 0, 0, 1, 1);
+                setDemoDiagSkip();
+                break;
+            case 11:  // diag: подписка есть, устройство молчит (Di2 ушёл в сон)
+                setDemo(true, CONN_LIVE, true, -1, 12, 70, 0, 0, 1, 1);
+                setDemoDiagSilent();
+                break;
+            default:  // diag: незнакомая серия — пакеты идут, но раскладка другая
+                setDemo(true, CONN_LIVE, true, -1, 12, 55, 0, 0, 1, 1);
+                setDemoDiagRaw();
                 break;
         }
     }
@@ -185,30 +205,125 @@ class Di2FieldView extends WatchUi.DataField {
         _state.diagOverlay = false;   // обычные сцены — основной макет (не diag-экран)
     }
 
-    // Демо-данные для диагностического экрана: включаем diagOverlay и заполняем dbg-поля
-    // правдоподобными значениями (discovery, GATT-имя, профиль, сырой пакет передач).
+    // Общая часть diag-сцен: включить оверлей и вернуть все dbg-поля к «чистому листу».
+    // Сброс обязателен — сцены сменяют друг друга в одном экземпляре Di2State, и без
+    // него hex-дампы и счётчики предыдущей сцены протекали бы в следующую.
     (:debug)
-    function setDemoDiag() as Void {
+    function setDemoDiagBase() as Void {
         _state.diagOverlay = true;
+        _state.dbgScanTotal = 0;
+        _state.dbgScanShimano = 0;
+        _state.dbgBestRssi = -999;
+        _state.dbgDeviceName = "RDM8250S2A8";
+        _state.dbgModel = "XT Di2 M8250";   // метка профиля из Di2BleDelegate.PROFILES
+        _state.dbgGearLen = 0;
+        _state.dbgPktTotal = 0;
+        _state.dbgPktGood = 0;
+        _state.dbgLastPktMs = 0;            // 0 = пакетов не было → age=--
+        _state.dbgSub = "-";
+        _state.dbgSvcCount = -1;
+        _state.dbgReg = "";
+        _state.dbgRegAttempts = 0;
+        _state.dbgRegForm = "";
+        _state.dbgSvcList = "";
+        _state.dbgReconnects = 0;
+        _state.dbgPktHex = [] as Lang.Array<Lang.String>;
+        _state.dbgPktLen = [] as Lang.Array<Lang.Number>;
+    }
+
+    // Три разновидности пакетов — ровно как их шлёт реальный XT M8250 (doc/NOTES.md).
+    (:debug)
+    function setDemoPackets() as Void {
+        _state.recordPacket(17, "00 00 03 FF FF 05 0C 80 80 80 FF EE 12 FF FF 15 00");
+        _state.recordPacket(6, "06 42 00 00 00 03");
+        _state.recordPacket(3, "04 FF FF");
+    }
+
+    // «Свежий» пакет: возраст в секундах считается во View от System.getTimer(),
+    // поэтому подставляем отметку в прошлом, а не константу (иначе age рос бы вечно).
+    (:debug)
+    function agoMs(seconds as Lang.Number) as Lang.Number {
+        var t = System.getTimer() - seconds * 1000;
+        return (t > 0) ? t : 1;
+    }
+
+    // Сцена 9 — эталон «всё работает»: профиль передач принят, подписка ok, пакеты идут.
+    // Именно с этим видом сравниваем фото оверлея, присланное пользователем.
+    (:debug)
+    function setDemoDiagOk() as Void {
+        setDemoDiagBase();
         _state.dbgScanTotal = 7;
         _state.dbgScanShimano = 1;
         _state.dbgBestRssi = -68;
-        _state.dbgDeviceName = "RDM8250S2A8";
-        _state.dbgModel = "XT M8250 12s";
-        _state.dbgGearLen = 3;
+        _state.dbgGearLen = 17;
         _state.dbgPktTotal = 124;
         _state.dbgPktGood = 41;
-        _state.dbgLastPktMs = 1;
+        _state.dbgLastPktMs = agoMs(1);
         _state.dbgSub = "ok";
         _state.dbgSvcCount = 2;
         _state.dbgReg = "18EF:ok 180F:ok";
         _state.dbgRegAttempts = 1;
+        _state.dbgRegForm = "d";
         _state.dbgSvcList = "180F 18EF ";
         _state.dbgReconnects = 2;
-        // Три разновидности пакетов — ровно как их шлёт реальный XT M8250 (doc/NOTES.md).
-        _state.recordPacket(17, "00 00 03 FF FF 05 0C 80 80 80 FF EE 12 FF FF 15 00");
-        _state.recordPacket(6, "06 42 00 00 00 03");
-        _state.recordPacket(3, "04 FF FF");
+        setDemoPackets();
+    }
+
+    // Сцена 10 — фактическое поведение Edge Explore 2 на FW 31.33 (снимок с железа):
+    // обе формы профиля 18EF уронили поле, счётчик крашей упёрся в лимит → "18EF:skip".
+    // Незарегистрированный профиль стек на устройстве не ищет: в списке сервисов только
+    // 180F, sub=no-svc, notify нет вообще, передачи "-". Батарея при этом читается.
+    // Скан пустой (dev=0), потому что подключились к уже спаренному устройству.
+    (:debug)
+    function setDemoDiagSkip() as Void {
+        setDemoDiagBase();
+        _state.dbgSub = "no-svc";
+        _state.dbgSvcCount = 1;
+        _state.dbgReg = "18EF:skip 180F:ok";
+        _state.dbgRegAttempts = 0;   // ранний выход из registerModeProfile → n=0
+        _state.dbgSvcList = "180F ";
+    }
+
+    // Сцена 11 — подписка принята, но канал молчит: Di2 ушёл в глубокий сон.
+    // Отличие от сцены 10 читается по строке sub=: здесь ok, а пакетов нет.
+    (:debug)
+    function setDemoDiagSilent() as Void {
+        setDemoDiagBase();
+        _state.dbgScanTotal = 5;
+        _state.dbgScanShimano = 1;
+        _state.dbgBestRssi = -74;
+        _state.dbgSub = "ok";
+        _state.dbgSvcCount = 2;
+        _state.dbgReg = "18EF:ok 180F:ok";
+        _state.dbgRegAttempts = 1;
+        _state.dbgRegForm = "n";
+        _state.dbgSvcList = "180F 18EF ";
+        _state.dbgReconnects = 4;
+    }
+
+    // Сцена 12 — незнакомая серия Di2: имя не совпало ни с одним префиксом (mdl=?),
+    // пакеты идут, но ни один не совпал с длиной профиля (pkt=N/0) → чинить раскладку,
+    // а не связь. Ради этого случая в оверлее и печатается сырой hex.
+    (:debug)
+    function setDemoDiagRaw() as Void {
+        setDemoDiagBase();
+        _state.dbgDeviceName = "RDXX9999S1B4";
+        _state.dbgModel = "?";
+        _state.dbgScanTotal = 9;
+        _state.dbgScanShimano = 1;
+        _state.dbgBestRssi = -59;
+        _state.dbgGearLen = 11;
+        _state.dbgPktTotal = 58;
+        _state.dbgPktGood = 0;
+        _state.dbgLastPktMs = agoMs(2);
+        _state.dbgSub = "ok";
+        _state.dbgSvcCount = 3;
+        _state.dbgReg = "18EF:ok 180F:ok";
+        _state.dbgRegAttempts = 1;
+        _state.dbgRegForm = "d";
+        _state.dbgSvcList = "180A 180F 18EF ";
+        _state.recordPacket(11, "02 00 07 0B FF 40 00 00 12 FF 00");
+        _state.recordPacket(4, "05 01 FF FF");
     }
 
     (:release)
