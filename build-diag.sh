@@ -42,6 +42,23 @@ JUNGLE_TMP="monkey-diag.jungle"
 # сбрасывались бы при каждой пересборке.
 DIAG_APP_ID="d1a92026aa5f4c1b9e3d70f2c48b6d10"
 
+# Применить sed-патч и УБЕДИТЬСЯ, что он сработал. Патчи здесь молчаливые: если
+# исходник переименовали или строка уехала в другой файл, sed просто ничего не найдёт
+# и соберётся «диаг-сборка» без диагностики. Так уже случалось с DIAG_VERSION при
+# переезде кода в Di2DiagScreen — теперь такой промах роняет сборку сразу.
+patch() {
+  local file="$1" expr="$2" what="$3"
+  local before after
+  before="$(md5 -q "$file")"
+  sed -i '' "$expr" "$file"
+  after="$(md5 -q "$file")"
+  if [ "$before" = "$after" ]; then
+    echo "✗ патч не применился: $what ($file)" >&2
+    echo "  выражение: $expr" >&2
+    exit 1
+  fi
+}
+
 cleanup() { rm -rf "$SRC_TMP" "$RES_TMP" "$MANIFEST_TMP" "$JUNGLE_TMP"; }
 trap cleanup EXIT
 
@@ -50,22 +67,26 @@ rm -rf "$SRC_TMP"
 cp -R source "$SRC_TMP"
 
 # Патч 1: BLE включён и в debug-сборке (на устройстве реальный стек работает).
-sed -i '' 's#(:debug)   function bleEnabled() as Lang.Boolean { return false; }#(:debug)   function bleEnabled() as Lang.Boolean { return true; }  // DIAG#' \
-  "$SRC_TMP/Di2FieldApp.mc"
+patch "$SRC_TMP/Di2FieldApp.mc" \
+  's#(:debug)   function bleEnabled() as Lang.Boolean { return false; }#(:debug)   function bleEnabled() as Lang.Boolean { return true; }  // DIAG#' \
+  "BLE on in debug build"
 
 # Патч 2: на устройстве показываем реальные BLE-данные, а не демо-цикл.
-sed -i '' 's#^    function applyDebugData() as Void {$#    function applyDebugData() as Void {\n        return;  // DIAG: real BLE data, no demo#' \
-  "$SRC_TMP/Di2FieldView.mc"
+patch "$SRC_TMP/Di2FieldView.mc" \
+  's#^    function applyDebugData() as Void {$#    function applyDebugData() as Void {\n        return;  // DIAG: real BLE data, no demo#' \
+  "no demo data"
 
 # Патч 3: включаем диагностический лог (в коммите DEBUG=false для release).
-sed -i '' 's#private const DEBUG = false;#private const DEBUG = true;   // DIAG#' \
-  "$SRC_TMP/Di2BleDelegate.mc"
+patch "$SRC_TMP/Di2BleDelegate.mc" \
+  's#private const DEBUG = false;#private const DEBUG = true;   // DIAG#' \
+  "file logging on"
 
 # Патч 4: форсируем diag-оверлей. В диаг-сборке экран нужен ровно один — технический,
 # и полагаться на тоггл diagOverlay в настройках Connect не стоит: забытый тоггл даёт
 # бесполезное фото обычного макета вместо счётчиков notify/подписки.
-sed -i '' 's#    private const DEBUG_OVERLAY = false;#    private const DEBUG_OVERLAY = true;   // DIAG#' \
-  "$SRC_TMP/Di2FieldView.mc"
+patch "$SRC_TMP/Di2FieldView.mc" \
+  's#    private const DEBUG_OVERLAY = false;#    private const DEBUG_OVERLAY = true;   // DIAG#' \
+  "diag screen drawn"
 
 # Патч 5: имя поля с суффиксом « Diag» во ВСЕХ локалях. Иначе store-бета и диаг-сборка
 # выглядят в списке полей Edge одинаково, и легко воткнуть на экран не ту (а лог пишет
@@ -89,13 +110,23 @@ sed 's#id="[0-9a-f]\{32\}"#id="'"$DIAG_APP_ID"'"#' manifest.xml > "$MANIFEST_TMP
 # в жёстком лимите памяти, debug-сборка (без -r) не оптимизирована и тратит заметно
 # больше релизной, а поля FIT — уже ловленный источник OOM («New Field out of memory
 # for FIT data», doc/CIQ_LOG.BAK). Для разбора BLE запись в FIT не нужна.
-sed -i '' 's#        _fit = new Di2FitContributor(self);#        _fit = null;   // DIAG: no FIT, spare the memory#' \
-  "$SRC_TMP/Di2FieldView.mc"
+patch "$SRC_TMP/Di2FieldView.mc" \
+  's#        _fit = new Di2FitContributor(self);#        _fit = null;   // DIAG: no FIT, spare the memory#' \
+  "no FIT contributor"
 
 # Патч 8: вписываем версию в diag-экран (строка v=). В имени файла версии больше нет,
 # а знать, какая сборка стоит на устройстве, по фото экрана надо.
-sed -i '' 's#    const DIAG_VERSION = "";#    const DIAG_VERSION = "'"$VERSION"'";   // DIAG#' \
-  "$SRC_TMP/Di2DiagScreen.mc"
+patch "$SRC_TMP/Di2DiagScreen.mc" \
+  's#    const DIAG_VERSION = "";#    const DIAG_VERSION = "'"$VERSION"'";   // DIAG#' \
+  "version on diag screen"
+
+# Патч 9: включаем СБОР диагностики. Отрисовку включает патч 4 (DEBUG_OVERLAY), но
+# сырые пакеты и их длина копятся в делегате под условием _state.diagOverlay — это
+# пользовательская настройка, и в диаг-сборке она оставалась выключенной. Симптом:
+# счётчики pkt растут (они безусловные), а len=0 и hex-дампов на экране нет.
+patch "$SRC_TMP/Di2FieldApp.mc" \
+  's#_state.diagOverlay = readBooleanProperty("diagOverlay", false);#_state.diagOverlay = true;   // DIAG: collect raw packets too#' \
+  "diag data collected"
 
 # Временный jungle с источниками и ресурсами из копий. Локали перечисляем ЯВНО:
 # автоматика ищет resources-<lang> относительно проекта, а не относительно нашего
