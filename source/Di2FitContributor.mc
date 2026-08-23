@@ -118,8 +118,8 @@ class Di2FitContributor {
             _batteryField.setData(battery < 0 ? 0 : battery);
         }
 
-        // накопление статистики (нужно и для экрана, поэтому вне флагов FIT)
-        _stats.sample(frontGear, rearGear, frontTeeth, rearTeeth, ratio);
+        // накопление статистики для session-сводки
+        _stats.sample(frontGear, rearGear, ratio);
 
         // session
         if (_sesOk) {
