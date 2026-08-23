@@ -25,53 +25,8 @@ class Di2BleDelegate extends Ble.BleDelegate {
     private const BATT_SERVICE_UUID = "0000180f-0000-1000-8000-00805f9b34fb";
     private const BATT_CHAR_UUID    = "00002a19-0000-1000-8000-00805f9b34fb";
 
-    // ── Профили серий Di2: авто-детект по GATT-имени ──────────────────────────
-    // Раскладка notify-пакета 0x2ac1 зависит от серии переключателя. Вместо хардкода
-    // смещения вынесены в ТАБЛИЦУ профилей: при подключении читаем GATT-имя устройства
-    // и выбираем первый профиль, чей :prefix совпал с началом имени. Новая серия
-    // добавляется ОДНОЙ строкой в PROFILES — логика парсинга не меняется.
-    //
-    // Поля профиля:
-    //   :prefix — префикс GATT-имени модели (как приходит по getName());
-    //   :label  — человекочитаемая метка (для diag-оверлея и краудсорса);
-    //   :len    — длина пакета передач (байт);
-    //   :rear   — индекс байта текущей ЗАДНЕЙ передачи;
-    //   :front  — индекс байта текущей ПЕРЕДНЕЙ передачи (-1 = не выявлен);
-    //   :cogs   — индекс байта ЧИСЛА задних звёзд (-1 = не выявлен).
-    //
-    // ПОДТВЕРЖДЕНО на железе: только XT M8250 (len 17, rear=байт5; front не выявлен,
-    // тест 1x). Дорожные/гравийные серии — ГИПОТЕЗА: один и тот же шлюз D-Fly (EW-WU)
-    // вещает тот же канал, поэтому раскладка предположительно совпадает. Подтверждение —
-    // по фото diag-оверлея от пользователей (имя + сырой пакет). См. doc/NOTES.md.
-    private const PROFILES = [
-        { :prefix => "RDM8250", :label => "XT Di2 M8250",   :len => 17, :rear => 5, :front => -1, :cogs => 6 },
-        // ── ниже: гипотеза, требует подтверждения по фото оверлея ──
-        { :prefix => "RDM9250", :label => "XTR Di2 M9250",  :len => 17, :rear => 5, :front => -1, :cogs => 6 },
-        { :prefix => "RDR9250", :label => "DURA-ACE R9250", :len => 17, :rear => 5, :front => -1, :cogs => 6 },
-        { :prefix => "RDR8150", :label => "Ultegra R8150",  :len => 17, :rear => 5, :front => -1, :cogs => 6 },
-        { :prefix => "RDR7150", :label => "105 R7150",      :len => 17, :rear => 5, :front => -1, :cogs => 6 },
-        { :prefix => "RDRX825", :label => "GRX RX825",      :len => 17, :rear => 5, :front => -1, :cogs => 6 }
-    ] as Lang.Array<Lang.Dictionary>;
-
-    // Дефолтный профиль (XT M8250) — пока имя устройства неизвестно или не совпало
-    // ни с одним префиксом. Соответствует прежним хардкод-константам PKT_*.
-    private const DEFAULT_PKT_LEN  = 17;
-    private const DEFAULT_REAR_IDX = 5;
-    private const DEFAULT_FRONT_IDX = -1;
-    private const DEFAULT_COGS_IDX  = 6;    // байт 6 = число задних звёзд (подтверждён дважды)
-
-    // Границы санитарной проверки распарсенных значений. Данные приходят по воздуху
-    // от чужого устройства: мусорный или чужой по формату пакет не должен попадать
-    // ни на экран, ни в FIT (раньше байт клался в состояние как есть, и на экране
-    // могло оказаться, например, "255/12").
-    private const MAX_REAR_COGS  = 31;      // предел ANT+/Di2 для задних звёзд
-    private const MAX_FRONT_RINGS = 3;      // 1x/2x/3x
-
-    // Активная раскладка пакета (из выбранного профиля). Меняется в selectProfile().
-    private var _pktLen as Lang.Number = DEFAULT_PKT_LEN;
-    private var _rearIdx as Lang.Number = DEFAULT_REAR_IDX;
-    private var _frontIdx as Lang.Number = DEFAULT_FRONT_IDX;
-    private var _cogsIdx as Lang.Number = DEFAULT_COGS_IDX;
+    // Раскладка пакета и профили серий Di2 живут в Di2PacketParser (тестируется без BLE).
+    private var _parser as Di2PacketParser = new Di2PacketParser();
 
     // ── Тайминги/лимиты ───────────────────────────────────────────────────────
     // Периодику гоним от onTick() (вызывается из View.compute() ~раз в секунду).
@@ -265,43 +220,10 @@ class Di2BleDelegate extends Ble.BleDelegate {
         saveLockName(nm);   // имя могло прийти только сейчас — тогда здесь же и «прилипаем»
     }
 
-    // Выбрать профиль раскладки пакета по GATT-имени: первый профиль, чей :prefix
-    // совпал с началом имени. Имя null/без совпадения → дефолт (XT M8250). Применяется
-    // к смещениям парсинга (_pktLen/_rearIdx/_frontIdx) и метке модели в state.
+    // Выбрать раскладку пакета по GATT-имени и отразить метку модели в состоянии.
     private function selectProfile(name as Lang.String?) as Void {
-        // Старт с дефолта (XT M8250): подходит и как fallback для нераспознанной модели —
-        // пробуем самую вероятную раскладку, а сырой пакет всё равно виден в diag.
-        _pktLen   = DEFAULT_PKT_LEN;
-        _rearIdx  = DEFAULT_REAR_IDX;
-        _frontIdx = DEFAULT_FRONT_IDX;
-        _cogsIdx  = DEFAULT_COGS_IDX;
-
-        var p = matchProfile(name);
-        if (p != null) {
-            _pktLen   = p[:len] as Lang.Number;
-            _rearIdx  = p[:rear] as Lang.Number;
-            _frontIdx = p[:front] as Lang.Number;
-            _cogsIdx  = (p[:cogs] != null) ? (p[:cogs] as Lang.Number) : DEFAULT_COGS_IDX;
-            _state.dbgModel = p[:label] as Lang.String;
-        } else {
-            // Имя есть, но не распознано — метим "?" (по фото оверлея добавим профиль).
-            _state.dbgModel = (name != null && name.length() > 0) ? "?" : "";
-        }
-    }
-
-    // Найти профиль по префиксу GATT-имени (name.find(prefix)==0 → имя начинается с него).
-    private function matchProfile(name as Lang.String?) as Lang.Dictionary? {
-        if (name == null || name.length() == 0) {
-            return null;
-        }
-        for (var i = 0; i < PROFILES.size(); i++) {
-            var p = PROFILES[i] as Lang.Dictionary;
-            var prefix = p[:prefix] as Lang.String;
-            if (name.find(prefix) == 0) {
-                return p;
-            }
-        }
-        return null;
+        _parser.selectProfile(name);
+        _state.dbgModel = _parser.label;
     }
 
     // Форма описания профиля для текущего запуска: true — с явным CCCD (дефолт).
@@ -364,7 +286,6 @@ class Di2BleDelegate extends Ble.BleDelegate {
         var v = Application.Storage.getValue(STORAGE_REG_PENDING);
         return (v instanceof Lang.Boolean) ? v : false;
     }
-
     // Прочитать сохранённое имя «своего» Di2 (null, если привязки нет).
     private function loadLockedName() as Lang.String? {
         var v = Application.Storage.getValue(STORAGE_LOCK);
@@ -684,7 +605,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
             // Троттлинг: notify сыпется ~десятки раз в секунду и забивает 5 КБ-лог
             // одинаковыми пакетами, вытесняя события связи. Логируем пакет только при
             // СМЕНЕ передачи (байт[5]) либо хартбитом раз в SCAN_LOG_HB_MS.
-            var gear = (value.size() > _rearIdx) ? value[_rearIdx] : -1;
+            var gear = (value.size() > _parser.rearIdx) ? value[_parser.rearIdx] : -1;
             var nowMs = System.getTimer();
             if (gear != _lastLoggedGear || (nowMs - _lastNotifyLogMs) >= SCAN_LOG_HB_MS) {
                 logBytes(characteristic, value);
@@ -695,7 +616,7 @@ class Di2BleDelegate extends Ble.BleDelegate {
         // Счётчики notify ведём ВСЕГДА (два инкремента, не зависят от оверлея): именно
         // они отличают «канал молчит» от «пакеты идут, но не той длины».
         _state.dbgPktTotal += 1;
-        if (value.size() == _pktLen) {
+        if (value.size() == _parser.pktLen) {
             _state.dbgPktGood += 1;
         }
         _state.dbgLastPktMs = System.getTimer();
@@ -727,50 +648,15 @@ class Di2BleDelegate extends Ble.BleDelegate {
 
     // ── Парсинг ───────────────────────────────────────────────────────────────
 
+    // Разбор и применение пакета. Вся логика раскладки и санитарных проверок — в
+    // Di2PacketParser; здесь только перенос результата в состояние.
     private function parseGearPacket(value as Lang.ByteArray) as Void {
-        if (value.size() != _pktLen) {
+        if (!_parser.parse(value, _state.rearTotal, _state.frontTotal)) {
             return;
         }
-
-        // Число задних звёзд из пакета (байт 6 на подтверждённых сериях). Железо
-        // авторитетнее настроек: пользователь может ошибиться в конфигурации, а
-        // переключатель знает свою кассету. При мусорном значении остаётся настройка.
-        if (_cogsIdx >= 0 && _cogsIdx < value.size()) {
-            var cogs = value[_cogsIdx].toNumber();
-            if (cogs >= 1 && cogs <= MAX_REAR_COGS) {
-                _state.rearTotal = cogs;
-            }
-        }
-
-        // Задняя передача. ВАЛИДАЦИЯ ОБЯЗАТЕЛЬНА: значение приходит по воздуху и на
-        // чужой серии Di2 (или в служебном пакете нашей длины) в этом байте может
-        // оказаться что угодно. Вне диапазона — пакет игнорируем целиком, показываем
-        // прежнее значение, а не 255-ю передачу.
-        if (_rearIdx >= 0 && _rearIdx < value.size()) {
-            var rear = value[_rearIdx].toNumber();
-            if (!validGear(rear, _state.rearTotal, MAX_REAR_COGS)) {
-                return;
-            }
-            _state.rear = rear;
-        }
-
-        // Передняя передача: только если профиль выявил её байт (_frontIdx>=0).
-        // Иначе front остаётся из настроек (1x → 1; 2x/3x → "-/N", см. Di2FieldApp).
-        if (_frontIdx >= 0 && _frontIdx < value.size()) {
-            var front = value[_frontIdx].toNumber();
-            if (validGear(front, _state.frontTotal, MAX_FRONT_RINGS)) {
-                _state.front = front;
-            }
-        }
-    }
-
-    // Индекс передачи правдоподобен: 1..total (если число звёзд известно) либо
-    // 1..hardMax (пока неизвестно — например до первого валидного байта числа звёзд).
-    private function validGear(v as Lang.Number, total as Lang.Number, hardMax as Lang.Number) as Lang.Boolean {
-        if (v < 1) {
-            return false;
-        }
-        return (total > 0) ? (v <= total) : (v <= hardMax);
+        if (_parser.rearTotal > 0) { _state.rearTotal = _parser.rearTotal; }
+        if (_parser.rear > 0)      { _state.rear = _parser.rear; }
+        if (_parser.front > 0)     { _state.front = _parser.front; }
     }
 
     // Hex-строка байтов: "00 11 22 ...".
