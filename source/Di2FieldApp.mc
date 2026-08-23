@@ -68,13 +68,17 @@ class Di2FieldApp extends Application.AppBase {
         // (задаёт и зубья, и число звёзд по своей раскладке). Записать значения обратно
         // в поля настроек телефона из кода нельзя (ограничение Connect IQ: setValue с
         // устройства не отражается в форме настроек), поэтому пресет действует в рантайме.
-        var front = resolveTeeth(FRONT_PRESETS, "frontTeethPreset", "frontTeeth",
-                                 "frontChainrings", _state.DEFAULT_FRONT_TEETH, 1);
+        var front = Di2Settings.resolveTeeth(
+            Di2Settings.FRONT_PRESETS, readNumberProperty("frontTeethPreset", 0),
+            readStringProperty("frontTeeth"), readNumberProperty("frontChainrings", 1),
+            _state.DEFAULT_FRONT_TEETH);
         _state.frontTeeth = front[0] as Lang.Array<Lang.Number>;
         _state.frontTotal = front[1] as Lang.Number;
 
-        var rear = resolveTeeth(REAR_PRESETS, "rearTeethPreset", "rearTeeth",
-                                "rearCogs", _state.DEFAULT_REAR_TEETH, 12);
+        var rear = Di2Settings.resolveTeeth(
+            Di2Settings.REAR_PRESETS, readNumberProperty("rearTeethPreset", 0),
+            readStringProperty("rearTeeth"), readNumberProperty("rearCogs", 12),
+            _state.DEFAULT_REAR_TEETH);
         _state.rearTeeth = rear[0] as Lang.Array<Lang.Number>;
         _state.rearTotal = rear[1] as Lang.Number;
 
@@ -89,94 +93,16 @@ class Di2FieldApp extends Application.AppBase {
         return (v instanceof Lang.Number) ? v : dflt;
     }
 
+    // Безопасное чтение строкового свойства (null, если свойство не строка).
+    private function readStringProperty(key as Lang.String) as Lang.String? {
+        var v = Application.Properties.getValue(key);
+        return (v instanceof Lang.String) ? (v as Lang.String) : null;
+    }
+
     // Безопасное чтение булева свойства с дефолтом.
     private function readBooleanProperty(key as Lang.String, dflt as Lang.Boolean) as Lang.Boolean {
         var v = Application.Properties.getValue(key);
         return (v instanceof Lang.Boolean) ? v : dflt;
-    }
-
-    // Таблицы пресетов зубьев (популярные конфигурации Shimano). Индекс = значение
-    // селектора в settings.xml; индекс 0 = Custom (ручной ввод). Раскладки кассет
-    // сверены по ki2 (doc/ki2 RearTeethPattern). Зубья — от меньшей звезды к большей.
-    private const FRONT_PRESETS as Lang.Array<Lang.String> = [
-        "",            // 0 — Custom
-        "50,34",       // 1 — Compact
-        "52,36",       // 2 — Semi-compact
-        "53,39",       // 3 — Standard
-        "54,40",       // 4
-        "48,31",       // 5 — GRX
-        "46,30",       // 6 — GRX
-        "38,28",       // 7 — MTB 2x
-        "40,30,22"     // 8 — 3x
-    ];
-    private const REAR_PRESETS as Lang.Array<Lang.String> = [
-        "",                                       // 0 — Custom
-        "10,12,14,16,18,21,24,28,33,39,45,51",    // 1 — 12sp 10-51
-        "11,12,13,14,15,17,19,21,24,27,30,34",    // 2 — 12sp 11-34
-        "11,12,13,14,15,16,17,19,21,24,27,30",    // 3 — 12sp 11-30
-        "11,12,13,14,15,17,19,21,24,28,32,36",    // 4 — 12sp 11-36
-        "11,12,13,14,15,16,17,18,19,21,24,28",    // 5 — 12sp 11-28
-        "11,13,15,17,19,21,23,25,27,30,34",       // 6 — 11sp 11-34
-        "11,12,13,14,16,18,20,22,25,28,32",       // 7 — 11sp 11-32
-        "11,13,15,17,19,21,24,28,32,37,46",       // 8 — 11sp 11-46
-        "11,12,13,14,15,17,19,21,23,25,28",       // 9 — 11sp 11-28
-        "11,13,15,17,19,21,24,27,31,35,40",       // 10 — 11sp 11-40
-        "11,13,15,17,20,23,26,30,36,43",          // 11 — 10sp 11-43
-        "11,13,15,17,20,23,28,34,41,48"           // 12 — 10sp 11-48
-    ];
-
-    // Строка зубьев для выбранного пресета или null (Custom/вне диапазона → ручной ввод).
-    private function presetTeeth(table as Lang.Array<Lang.String>, idx as Lang.Number) as Lang.String? {
-        if (idx <= 0 || idx >= table.size()) {
-            return null;
-        }
-        var s = table[idx];
-        return (s.length() > 0) ? s : null;
-    }
-
-    // Разрешить зубья + число звёзд: выбранный пресет переопределяет ручной ввод.
-    // Возвращает [teeth as Array<Number>, total as Number]. Общая логика для front/rear.
-    private function resolveTeeth(table as Lang.Array<Lang.String>, presetKey as Lang.String,
-                                  teethKey as Lang.String, countKey as Lang.String,
-                                  defaultTeeth as Lang.Array<Lang.Number>,
-                                  defaultCount as Lang.Number) as Lang.Array {
-        var preset = presetTeeth(table, readNumberProperty(presetKey, 0));
-        if (preset != null) {
-            var teeth = parseTeethString(preset, defaultTeeth);
-            return [teeth, teeth.size()];
-        }
-        return [readTeeth(teethKey, defaultTeeth), readNumberProperty(countKey, defaultCount)];
-    }
-
-    // Прочитать строковое свойство и распарсить в список чисел (зубья).
-    private function readTeeth(key as Lang.String, dflt as Lang.Array<Lang.Number>) as Lang.Array<Lang.Number> {
-        var v = Application.Properties.getValue(key);
-        if (!(v instanceof Lang.String)) {
-            return dflt;
-        }
-        return parseTeethString(v as Lang.String, dflt);
-    }
-
-    // Распарсить строку зубьев в список чисел (общая логика для ручного ввода и пресетов).
-    // Любой нецифровой символ — разделитель. Пустой/битый ввод → дефолт.
-    private function parseTeethString(s as Lang.String, dflt as Lang.Array<Lang.Number>) as Lang.Array<Lang.Number> {
-        var out = [] as Lang.Array<Lang.Number>;
-        var cur = "";
-        var digits = "0123456789";
-        var chars = s.toCharArray();
-        for (var i = 0; i < chars.size(); i++) {
-            var ch = chars[i].toString();
-            if (digits.find(ch) != null) {
-                cur += ch;
-            } else if (cur.length() > 0) {
-                out.add(cur.toNumber());
-                cur = "";
-            }
-        }
-        if (cur.length() > 0) {
-            out.add(cur.toNumber());
-        }
-        return (out.size() > 0) ? out : dflt;
     }
 
     // Data Field возвращает единственный View (без InputDelegate).
